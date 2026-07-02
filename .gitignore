@@ -1,6 +1,14 @@
 .vs/
 *.user
 *.suo
+*.sln
+*.slnx
+
+*.vcxproj
+*.vcxproj.filters
+
+build/
+out/
 x64/
 Debug/
 Release/
@@ -8,4 +16,8 @@ Release/
 *.pdb
 *.obj
 *.ilk
-Dependencies/lib
+*.lib
+
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
