@@ -1,0 +1,11 @@
+.vs/
+*.user
+*.suo
+x64/
+Debug/
+Release/
+*.exe
+*.pdb
+*.obj
+*.ilk
+Dependencies/lib
