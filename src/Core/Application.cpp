@@ -2,6 +2,7 @@
 #include <chrono>
 #include "log.h"
 #include "Math/Math.h"
+#include "Util/Util.h"
 #include "Core/Application.h"
 
 namespace Crescent {
@@ -16,16 +17,13 @@ Application::~Application() {
 }
 
 void Application::Run() {
-	// vertex shader
-	const char* vertexShaderSource = "#version 460 core\n"
-		"layout (location = 0) in vec3 aPos;\n"
-		"void main()\n"
-		"{\n"
-		"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-		"}\0";
+	std::string vertexShaderStr = Crescent::Util::ReadFile("Shaders/default.vert");
+	std::string fragmentShaderStr = Crescent::Util::ReadFile("Shaders/default.frag");
 
-	u32 vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	const char* vertexShaderSource = vertexShaderStr.c_str();
+	const char* fragmentShaderSource = fragmentShaderStr.c_str();
+
+	u32 vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
 	glCompileShader(vertexShader);
 
@@ -35,27 +33,17 @@ void Application::Run() {
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 	if (success == false) {
 		glGetShaderInfoLog(vertexShader, sizeof(infoLog), nullptr, infoLog);
-		Log::Error("Shader vertex compilation failed: ", infoLog);
+		Log::Error("Shader vertex compilation failed: \n", infoLog);
 	}
 
-	// fragment shader
-	const char* fragmentShaderSource = "#version 460 core\n"
-		"out vec4 FragColor;\n"
-		"uniform vec4 m_Color;\n"
-		"void main()\n"
-		"{\n"
-		"	FragColor = m_Color;\n"
-		"}\n";
-
-	u32 fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	u32 fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
 	glCompileShader(fragmentShader);
 
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
 	if (success == false) {
 		glGetShaderInfoLog(fragmentShader, sizeof(infoLog), nullptr, infoLog);
-		Log::Error("Shader framgent compilation failed: ", infoLog);
+		Log::Error("Shader framgent compilation failed: \n", infoLog);
 	}
 
 	// shader program linkage
@@ -69,7 +57,7 @@ void Application::Run() {
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
 	if (success == false) {
 		glGetProgramInfoLog(shaderProgram, sizeof(infoLog), nullptr, infoLog);
-		Log::Error("Shader program linking failed: ", infoLog);
+		Log::Error("Shader program linking failed: \n", infoLog);
 	}
 
 	glDeleteShader(vertexShader);
@@ -109,22 +97,32 @@ void Application::Run() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	f32 totalTime = 0.0f;
+
 	while (IsRunning() == true && m_Window->ShouldClose() == false) {
 		ProcessInput();
 
 		// background
-		glClearColor(0.4f, 0.3f, 0.7f, 1.0f);
+		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
 
-		i32 colorParam = glGetUniformLocation(shaderProgram, "m_Color");
+		totalTime +=  m_Window->GetDeltaTime();
+		f32 linearFactor = fmodf(totalTime * 0.5f, 1.0f);
+		f32 smoothFactor = Crescent::Math::SmoothStep(0.0f, 1.0f, linearFactor);
+		
+		i32 timeFactorParam = glGetUniformLocation(shaderProgram, "u_TimeFactor");
+		glUniform1f(timeFactorParam, smoothFactor);
 
-		glUniform4f(colorParam, 0.6f, 0.5f, 0.9f, 1.0f);
+		i32 triangleIDParam = glGetUniformLocation(shaderProgram, "u_TriangleID");
+		glUniform1i(triangleIDParam, 0);
+
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+		
+		glUniform1i(triangleIDParam, 1);
 
-		glUniform4f(colorParam, 0.9f, 0.5f, 0.6f, 1.0f);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(3 * sizeof(u32)));
 
 		m_Window->OnUpdate();

@@ -12,7 +12,7 @@ set(SOURCES
     src/Core/Window.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h")
+add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include
@@ -33,3 +33,9 @@ if (MSVC)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 endif()
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/Shaders"
+    "${CMAKE_CURRENT_BINARY_DIR}/Shaders"
+)

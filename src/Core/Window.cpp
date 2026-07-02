@@ -30,10 +30,12 @@ bool Window::Init(Window::Properties const& windowProperties) {
 	glViewport(0, 0, m_Properties.Width, m_Properties.Height);
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);
 
+	m_LastFrameTime = static_cast<f32>(glfwGetTime());
 	return true;
 }
 
 void Window::OnUpdate() {
+	UpdateDeltaTime();
 	glfwSwapBuffers(m_Window);
 	glfwPollEvents();
 }
@@ -56,6 +58,12 @@ bool Window::CreateWindow() {
 	}
 	Log::Print("GLAD and OpenGL initialized successfully.");
 	return true;
+}
+
+void Window::UpdateDeltaTime() {
+	f32 currentFrameTime = static_cast<f32>(glfwGetTime());
+	m_Properties.DeltaTime = currentFrameTime - m_LastFrameTime;
+	m_LastFrameTime = currentFrameTime;
 }
 
 void Window::FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {
