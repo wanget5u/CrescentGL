@@ -44,7 +44,7 @@ void Window::Shutdown() {
 }
 
 bool Window::CreateWindow() {
-	m_Window = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title, NULL, NULL);
+	m_Window = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title, nullptr, nullptr);
 	if (m_Window == nullptr) {
 		Log::Error("Failed to initialize GLFW window.");
 		return false;
@@ -55,6 +55,7 @@ bool Window::CreateWindow() {
 		return false;
 	}
 	Log::Print("GLAD and OpenGL initialized successfully.");
+	return true;
 }
 
 void Window::FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {

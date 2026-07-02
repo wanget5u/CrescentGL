@@ -5,7 +5,6 @@
 
 class Log {
 public:
-	// prints to the default output
 	template <typename... Args>
 	static void Print(Args&&... args) {
 		std::cout << "\033[1;37m[OK]\033[0m ";
