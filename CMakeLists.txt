@@ -10,9 +10,12 @@ set(SOURCES
     src/glad.c
     src/Core/Application.cpp
     src/Core/Window.cpp
+    src/Input/InputAction.cpp
+    src/Input/InputContext.cpp
+    src/Input/InputSystem.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h")
+add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h" "include/Core/Time.h" "include/Input/InputCodes.h" "include/Input/InputAction.h" "include/Input/InputContext.h" "include/Input/InputSystem.h")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include

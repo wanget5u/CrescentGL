@@ -1,15 +1,19 @@
 #include <thread>
 #include <chrono>
-#include "log.h"
+#include "Core/Log.h"
+#include "Core/Time.h"
 #include "Math/Math.h"
 #include "Util/Util.h"
 #include "Core/Application.h"
+#include "Input/InputSystem.h"
 
 namespace Crescent {
 
 Application::Application() {
 	m_Window = new Window(Window::Properties("CrescentGL", SCREEN_WIDTH, SCREEN_HEIGHT));
-	ProcessAndFocus();
+	glfwPollEvents();
+	m_Window->Show();
+	SetupInputActions();
 }
 
 Application::~Application() {
@@ -17,8 +21,8 @@ Application::~Application() {
 }
 
 void Application::Run() {
-	std::string vertexShaderStr = Crescent::Util::ReadFile("Shaders/default.vert");
-	std::string fragmentShaderStr = Crescent::Util::ReadFile("Shaders/default.frag");
+	std::string vertexShaderStr = Util::ReadFile("Shaders/default.vert");
+	std::string fragmentShaderStr = Util::ReadFile("Shaders/default.frag");
 
 	const char* vertexShaderSource = vertexShaderStr.c_str();
 	const char* fragmentShaderSource = fragmentShaderStr.c_str();
@@ -72,6 +76,7 @@ void Application::Run() {
 		-0.5f, -0.5f,  0.0f,
 		-0.5f,  0.4f,  0.0f
 	};
+
 	u32 indices[] = {
 		0, 1, 2,
 		3, 4, 5
@@ -100,7 +105,12 @@ void Application::Run() {
 	f32 totalTime = 0.0f;
 
 	while (IsRunning() == true && m_Window->ShouldClose() == false) {
+		m_Window->OnUpdate();
+		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
 		ProcessInput();
+		while (Time::AccumulatorHasSubstep()) {
+			Time::ConsumeSubstep();
+		}
 
 		// background
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
@@ -109,10 +119,10 @@ void Application::Run() {
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
 
-		totalTime +=  m_Window->GetDeltaTime();
+		totalTime += Time::GetVariableDeltaTime();
 		f32 linearFactor = fmodf(totalTime * 0.5f, 1.0f);
-		f32 smoothFactor = Crescent::Math::SmoothStep(0.0f, 1.0f, linearFactor);
-		
+		f32 smoothFactor = Math::SmoothStep(0.0f, 1.0f, linearFactor);
+
 		i32 timeFactorParam = glGetUniformLocation(shaderProgram, "u_TimeFactor");
 		glUniform1f(timeFactorParam, smoothFactor);
 
@@ -120,12 +130,10 @@ void Application::Run() {
 		glUniform1i(triangleIDParam, 0);
 
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-		
+
 		glUniform1i(triangleIDParam, 1);
 
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(3 * sizeof(u32)));
-
-		m_Window->OnUpdate();
 	}
 
 	glDeleteVertexArrays(1, &VAO);
@@ -142,16 +150,28 @@ void Application::Close() {
 	m_Running = false;
 }
 
-void Application::ProcessAndFocus() {
-	glfwPollEvents();
-	glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_TRUE);
-	glfwFocusWindow(m_Window->GetWindow());
+void Application::SetupInputActions() {
+	Input::System::Instance().Init(m_Window->GetWindow());
+	Input::Context& appContext = Input::System::Instance().CreateContext(Input::Context::Type::Editor);
+	Input::System::Instance().SetActiveContext(Input::Context::Type::Editor);
+
+	Input::Action& closeAction = appContext.AddAction("Close");
+	closeAction.BindKeyboardKey(Input::KeyCode::Escape);
+	closeAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			Close();
+		}
+	});
 }
 
 void Application::ProcessInput() {
-	if (glfwGetKey(m_Window->GetWindow(), GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		Close();
-	}
+	Input::System::Instance().OnUpdate();
+}
+
+void Application::UpdateDeltaTime() {
+	f32 currentFrameTime = static_cast<f32>(glfwGetTime());
+	m_DeltaTime = currentFrameTime - m_LastFrameTime;
+	m_LastFrameTime = currentFrameTime;
 }
 
 }

@@ -14,8 +14,11 @@ public:
 private:
 	Window* m_Window = nullptr;
 	bool m_Running = true;
-	void ProcessAndFocus();
+	f32 m_LastFrameTime;
+	f32 m_DeltaTime;
+	void SetupInputActions();
 	void ProcessInput();
+	void UpdateDeltaTime();
 };
 
 }

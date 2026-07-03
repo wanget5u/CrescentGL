@@ -1,8 +1,8 @@
 #pragma once
 #include <fstream>
 #include <sstream>
-#include "Log.h"
-#include "Core.h"
+#include "Core/Log.h"
+#include "Core/Core.h"
 
 namespace Crescent::Util {
 
@@ -11,7 +11,7 @@ inline std::string ReadFile(char const* filePath) {
 
 	if (file.is_open() == false) {
 		Log::Error("Failed to open file: ", filePath);
-		return nullptr;
+		return "";
 	}
 	std::stringstream buffer;
 	buffer << file.rdbuf();

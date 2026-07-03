@@ -1,7 +1,24 @@
 #include "Core/Window.h"
-#include "log.h"
+#include "Core/Log.h"
 
 namespace Crescent {
+
+static void FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {
+	Window::Properties* windowProperties = static_cast<Window::Properties*>(glfwGetWindowUserPointer(window));
+	if (windowProperties != nullptr) {
+		windowProperties->Width = width;
+		windowProperties->Height = height;
+		glViewport(0, 0, width, height);
+	}
+	else {
+		Log::Error(
+			"[Window] FrameBuffer size callback failed: Window user pointer is null.\n"
+			"\tCannot update window dimensions to {}x{}. (GLFWwindow handle: {})",
+			width, height, static_cast<void*>(window)
+		);
+		assert(false && "GLFW Window User Pointer was never initialized!");
+	}
+}
 
 Window::Window(Window::Properties const& windowProperties) {
 	Init(windowProperties);
@@ -23,6 +40,8 @@ bool Window::Init(Window::Properties const& windowProperties) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_TRUE);
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // shown explicitly after first poll
 
 	CreateWindow();
 
@@ -30,12 +49,10 @@ bool Window::Init(Window::Properties const& windowProperties) {
 	glViewport(0, 0, m_Properties.Width, m_Properties.Height);
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);
 
-	m_LastFrameTime = static_cast<f32>(glfwGetTime());
 	return true;
 }
 
 void Window::OnUpdate() {
-	UpdateDeltaTime();
 	glfwSwapBuffers(m_Window);
 	glfwPollEvents();
 }
@@ -58,28 +75,6 @@ bool Window::CreateWindow() {
 	}
 	Log::Print("GLAD and OpenGL initialized successfully.");
 	return true;
-}
-
-void Window::UpdateDeltaTime() {
-	f32 currentFrameTime = static_cast<f32>(glfwGetTime());
-	m_Properties.DeltaTime = currentFrameTime - m_LastFrameTime;
-	m_LastFrameTime = currentFrameTime;
-}
-
-void Window::FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {
-	Window::Properties* windowProperties = static_cast<Window::Properties*>(glfwGetWindowUserPointer(window));
-	if (windowProperties != nullptr) {
-		windowProperties->Width = width;
-		windowProperties->Height = height;
-		glViewport(0, 0, width, height);
-	} else {
-		Log::Error(
-			"[Window] FrameBuffer size callback failed: Window user pointer is null.\n"
-			"\tCannot update window dimensions to {}x{}. (GLFWwindow handle: {})",
-			width, height, static_cast<void*>(window)
-		);
-		assert(false && "GLFW Window User Pointer was never initialized!");
-	}
 }
 
 }

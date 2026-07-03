@@ -15,5 +15,5 @@ using u16 = std::uint16_t;
 using u32 = std::uint32_t;
 using u64 = std::uint64_t;
 
-inline constexpr u32 SCREEN_WIDTH = 1280;
-inline constexpr u32 SCREEN_HEIGHT = 800;
+inline constexpr u32 SCREEN_WIDTH = 1600;
+inline constexpr u32 SCREEN_HEIGHT = 900;
