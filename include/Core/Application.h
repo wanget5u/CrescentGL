@@ -16,6 +16,7 @@ private:
 	bool m_Running = true;
 	f32 m_LastFrameTime;
 	f32 m_DeltaTime;
+
 	void SetupInputActions();
 	void ProcessInput();
 	void UpdateDeltaTime();

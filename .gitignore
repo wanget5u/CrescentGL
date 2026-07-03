@@ -1,6 +1,3 @@
-# ============================================================
-# Visual Studio (legacy — no longer used)
-# ============================================================
 .vs/
 *.user
 *.suo
@@ -9,35 +6,20 @@
 *.vcxproj
 *.vcxproj.filters
 
-# ============================================================
-# JetBrains / CLion
-# ============================================================
-# Personal workspace settings (machine-specific, not shareable)
 .idea/workspace.xml
 .idea/editor.xml
 .idea/tasks.xml
 .idea/usage.statistics.xml
 .idea/dictionaries/
 .idea/shelf/
-# CMake profiles (contain absolute paths to local toolchain)
 .idea/cmake.xml
-# The rest of .idea IS useful to commit:
-#   .idea/modules.xml, misc.xml, vcs.xml, *.iml — share project structure
-
-# CLion build output directories
 cmake-build-*/
 
-# ============================================================
-# CMake
-# ============================================================
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 install_manifest.txt
 
-# ============================================================
-# Build artifacts
-# ============================================================
 build/
 out/
 x64/
@@ -47,10 +29,3 @@ Release/
 *.pdb
 *.obj
 *.ilk
-
-# ============================================================
-# Libraries (keep source-controlled copies in Dependencies/)
-# ============================================================
-# Uncomment below if you want to exclude compiled libs from git:
-# *.lib
-# *.a

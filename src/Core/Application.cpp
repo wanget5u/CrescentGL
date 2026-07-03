@@ -21,9 +21,8 @@ Application::~Application() {
 }
 
 void Application::Run() {
-	std::string vertexShaderStr = Util::ReadFile("Shaders/default.vert");
-	std::string fragmentShaderStr = Util::ReadFile("Shaders/default.frag");
-
+	const std::string vertexShaderStr = Util::ReadFile("Shaders/default.vert");
+	const std::string fragmentShaderStr = Util::ReadFile("Shaders/default.frag");
 	const char* vertexShaderSource = vertexShaderStr.c_str();
 	const char* fragmentShaderSource = fragmentShaderStr.c_str();
 

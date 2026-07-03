@@ -20,7 +20,7 @@ static void FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {
 	}
 }
 
-Window::Window(Window::Properties const& windowProperties) {
+Window::Window(Properties const& windowProperties) {
 	Init(windowProperties);
 }
 
@@ -28,7 +28,7 @@ Window::~Window() {
 	Shutdown();
 }
 
-bool Window::Init(Window::Properties const& windowProperties) {
+bool Window::Init(Properties const& windowProperties) {
 	m_Properties.Title = windowProperties.Title;
 	m_Properties.Width = windowProperties.Width;
 	m_Properties.Height = windowProperties.Height;
@@ -41,9 +41,9 @@ bool Window::Init(Window::Properties const& windowProperties) {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_TRUE);
-	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // shown explicitly after first poll
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-	CreateWindow();
+	Create();
 
 	glfwSetWindowUserPointer(m_Window, &m_Properties);
 	glViewport(0, 0, m_Properties.Width, m_Properties.Height);
@@ -57,19 +57,19 @@ void Window::OnUpdate() {
 	glfwPollEvents();
 }
 
-void Window::Shutdown() {
+void Window::Shutdown() const {
 	glfwDestroyWindow(m_Window);
 	glfwTerminate();
 }
 
-bool Window::CreateWindow() {
+bool Window::Create() {
 	m_Window = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title, nullptr, nullptr);
 	if (m_Window == nullptr) {
 		Log::Error("Failed to initialize GLFW window.");
 		return false;
 	}
 	glfwMakeContextCurrent(m_Window);
-	if (gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == false) {
+	if (gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == false) {
 		Log::Error("Failed to initialize GLAD.");
 		return false;
 	}

@@ -11,18 +11,18 @@ public:
 	void Init(GLFWwindow* window);
 	void OnUpdate();
 
-	Input::Context& CreateContext(Input::Context::Type contextType);
-	void SetActiveContext(Input::Context::Type contextType);
-	Input::Context* GetActiveContext();
+	Context& CreateContext(Context::Type contextType);
+	void SetActiveContext(Context::Type contextType);
+	Context* GetActiveContext();
 
-	bool IsKeyPressed(Input::KeyCode keyCode) const {
+	bool IsKeyPressed(KeyCode keyCode) const {
 		return glfwGetKey(m_Window, static_cast<i32>(keyCode)) == GLFW_PRESS;
 	}
-	bool IsKeyHeld(Input::KeyCode keyCode) const {
+	bool IsKeyHeld(KeyCode keyCode) const {
 		i32 keyState = glfwGetKey(m_Window, static_cast<i32>(keyCode));
 		return keyState == GLFW_PRESS || keyState == GLFW_REPEAT;
 	}
-	bool IsMousePressed(Input::MouseButton mouseButton) const {
+	bool IsMousePressed(MouseButton mouseButton) const {
 		return glfwGetMouseButton(m_Window, static_cast<i32>(mouseButton)) == GLFW_PRESS;
 	}
 
@@ -39,8 +39,8 @@ private:
 	System() = default;
 
 	GLFWwindow* m_Window = nullptr;
-	Input::Context::Type m_ActiveContext;
-	std::unordered_map<Input::Context::Type, Input::Context> m_Contexts;
+	Context::Type m_ActiveContext;
+	std::unordered_map<Context::Type, Context> m_Contexts;
 
 	std::unordered_map<i32, bool> m_KeyboardKeyState;
 	std::unordered_map<i32, bool> m_MouseButtonState;

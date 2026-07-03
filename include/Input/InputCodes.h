@@ -13,7 +13,6 @@ enum class KeyCode : i32 {
 	S			= GLFW_KEY_S,
 	D			= GLFW_KEY_D,
 };
-
 enum class MouseButton : i32 {
 	Button0		= GLFW_MOUSE_BUTTON_1,
 	Button1		= GLFW_MOUSE_BUTTON_2,

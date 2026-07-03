@@ -13,15 +13,13 @@ public:
 	};
 
 	explicit Context(std::string name);
-
-	Input::Action& AddAction(std::string actionName);
-	Input::Action* GetAction(std::string_view actionName);
-
+	Action& AddAction(std::string actionName);
+	Action* GetAction(std::string_view actionName);
 	void OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta);
 
 private:
 	std::string m_Name;
-	std::unordered_map<std::string, Input::Action> m_Actions;
+	std::unordered_map<std::string, Action> m_Actions;
 };
 
 }
