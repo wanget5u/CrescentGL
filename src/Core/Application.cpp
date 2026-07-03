@@ -112,7 +112,6 @@ void Application::Run() {
 			Time::ConsumeSubstep();
 		}
 
-		// background
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -120,7 +119,7 @@ void Application::Run() {
 		glBindVertexArray(VAO);
 
 		totalTime += Time::GetVariableDeltaTime();
-		f32 linearFactor = fmodf(totalTime * 0.5f, 1.0f);
+		f32 linearFactor = Math::Mod(totalTime * 0.5f, 1.0f);
 		f32 smoothFactor = Math::SmoothStep(0.0f, 1.0f, linearFactor);
 
 		i32 timeFactorParam = glGetUniformLocation(shaderProgram, "u_TimeFactor");

@@ -21,23 +21,47 @@ inline constexpr Number Power(Number value, u32 power) {
 	return result;
 }
 
-inline constexpr f32 ToRadian(f32 degrees) {
-	return degrees * (PI / 180.0f);
+template <typename Number>
+inline constexpr Number Floor(Number a) {
+	i64 i_a = static_cast<i64>(a);
+	if (a < static_cast<Number>(i_a)) {
+		return static_cast<Number>(i_a - 1);
+	}
+	return static_cast<Number>(i_a);
 }
 
-inline constexpr f32 Lerp(f32 a, f32 b, f32 t) {
+template <typename Number>
+inline constexpr Number Ceil(Number a) {
+	return -Floor(-a);
+}
+
+template <typename Number>
+inline constexpr Number Mod(Number a, Number b) {
+	Number n = Floor(a / b);
+	return a - n * b;
+}
+
+template <typename Number>
+inline constexpr Number ToRadian(Number degrees) {
+	return degrees * (static_cast<Number>(PI) / static_cast<Number>(180));
+}
+
+template <typename Number>
+inline constexpr Number Lerp(Number a, Number b, Number t) {
 	return a + t * (b - a);
 }
 
-inline constexpr f32 Clamp(f32 value, f32 min, f32 max) {
+template <typename Number>
+inline constexpr Number Clamp(Number value, Number min, Number max) {
 	if (value < min) { return min;}
 	if (value > max) { return max; }
 	return value;
 }
 
-inline constexpr f32 SmoothStep(f32 edge0, f32 edge1, f32 x) {
-	f32 t = Clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
-	return Power(t, 2) * (3.0f - 2.0f * t);
+template <typename Number>
+inline constexpr Number SmoothStep(Number edge0, Number edge1, Number x) {
+	Number t = Clamp((x - edge0) / (edge1 - edge0), static_cast<Number>(0), static_cast<Number>(1));
+	return Power(t, 2) * (static_cast<Number>(3) - static_cast<Number>(2) * t);
 }
 
 }
