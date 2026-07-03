@@ -70,6 +70,9 @@ struct Vector3 {
 	[[nodiscard]] constexpr f32& operator[](size_t const index) noexcept {
 		return data[index];
 	}
+	[[nodiscard]] constexpr f32 operator[](size_t const index) const noexcept {
+		return data[index];
+	}
 	///////////////////////////////////////////////////////////////////////////
 	/// Functions
 	[[nodiscard]] static constexpr Vector3 Min(Vector3 const& a, Vector3 const& b) noexcept {
@@ -79,7 +82,7 @@ struct Vector3 {
 		return Vector3(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z));
 	}
 	static constexpr Vector3 Lerp(Vector3 const& start, Vector3 const& end, f32 t) noexcept {
-		return start + (end - start) * t;
+		return start * (1.0f - t) + end * t;
 	}
 	[[nodiscard]] static constexpr f32 Distance(Vector3 const& a, Vector3 const& b) noexcept {
 		return (a - b).Length();
