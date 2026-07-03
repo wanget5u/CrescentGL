@@ -1,7 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="CrescentGL.vcxproj" Id="00bc9bc9-5aa2-4cb0-9924-a8f0da8e2228" />
-</Solution>
