@@ -5,6 +5,9 @@
 #include "Math/Math.h"
 #include "Util/Util.h"
 #include "Core/Application.h"
+
+#include <complex>
+
 #include "Input/InputSystem.h"
 
 namespace Crescent {
@@ -67,18 +70,13 @@ void Application::Run() {
 	glDeleteShader(fragmentShader);
 
 	f32 vertices[] = {
-		-0.4f,  0.5f,  0.0f,
-		 0.5f,  0.5f,  0.0f,
-		 0.5f, -0.4f,  0.0f,
-
-		 0.4f, -0.5f,  0.0f,
+		 0.0f,  0.5f,  0.0f,
+		 0.5f, -0.5f,  0.0f,
 		-0.5f, -0.5f,  0.0f,
-		-0.5f,  0.4f,  0.0f
 	};
 
 	u32 indices[] = {
-		0, 1, 2,
-		3, 4, 5
+		0, 1, 2
 	};
 
 	u32 VBO, VAO, EBO;
@@ -101,37 +99,27 @@ void Application::Run() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	f32 totalTime = 0.0f;
-
 	while (IsRunning() == true && m_Window->ShouldClose() == false) {
 		m_Window->OnUpdate();
 		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
 		ProcessInput();
+		UpdateDeltaTime();
 		while (Time::AccumulatorHasSubstep()) {
 			Time::ConsumeSubstep();
 		}
 
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClearColor(0.5f, 0.5f, 0.8f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		f32 greenValue = (std::sin(Time::GetTotalTime()) / 2.0f) + 0.5f;
+		i32 vertexColor = glGetUniformLocation(shaderProgram, "vertexColor");
 
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
 
-		totalTime += Time::GetVariableDeltaTime();
-		f32 linearFactor = Math::Mod(totalTime * 0.5f, 1.0f);
-		f32 smoothFactor = Math::SmoothStep(0.0f, 1.0f, linearFactor);
-
-		i32 timeFactorParam = glGetUniformLocation(shaderProgram, "u_TimeFactor");
-		glUniform1f(timeFactorParam, smoothFactor);
-
-		i32 triangleIDParam = glGetUniformLocation(shaderProgram, "u_TriangleID");
-		glUniform1i(triangleIDParam, 0);
+		glUniform4f(vertexColor, 0.0f, greenValue, 0.0f, 1.0f);
 
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-
-		glUniform1i(triangleIDParam, 1);
-
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(3 * sizeof(u32)));
 	}
 
 	glDeleteVertexArrays(1, &VAO);
@@ -140,7 +128,7 @@ void Application::Run() {
 	glDeleteProgram(shaderProgram);
 }
 
-bool Application::IsRunning() {
+bool Application::IsRunning() const {
 	return m_Running;
 }
 

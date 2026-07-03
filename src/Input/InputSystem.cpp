@@ -3,25 +3,25 @@
 #include "Input/InputSystem.h"
 
 namespace Crescent::Input {
-
-// GLFW callbacks /////////////////////////////////////////////////////////
-void GLFWKeyboardKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+///////////////////////////////////////////////////////////////////////////
+/// GLFW callbacks
+void GLFWKeyboardKeyCallback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
 	System::Instance().OnKeyboardKeyCallback(key, action, mods);
 }
 
-void GLFWMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+void GLFWMouseButtonCallback(GLFWwindow* window, i32 button, i32 action, i32 mods) {
 	System::Instance().OnMouseButtonCallback(button, action, mods);
 }
-
-void GLFWMouseScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+	
+void GLFWMouseScrollCallback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
 	System::Instance().OnMouseScrollCallback(xoffset, yoffset);
 }
 
-void GLFWCursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
+void GLFWCursorPosCallback(GLFWwindow* window, f64 xpos, f64 ypos) {
 	System::Instance().OnCursorCallback(xpos, ypos);
 }
 ///////////////////////////////////////////////////////////////////////////
-
+/// Methods
 System& System::Instance() {
 	static System s_Instance;
 	return s_Instance;

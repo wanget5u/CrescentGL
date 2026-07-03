@@ -13,6 +13,7 @@ set(SOURCES
     src/Input/InputAction.cpp
     src/Input/InputContext.cpp
     src/Input/InputSystem.cpp
+        include/Math/Vector3.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h" "include/Core/Time.h" "include/Input/InputCodes.h" "include/Input/InputAction.h" "include/Input/InputContext.h" "include/Input/InputSystem.h")
