@@ -13,10 +13,13 @@ set(SOURCES
     src/Input/InputAction.cpp
     src/Input/InputContext.cpp
     src/Input/InputSystem.cpp
-        include/Math/Vector3.h
-        include/Shader/Shader.h
-        src/Shader/Shader.cpp
-        include/Math/Constants.h
+    src/Shader/Shader.cpp
+    include/Shader/Shader.h
+    include/Math/Constants.h
+    include/Math/Matrix/Matrix4x4.h
+    include/Math/Vector/Vector3.h
+    include/Math/Vector/Vector4.h
+        include/Math/Vector/Vector2.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Arithmetic.h" "include/Math/Exponential.h" "include/Math/Interpolation.h" "include/Math/Trigonometry.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h" "include/Core/Time.h" "include/Input/InputCodes.h" "include/Input/InputAction.h" "include/Input/InputContext.h" "include/Input/InputSystem.h")

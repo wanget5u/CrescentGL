@@ -4,8 +4,9 @@
 #include <unordered_map>
 #include <glad/glad.h>
 #include <Core/Core.h>
-
-#include "Math/Vector3.h"
+#include "../Math/Vector/Vector2.h"
+#include "../Math/Vector/Vector3.h"
+#include "../Math/Vector/Vector4.h"
 
 namespace Crescent {
 
@@ -62,18 +63,16 @@ struct Shader {
 	void SetFloat(std::string_view const name, f32 const value) const {
 		glUniform1f(GetUniformLocation(name), value);
 	}
-	// TODO:
-	// void SetVector2(std::string_view const name, Math::Vector2 const& value) const {
-	// 	glUniform2fv(GetUniformLocation(name), 1, value.data);
-	// }
+	void SetVector2(std::string_view const name, Math::Vector2 const& value) const {
+		glUniform2fv(GetUniformLocation(name), 1, value.data);
+	}
 	void SetVector3(std::string_view const name, Math::Vector3 const& value) const {
 		glUniform3fv(GetUniformLocation(name), 1, value.data);
 	}
-	// TODO:
-	// void SetVector4(std::string_view const name, Math::Vector4 const& value) const {
-	// 	glUniform4fv(GetUniformLocation(name), 1, value.data);
-	// }
-	// void SetMat4(std::string_view name, Math::Matrix4 const& matrix) const {
+	void SetVector4(std::string_view const name, Math::Vector4 const& value) const {
+		glUniform4fv(GetUniformLocation(name), 1, value.data);
+	}
+	// void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const {
 	// 	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.data);
 	// }
 

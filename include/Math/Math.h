@@ -4,4 +4,6 @@
 #include "Math/Exponential.h"
 #include "Math/Interpolation.h"
 #include "Math/Trigonometry.h"
-#include "Math/Vector3.h"
+#include "Vector/Vector2.h"
+#include "Vector/Vector3.h"
+#include "Vector/Vector4.h"
