@@ -1,6 +1,10 @@
 #pragma once
 #include <Core/Core.h>
-#include "Common.h"
+#include "Core/Log.h"
+#include "Math/Constants.h"
+#include "Math/Arithmetic.h"
+#include "Math/Exponential.h"
+#include "Math/Interpolation.h"
 
 namespace Crescent::Math {
 
@@ -11,7 +15,7 @@ struct Vector3 {
 	};
 	constexpr Vector3() noexcept : x(0.0f), y(0.0f), z(0.0f) {}
 	constexpr Vector3(f32 const x, f32 const y, f32 const z) noexcept : x(x), y(y), z(z) {}
-	///////////////////////////////////////////////////////////////////////////
+
 	[[nodiscard]] static constexpr Vector3 Zero()		noexcept { return Vector3( 0.0f,  0.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 One()		noexcept { return Vector3( 1.0f,  1.0f,  1.0f); }
 	[[nodiscard]] static constexpr Vector3 Up()			noexcept { return Vector3( 0.0f,  1.0f,  0.0f); }
@@ -20,7 +24,7 @@ struct Vector3 {
 	[[nodiscard]] static constexpr Vector3 Right()		noexcept { return Vector3( 1.0f,  0.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 Forward()	noexcept { return Vector3( 0.0f,  0.0f,  1.0f); }
 	[[nodiscard]] static constexpr Vector3 Back()		noexcept { return Vector3( 0.0f,  0.0f, -1.0f); }
-	///////////////////////////////////////////////////////////////////////////
+
 	constexpr Vector3& operator+=(Vector3 const& other) noexcept {
 		x += other.x; y += other.y; z += other.z;
 		return *this;
@@ -52,6 +56,10 @@ struct Vector3 {
 		return Vector3(x * other.x, y * other.y, z * other.z);
 	}
 	constexpr Vector3& operator/=(f32 const scalar) noexcept {
+		if (Math::IsNearlyZero(scalar)) {
+			Log::Warning("Vector3 division scalar IsNearlyZero.");
+			return *this;
+		}
 		f32 invScalar = 1.0f / scalar;
 		x *= invScalar; y *= invScalar; z *= invScalar;
 		return *this;
@@ -64,14 +72,21 @@ struct Vector3 {
 	[[nodiscard]] constexpr Vector3 operator-() const noexcept {
 		return Vector3(-x, -y, -z);
 	}
-	[[nodiscard]] bool operator==(Vector3 const& other) const noexcept = default;
+	[[nodiscard]] bool operator==(Vector3 const& other) const noexcept {
+		for (u8 a = 0; a < 3; a++) {
+			if (Math::Abs(data[a] - other.data[a]) > Epsilon) {
+				return false;
+			}
+		}
+		return true;
+	}
 	[[nodiscard]] constexpr f32& operator[](size_t const index) noexcept {
 		return data[index];
 	}
 	[[nodiscard]] constexpr f32 operator[](size_t const index) const noexcept {
 		return data[index];
 	}
-	///////////////////////////////////////////////////////////////////////////
+
 	[[nodiscard]] static constexpr Vector3 Min(Vector3 const& a, Vector3 const& b) noexcept {
 		return Vector3(Math::Min(a.x, b.x), Math::Min(a.y, b.y), Math::Min(a.z, b.z));
 	}
@@ -94,7 +109,7 @@ struct Vector3 {
 			Math::Clamp(value.z, min.z, max.z)
 		);
 	}
-	///////////////////////////////////////////////////////////////////////////
+
 	[[nodiscard]] constexpr f32 Dot(Vector3 const& other) const noexcept {
 		return x * other.x + y * other.y + z * other.z;
 	}

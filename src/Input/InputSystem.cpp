@@ -62,8 +62,7 @@ void System::SetActiveContext(Input::Context::Type contextType) {
 }
 
 Context* System::GetActiveContext() {
-	std::unordered_map<Input::Context::Type, Input::Context>::iterator it =
-		m_Contexts.find(m_ActiveContext);
+	auto it = m_Contexts.find(m_ActiveContext);
 	if (it != m_Contexts.end()) {
 		return &it->second;
 	}

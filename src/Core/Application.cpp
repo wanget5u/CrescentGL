@@ -104,7 +104,7 @@ void Application::SetupInputActions() {
 	});
 }
 
-void Application::ProcessInput() {
+void Application::ProcessInput() const {
 	Input::System::Instance().OnUpdate();
 }
 

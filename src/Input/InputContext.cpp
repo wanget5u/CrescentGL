@@ -1,18 +1,17 @@
-#include <iterator>
+#include <utility>
+
 #include "Input/InputContext.h"
 
 namespace Crescent::Input {
 
-Context::Context(std::string name)
-	: m_Name(name) {}
+Context::Context(std::string name) : m_Name(std::move(name)) {}
 
-Action& Context::AddAction(std::string actionName) {
+Action& Context::AddAction(std::string const& actionName) {
 	return m_Actions[actionName];
 }
 
-Action* Context::GetAction(std::string_view actionName) {
-	std::unordered_map<std::string, Action>::iterator it =
-		m_Actions.find(std::string(actionName));
+Action* Context::GetAction(std::string_view const actionName) {
+	auto it = m_Actions.find(std::string(actionName));
 	if (it != m_Actions.end()) {
 		return &it->second;
 	}

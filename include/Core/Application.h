@@ -18,7 +18,7 @@ private:
 	f32 m_DeltaTime{};
 
 	void SetupInputActions();
-	void ProcessInput();
+	void ProcessInput() const;
 	void UpdateDeltaTime();
 };
 

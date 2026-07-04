@@ -17,3 +17,5 @@ using u64 = std::uint64_t;
 
 inline constexpr u32 SCREEN_WIDTH = 1600;
 inline constexpr u32 SCREEN_HEIGHT = 900;
+inline constexpr f32 FIXED_TIMESTEP = 1.0f / 60.0f;
+inline constexpr f32 MAX_ALLOWED_DELTA = 0.25f;

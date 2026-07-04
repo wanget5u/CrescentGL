@@ -13,7 +13,7 @@ public:
 	};
 
 	explicit Context(std::string name);
-	Action& AddAction(std::string actionName);
+	Action& AddAction(std::string const& actionName);
 	Action* GetAction(std::string_view actionName);
 	void OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta);
 

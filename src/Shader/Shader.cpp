@@ -63,8 +63,7 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 
 i32 Shader::GetUniformLocation(std::string_view name) const {
 	const std::string nameKey(name);
-	std::unordered_map<std::string, i32>::iterator it =
-		m_UniformLocationCache.find(nameKey);
+	auto it = m_UniformLocationCache.find(nameKey);
 	if (it != m_UniformLocationCache.end()) {
 		return it->second;
 	}

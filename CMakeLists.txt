@@ -16,9 +16,10 @@ set(SOURCES
         include/Math/Vector3.h
         include/Shader/Shader.h
         src/Shader/Shader.cpp
+        include/Math/Constants.h
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h" "include/Core/Time.h" "include/Input/InputCodes.h" "include/Input/InputAction.h" "include/Input/InputContext.h" "include/Input/InputSystem.h")
+add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Arithmetic.h" "include/Math/Exponential.h" "include/Math/Interpolation.h" "include/Math/Trigonometry.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h" "include/Core/Time.h" "include/Input/InputCodes.h" "include/Input/InputAction.h" "include/Input/InputContext.h" "include/Input/InputSystem.h")
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include

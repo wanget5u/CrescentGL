@@ -5,9 +5,6 @@ namespace Crescent {
 
 class Time {
 public:
-	static constexpr f32 FIXED_TIMESTEP = 1.0f / 60.0f;
-	static constexpr f32 MAX_ALLOWED_DELTA = 0.25f;
-
 	static void OnUpdate(f32 const currentEngineTime) {
 		f32 frameTime = currentEngineTime - s_LastFrameTime;
 		s_LastFrameTime = currentEngineTime;
