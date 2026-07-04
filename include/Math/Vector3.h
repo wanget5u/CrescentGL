@@ -12,10 +12,8 @@ struct Vector3 {
 	constexpr Vector3() noexcept : x(0.0f), y(0.0f), z(0.0f) {}
 	constexpr Vector3(f32 const x, f32 const y, f32 const z) noexcept : x(x), y(y), z(z) {}
 	///////////////////////////////////////////////////////////////////////////
-	/// Presets
 	[[nodiscard]] static constexpr Vector3 Zero()		noexcept { return Vector3( 0.0f,  0.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 One()		noexcept { return Vector3( 1.0f,  1.0f,  1.0f); }
-	///////////////////////////////////////////////////////////////////////////
 	[[nodiscard]] static constexpr Vector3 Up()			noexcept { return Vector3( 0.0f,  1.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 Down()		noexcept { return Vector3( 0.0f, -1.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 Left()		noexcept { return Vector3(-1.0f,  0.0f,  0.0f); }
@@ -23,50 +21,50 @@ struct Vector3 {
 	[[nodiscard]] static constexpr Vector3 Forward()	noexcept { return Vector3( 0.0f,  0.0f,  1.0f); }
 	[[nodiscard]] static constexpr Vector3 Back()		noexcept { return Vector3( 0.0f,  0.0f, -1.0f); }
 	///////////////////////////////////////////////////////////////////////////
-	/// Operator overloads
-	Vector3& operator+=(Vector3 const& other) noexcept {
+	constexpr Vector3& operator+=(Vector3 const& other) noexcept {
 		x += other.x; y += other.y; z += other.z;
 		return *this;
 	}
-	Vector3 operator+(Vector3 const& other) const noexcept {
+	[[nodiscard]] constexpr Vector3 operator+(Vector3 const& other) const noexcept {
 		Vector3 result = *this;
 		result += other;
 		return result;
 	}
-	Vector3& operator-=(Vector3 const& other) noexcept {
+	constexpr Vector3& operator-=(Vector3 const& other) noexcept {
 		x -= other.x; y -= other.y; z -= other.z;
 		return *this;
 	}
-	Vector3 operator-(Vector3 const& other) const noexcept {
+	[[nodiscard]] constexpr Vector3 operator-(Vector3 const& other) const noexcept {
 		Vector3 result = *this;
 		result -= other;
 		return result;
 	}
-	Vector3& operator*=(f32 const scalar) noexcept {
+	constexpr Vector3& operator*=(f32 const scalar) noexcept {
 		x *= scalar; y *= scalar; z *= scalar;
 		return *this;
 	}
-	Vector3 operator*(f32 const scalar) const noexcept {
+	[[nodiscard]] constexpr Vector3 operator*(f32 const scalar) const noexcept {
 		Vector3 result = *this;
 		result *= scalar;
 		return result;
 	}
-	Vector3 operator*(Vector3 const& other) const noexcept {
+	[[nodiscard]] constexpr Vector3 operator*(Vector3 const& other) const noexcept {
 		return Vector3(x * other.x, y * other.y, z * other.z);
 	}
-	Vector3& operator/=(f32 const scalar) noexcept {
+	constexpr Vector3& operator/=(f32 const scalar) noexcept {
 		f32 invScalar = 1.0f / scalar;
 		x *= invScalar; y *= invScalar; z *= invScalar;
 		return *this;
 	}
-	Vector3 operator/(f32 const scalar) const noexcept {
+	[[nodiscard]] constexpr Vector3 operator/(f32 const scalar) const noexcept {
 		Vector3 result = *this;
 		result /= scalar;
 		return result;
 	}
-	Vector3 operator-() const noexcept {
+	[[nodiscard]] constexpr Vector3 operator-() const noexcept {
 		return Vector3(-x, -y, -z);
 	}
+	[[nodiscard]] bool operator==(Vector3 const& other) const noexcept = default;
 	[[nodiscard]] constexpr f32& operator[](size_t const index) noexcept {
 		return data[index];
 	}
@@ -74,12 +72,11 @@ struct Vector3 {
 		return data[index];
 	}
 	///////////////////////////////////////////////////////////////////////////
-	/// Functions
 	[[nodiscard]] static constexpr Vector3 Min(Vector3 const& a, Vector3 const& b) noexcept {
-		return Vector3(Min(a.x, b.x), Min(a.y, b.y), Min(a.z, b.z));
+		return Vector3(Math::Min(a.x, b.x), Math::Min(a.y, b.y), Math::Min(a.z, b.z));
 	}
 	[[nodiscard]] static constexpr Vector3 Max(Vector3 const& a, Vector3 const& b) noexcept {
-		return Vector3(Max(a.x, b.x), Max(a.y, b.y), Max(a.z, b.z));
+		return Vector3(Math::Max(a.x, b.x), Math::Max(a.y, b.y), Math::Max(a.z, b.z));
 	}
 	static constexpr Vector3 Lerp(Vector3 const& start, Vector3 const& end, f32 t) noexcept {
 		return start * (1.0f - t) + end * t;
@@ -92,13 +89,12 @@ struct Vector3 {
 	}
 	[[nodiscard]] static constexpr Vector3 Clamp(Vector3 const& value, Vector3 const& min, Vector3 const& max) noexcept {
 		return Vector3(
-			Clamp(value.x, min.x, max.x),
-			Clamp(value.y, min.y, max.y),
-			Clamp(value.z, min.z, max.z)
+			Math::Clamp(value.x, min.x, max.x),
+			Math::Clamp(value.y, min.y, max.y),
+			Math::Clamp(value.z, min.z, max.z)
 		);
 	}
 	///////////////////////////////////////////////////////////////////////////
-	/// Methods
 	[[nodiscard]] constexpr f32 Dot(Vector3 const& other) const noexcept {
 		return x * other.x + y * other.y + z * other.z;
 	}

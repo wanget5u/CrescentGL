@@ -3,8 +3,7 @@
 #include "Input/InputSystem.h"
 
 namespace Crescent::Input {
-///////////////////////////////////////////////////////////////////////////
-/// GLFW callbacks
+
 void GLFWKeyboardKeyCallback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods) {
 	System::Instance().OnKeyboardKeyCallback(key, action, mods);
 }
@@ -20,8 +19,7 @@ void GLFWMouseScrollCallback(GLFWwindow* window, f64 xoffset, f64 yoffset) {
 void GLFWCursorPosCallback(GLFWwindow* window, f64 xpos, f64 ypos) {
 	System::Instance().OnCursorCallback(xpos, ypos);
 }
-///////////////////////////////////////////////////////////////////////////
-/// Methods
+
 System& System::Instance() {
 	static System s_Instance;
 	return s_Instance;

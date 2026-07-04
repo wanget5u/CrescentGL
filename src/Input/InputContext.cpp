@@ -11,7 +11,7 @@ Action& Context::AddAction(std::string actionName) {
 }
 
 Action* Context::GetAction(std::string_view actionName) {
-	std::unordered_map<std::string, Input::Action>::iterator it =
+	std::unordered_map<std::string, Action>::iterator it =
 		m_Actions.find(std::string(actionName));
 	if (it != m_Actions.end()) {
 		return &it->second;

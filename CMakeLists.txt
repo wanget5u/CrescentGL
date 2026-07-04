@@ -14,6 +14,8 @@ set(SOURCES
     src/Input/InputContext.cpp
     src/Input/InputSystem.cpp
         include/Math/Vector3.h
+        include/Shader/Shader.h
+        src/Shader/Shader.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} "include/Math/Common.h" "include/Math/Math.h" "include/Util/Util.h" "include/Util/FileOperations.h" "include/Core/Time.h" "include/Input/InputCodes.h" "include/Input/InputAction.h" "include/Input/InputContext.h" "include/Input/InputSystem.h")
