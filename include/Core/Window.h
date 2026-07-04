@@ -8,11 +8,11 @@ namespace Crescent {
 class Window {
 public:
 	struct Properties {
-		const char* Title;
+		const char8* Title;
 		u32 Width;
 		u32 Height;
 
-		explicit Properties(char const* title = "CrescentGL", u32 const width = 1920, u32 const height = 1080)
+		explicit Properties(char8 const* title = "CrescentGL", u32 const width = 1920, u32 const height = 1080)
 			: Title(title), Width(width), Height(height) { }
 	};
 

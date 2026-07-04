@@ -27,14 +27,16 @@ void Application::Run() {
 	Shader shader("Shaders/default.vert", "Shaders/default.frag");
 
 	f32 vertices[] = {
-		// positions			// colors
-		 0.0f,  0.5f,  0.0f,	1.0f, 0.0f, 0.0f,
-		 0.5f, -0.5f,  0.0f,	0.0f, 1.0f, 0.0f,
-		-0.5f, -0.5f,  0.0f,	0.0f, 0.0f, 1.0f
-	};
+		// positions         // colors          // texture coords
+		1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
+		1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+	   -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+	   -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f
+   };
 
 	u32 indices[] = {
-		0, 1, 2
+		0, 1, 2,
+		0, 2, 3
 	};
 
 	u32 VBO, VAO, EBO;
@@ -50,16 +52,70 @@ void Application::Run() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), nullptr);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), nullptr);
 	glEnableVertexAttribArray(0);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(f32), reinterpret_cast<void*>(3 * sizeof(f32)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), reinterpret_cast<void*>(3 * sizeof(f32)));
 	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(f32), reinterpret_cast<void*>(6 * sizeof(f32)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	i32 width{};
+	i32 height{};
+	i32 nrChannels{};
+
+	glActiveTexture(GL_TEXTURE0);
+	u32 texture1;
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	uchar8 *data1 = stbi_load("Assets/Textures/Tiles081_1K-JPG_Color.jpg", &width, &height, &nrChannels, 0);
+	if (data1 != nullptr) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data1);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+		Log::Warning("stbi_load1");
+	}
+	stbi_image_free(data1);
+
+	glBindTexture(GL_TEXTURE_2D, texture1);
+
+	glActiveTexture(GL_TEXTURE1);
+	u32 texture2;
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	uchar8 *data2 = stbi_load("Assets/Textures/Tiles129B_1K-JPG_Color.jpg", &width, &height, &nrChannels, 0);
+	if (data2 != nullptr) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data2);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+		Log::Warning("stbi_load2");
+	}
+	stbi_image_free(data2);
+
 	shader.Use();
+	glUniform1i(glGetUniformLocation(shader.ID, "texture1"), 0);
+	shader.SetInt("texture2", 1);
+
+	f32 alphaBlendValue{};
+	f32 zoomFactorValue{};
 	while (IsRunning() == true && m_Window->ShouldClose() == false) {
 		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
 		ProcessInput();
@@ -71,8 +127,19 @@ void Application::Run() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		alphaBlendValue = (std::sin(Time::GetTotalTime() * 1.25f) * 0.2f) + 0.5f;
+		zoomFactorValue = (std::sin(Time::GetTotalTime() * 2.0f) * 0.5f) + 1.0f;
+		shader.SetFloat("alphaBlend", alphaBlendValue);
+		shader.SetFloat("rotationAngle", Time::GetTotalTime());
+		shader.SetFloat("zoomFactor", zoomFactorValue);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		m_Window->OnUpdate();
 	}

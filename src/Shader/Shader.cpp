@@ -4,11 +4,11 @@
 
 namespace Crescent {
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath) {
+Shader::Shader(const char8* vertexPath, const char8* fragmentPath) {
 	const std::string vertexShaderContent = Util::ReadFile(vertexPath);
 	const std::string fragmentShaderContent = Util::ReadFile(fragmentPath);
-	const char* vertexShaderCode = vertexShaderContent.c_str();
-	const char* fragmentShaderCode = fragmentShaderContent.c_str();
+	const char8* vertexShaderCode = vertexShaderContent.c_str();
+	const char8* fragmentShaderCode = fragmentShaderContent.c_str();
 	u32 vertexShader{};
 	u32 fragmentShader{};
 
@@ -42,7 +42,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 
 bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 	i32 success;
-	char infoLog[512];
+	char8 infoLog[512];
 	if (type == Type::Program) {
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (success == false) {

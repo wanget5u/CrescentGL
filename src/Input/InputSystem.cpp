@@ -43,7 +43,7 @@ void System::OnUpdate() {
 	m_LastCursorX = cursorX;
 	m_LastCursorY = cursorY;
 
-	std::unordered_map<Input::Context::Type, Input::Context>::iterator it =
+	std::unordered_map<Context::Type, Context>::iterator it =
 		m_Contexts.find(m_ActiveContext);
 	if (it != m_Contexts.end()) {
 		it->second.OnUpdate(m_Window, m_MouseDeltaX, m_MouseDeltaY, m_ScrollDelta);
@@ -52,12 +52,12 @@ void System::OnUpdate() {
 	m_ScrollDelta = 0.0f;
 }
 
-Context& System::CreateContext(Input::Context::Type contextType) {
+Context& System::CreateContext(Context::Type contextType) {
 	m_Contexts.try_emplace(contextType, "context_" + std::to_string(static_cast<u32>(contextType)));
 	return m_Contexts.at(contextType);
 }
 
-void System::SetActiveContext(Input::Context::Type contextType) {
+void System::SetActiveContext(Context::Type contextType) {
 	m_ActiveContext = contextType;
 }
 

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 
 using i8 = std::int8_t;
@@ -15,7 +14,12 @@ using u16 = std::uint16_t;
 using u32 = std::uint32_t;
 using u64 = std::uint64_t;
 
-inline constexpr u32 SCREEN_WIDTH = 1600;
-inline constexpr u32 SCREEN_HEIGHT = 900;
+using char8 = char;
+using char16 = char16_t;
+using char32 = char32_t;
+using uchar8 = unsigned char;
+
+inline constexpr u32 SCREEN_WIDTH = 1200;
+inline constexpr u32 SCREEN_HEIGHT = 1200;
 inline constexpr f32 FIXED_TIMESTEP = 1.0f / 60.0f;
 inline constexpr f32 MAX_ALLOWED_DELTA = 0.25f;

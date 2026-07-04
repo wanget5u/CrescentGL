@@ -16,7 +16,7 @@ struct Shader {
 		Program
 	};
 
-	static const char* GetTypeName(Type const type) {
+	static const char8* GetTypeName(Type const type) {
 		switch (type) {
 			case Type::Vertex:   return "Vertex";
 			case Type::Fragment: return "Fragment";
@@ -27,7 +27,7 @@ struct Shader {
 
 	u32 ID{ 0 };
 
-	explicit Shader(const char* vertexPath, const char* fragmentPath);
+	explicit Shader(const char8* vertexPath, const char8* fragmentPath);
 	~Shader() {
 		if (ID != 0) {
 			glDeleteProgram(ID);
