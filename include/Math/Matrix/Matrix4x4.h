@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Core.h"
+#include "Math/Vector/Vector3.h"
 #include "Math/Vector/Vector4.h"
 
 namespace Crescent::Math {
@@ -9,13 +10,13 @@ struct Matrix4x4 {
 		f32 data[16]{};
 		f32 columns[4][4];
 		struct {
-			Vector4 column0;	// X basis vector (right)
-			Vector4 column1;	// Y basis vector (up)
-			Vector4 column2;	// Z basis vector (forward/back)
-			Vector4 column3;	// W basis vector (translation/position)
+			Vector4 column0; // X (right)
+			Vector4 column1; // Y (up)
+			Vector4 column2; // Z (forward/back)
+			Vector4 column3; // W (translation/position)
 		};
 	};
-	
+
 	explicit constexpr Matrix4x4()
 		: column0(1.0f, 0.0f, 0.0f, 0.0f)
 		, column1(0.0f, 1.0f, 0.0f, 0.0f)
@@ -54,6 +55,72 @@ struct Matrix4x4 {
 		   Vector4(0.0f, 0.0f, 1.0f, 0.0f),
 		   Vector4(position.x, position.y, position.z, 1.0f)
 		);
+	}
+
+	constexpr Matrix4x4& operator+=(Matrix4x4 const& other) noexcept {
+		column0 += other.column0;
+		column1 += other.column1;
+		column2 += other.column2;
+		column3 += other.column3;
+		return *this;
+	}
+	[[nodiscard]] constexpr Matrix4x4 operator+(Matrix4x4 const& other) const noexcept {
+		return Matrix4x4(*this) += other;
+	}
+	constexpr Matrix4x4& operator-=(Matrix4x4 const& other) noexcept {
+		column0 -= other.column0;
+		column1 -= other.column1;
+		column2 -= other.column2;
+		column3 -= other.column3;
+		return *this;
+	}
+	[[nodiscard]] constexpr Matrix4x4 operator-(Matrix4x4 const& other) const noexcept {
+		return Matrix4x4(*this) -= other;
+	}
+	constexpr Matrix4x4& operator*=(f32 const scalar) noexcept {
+		column0 *= scalar;
+		column1 *= scalar;
+		column2 *= scalar;
+		column3 *= scalar;
+		return *this;
+	}
+	constexpr Matrix4x4& operator*=(Matrix4x4 const& other) noexcept {
+		Matrix4x4 const m = *this;
+		(*this)[0]=(m.column0*other[0].x)+(m.column1*other[0].y)+(m.column2*other[0].z)+(m.column3*other[0].w);
+		(*this)[1]=(m.column0*other[1].x)+(m.column1*other[1].y)+(m.column2*other[1].z)+(m.column3*other[1].w);
+		(*this)[2]=(m.column0*other[2].x)+(m.column1*other[2].y)+(m.column2*other[2].z)+(m.column3*other[2].w);
+		(*this)[3]=(m.column0*other[3].x)+(m.column1*other[3].y)+(m.column2*other[3].z)+(m.column3*other[3].w);
+		return *this;
+	}
+	[[nodiscard]] constexpr Matrix4x4 operator*(f32 const scalar) const noexcept {
+		return Matrix4x4(*this) *= scalar;
+	}
+	[[nodiscard]] constexpr Matrix4x4 operator*(Matrix4x4 const& other) const noexcept {
+		return Matrix4x4(*this) *= other;
+	}
+	constexpr Matrix4x4& operator/=(f32 const scalar) noexcept {
+		if (Math::IsNearlyZero(scalar)) {
+			Log::Warning("Matrix4x4 division scalar IsNearlyZero.");
+			*this = Zero();
+			return *this;
+		}
+		f32 invScalar = 1.0f / scalar;
+		column0 *= invScalar;
+		column1 *= invScalar;
+		column2 *= invScalar;
+		column3 *= invScalar;
+		return *this;
+	}
+	// constexpr Matrix4x4& operator/=(Matrix4x4 const& other) noexcept {
+	// 	Matrix4x4 invertedOther = other.Inverse();
+	// 	*this *= invertedOther;
+	// 	return *this;
+	// }
+	constexpr Vector4 const& operator[](size_t const index) const noexcept {
+		return (&column0)[index];
+	}
+	constexpr Vector4& operator[](size_t const index) noexcept {
+		return (&column0)[index];
 	}
 
 	[[nodiscard]] constexpr Vector4 GetRow(size_t const rowIndex) const {
