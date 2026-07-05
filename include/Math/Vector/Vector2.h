@@ -14,8 +14,11 @@ struct Vector2 {
 		struct { f32 x; f32 y; };
 		f32 data[2]{};
 	};
-	explicit constexpr Vector2() noexcept : x(0.0f), y(0.0f) {}
-	explicit constexpr Vector2(f32 const x, f32 const y) noexcept : x(x), y(y) {}
+
+	explicit constexpr Vector2() noexcept
+		: x(0.0f), y(0.0f) {}
+	explicit constexpr Vector2(f32 const x, f32 const y) noexcept
+		: x(x), y(y) {}
 
 	[[nodiscard]] static constexpr Vector2 Zero()		noexcept { return Vector2( 0.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector2 One()		noexcept { return Vector2( 1.0f,  1.0f); }

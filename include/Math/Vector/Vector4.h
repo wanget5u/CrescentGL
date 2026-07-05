@@ -15,9 +15,10 @@ struct Vector4 {
 		struct { f32 x; f32 y; f32 z; f32 w; };
 		f32 data[4]{};
 	};
-	explicit constexpr Vector4() noexcept : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
-	explicit constexpr Vector4(f32 const x, f32 const y, f32 const z, f32 const w) noexcept : x(x), y(y), z(z), w(w) {}
 
+	explicit constexpr Vector4() noexcept : x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+	explicit constexpr Vector4(f32 const x, f32 const y, f32 const z, f32 const w) noexcept
+		: x(x), y(y), z(z), w(w) {}
 	explicit constexpr Vector4(Vector3 const& xyz, f32 const w = 1.0f) noexcept
 		: x(xyz.x), y(xyz.y), z(xyz.z), w(w) {}
 	explicit constexpr Vector4(Vector2 const& xy, f32 const z = 0.0f, f32 const w = 1.0f) noexcept
