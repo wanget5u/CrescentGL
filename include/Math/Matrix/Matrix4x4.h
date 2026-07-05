@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Core.h"
+#include "Math/Arithmetic.h"
 #include "Math/Vector/Vector3.h"
 #include "Math/Vector/Vector4.h"
 
@@ -55,6 +56,19 @@ struct Matrix4x4 {
 		   Vector4(position.x, position.y, position.z, 1.0f)
 		);
 	}
+	[[nodiscard]] static constexpr Matrix4x4 GetOrthographic(
+		f32 const left, f32 const right, f32 const bottom, f32 const top,
+		f32 const nearZ = -1.0f, f32 const farZ = 1.0f) {
+		const f32 rightLeft = 1.0f / (right - left);
+		const f32 topBottom = 1.0f / (top - bottom);
+		const f32 farNear = 1.0f / (farZ - nearZ);
+		return Matrix4x4(
+			Vector4(		   2.0f * rightLeft,         	            0.0f,                      0.0f, 0.0f),
+			Vector4(		       		   0.0f,         	2.0f * topBottom,                      0.0f, 0.0f),
+			Vector4(		       		   0.0f,         	            0.0f,           -2.0f * farNear, 0.0f),
+			Vector4(-(right + left) * rightLeft, -(top + bottom) * topBottom, -(farZ + nearZ) * farNear, 1.0f)
+		);
+	}
 	[[nodiscard]] static constexpr Matrix4x4 GetScale(Vector3 const& scale) noexcept {
 		return Matrix4x4(
 			Vector4(scale.x,    0.0f,    0.0f, 0.0f),
@@ -65,10 +79,10 @@ struct Matrix4x4 {
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationX(f32 const rad) {
 		return Matrix4x4(
-			Vector4(		  1.0f,	 	      0.0f,           0.0f,		       0.0f),
-			Vector4(		  0.0f,  std::cos(rad), -std::sin(rad), 		   0.0f),
-			Vector4(          0.0f,  std::sin(rad),  std::cos(rad), 		   0.0f),
-			Vector4(		  0.0f,	 	      0.0f,           0.0f, 		   1.0f)
+			Vector4(1.0f,		   0.0f,           0.0f, 0.0f),
+			Vector4(0.0f, std::cos(rad), -std::sin(rad), 0.0f),
+			Vector4(0.0f, std::sin(rad),  std::cos(rad), 0.0f),
+			Vector4(0.0f,		   0.0f,           0.0f, 1.0f)
 		);
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationY(f32 const rad) {
@@ -81,10 +95,10 @@ struct Matrix4x4 {
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationZ(f32 const rad) {
 		return Matrix4x4(
-			Vector4( std::cos(rad), -std::sin(rad),			  0.0f,		       0.0f),
-			Vector4( std::sin(rad),	 std::cos(rad),           0.0f, 		   0.0f),
-			Vector4(		  0.0f,           0.0f,			  1.0f, 		   0.0f),
-			Vector4(		  0.0f,		      0.0f,           0.0f, 		   1.0f)
+			Vector4( std::cos(rad), -std::sin(rad),	0.0f, 0.0f),
+			Vector4( std::sin(rad),	 std::cos(rad), 0.0f, 0.0f),
+			Vector4(		  0.0f,           0.0f,	1.0f, 0.0f),
+			Vector4(		  0.0f,		      0.0f, 0.0f, 1.0f)
 		);
 	}
 

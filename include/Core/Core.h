@@ -1,25 +1,31 @@
 #pragma once
 #include <cstdint>
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Signed Integers
 using i8 = std::int8_t;
 using i16 = std::int16_t;
 using i32 = std::int32_t;
 using i64 = std::int64_t;
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Floating-point
 using f32 = float;
 using f64 = double;
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Unsigned Integers
 using u8 = std::uint8_t;
 using u16 = std::uint16_t;
 using u32 = std::uint32_t;
 using u64 = std::uint64_t;
-
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Chars
 using char8 = char;
 using char16 = char16_t;
 using char32 = char32_t;
 using uchar8 = unsigned char;
-
-inline constexpr u32 SCREEN_WIDTH = 1200;
-inline constexpr u32 SCREEN_HEIGHT = 1200;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Const
+inline constexpr u32 SCREEN_WIDTH = 1920;
+inline constexpr u32 SCREEN_HEIGHT = 1080;
 inline constexpr f32 FIXED_TIMESTEP = 1.0f / 60.0f;
 inline constexpr f32 MAX_ALLOWED_DELTA = 0.25f;

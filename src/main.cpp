@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "Util/Util.h"
 #include "Core/Application.h"
 
 int main() {

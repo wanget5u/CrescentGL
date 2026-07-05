@@ -1,15 +1,14 @@
 #pragma once
 #include <iostream>
 #include <utility>
-#include <cassert>
+#include <mutex>
 
 #ifdef _WIN32
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
 #endif
 
-class Log {
-public:
+struct Log {
     static bool EnableANSI() {
 #ifdef _WIN32
         HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -23,12 +22,16 @@ public:
         return true;
     }
 
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Console Output
 	template <typename... Args>
 	static void Print(Args&&... args) {
+    	std::scoped_lock lock(s_LogMutex);
     	(std::cout << ... << std::forward<Args>(args)) << '\n';
     }
 	template <typename... Args>
 	static void Info(Args&&... args) {
+    	std::scoped_lock lock(s_LogMutex);
         static bool ansi = EnableANSI();
         static_cast<void>(ansi);
 		std::cout << "\033[1;37m[OK]\033[0m ";
@@ -36,6 +39,7 @@ public:
 	}
 	template <typename... Args>
 	static void Warning(Args&&... args) {
+    	std::scoped_lock lock(s_LogMutex);
         static bool ansi = EnableANSI();
         static_cast<void>(ansi);
 		std::cerr << "\033[1;33m[WARNING]\033[0m ";
@@ -43,9 +47,13 @@ public:
 	}
 	template <typename... Args>
 	static void Error(Args&&... args) {
+    	std::scoped_lock lock(s_LogMutex);
         static bool ansi = EnableANSI();
         static_cast<void>(ansi);
 		std::cerr << "\033[1;31m[ERROR]\033[0m ";
 		(std::cerr << ... << std::forward<Args>(args)) << '\n';
 	}
+
+private:
+	static inline std::mutex s_LogMutex;
 };

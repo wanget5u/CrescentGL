@@ -7,18 +7,6 @@
 
 namespace Crescent::Input {
 
-void Action::BindKeyboardKey(KeyCode const code) {
-	m_Bindings.push_back(Binding::FromKey(code));
-}
-
-void Action::BindMouseButton(MouseButton const button) {
-	m_Bindings.push_back(Binding::FromMouseButton(button));
-}
-
-void Action::BindMouseAxis(MouseAxis const axis, f32 const scale) {
-	m_Bindings.push_back(Binding::FromMouseAxis(axis, scale));
-}
-
 Action::SubscriptionID Action::Subscribe(Callback callback) {
 	u32 id = m_NextID++;
 	m_Subscribers[id] = std::move(callback);
@@ -32,16 +20,13 @@ void Action::Unsubscribe(SubscriptionID const id) {
 	}
 }
 
-void Action::OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta) {
+void Action::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta) {
 	m_IsActive = EvaluateBindings(window, mouseDeltaX, mouseDeltaY, scrollDelta);
-
 	if (m_Subscribers.empty() == true) {
 		return;
 	}
-
 	Phase phase{};
 	bool shouldFire = false;
-
 	if (m_IsActive == true && m_WasActive == false) {
 		phase = Phase::Pressed;
 		shouldFire = true;
@@ -54,7 +39,6 @@ void Action::OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 
 		phase = Phase::Released;
 		shouldFire = true;
 	}
-
 	if (shouldFire == true) {
 		Event event(m_Name, phase, m_AnalogValue);
 		for (auto const& [id, callback] : m_Subscribers) {
@@ -96,7 +80,7 @@ bool Action::EvaluateKeyboardKeyBindings(GLFWwindow* window, Binding const& bind
 }
 
 bool Action::EvaluateMouseButtonBindings(GLFWwindow* window, Binding const& binding) {
-	i32 state = glfwGetKey(window, static_cast<i32>(binding.keyCode));
+	i32 state = glfwGetMouseButton(window, static_cast<i32>(binding.mouseButton));
 	if (state == GLFW_PRESS) {
 		m_AnalogValue = 1.0f;
 		return true;
@@ -104,7 +88,7 @@ bool Action::EvaluateMouseButtonBindings(GLFWwindow* window, Binding const& bind
 	return false;
 }
 
-bool Action::EvaluateMouseScrollBindings(GLFWwindow* window, Binding const& binding, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta) {
+bool Action::EvaluateMouseScrollBindings([[maybe_unused]] GLFWwindow* window, Binding const& binding, f32 const mouseDeltaX, const f32 mouseDeltaY, const f32 scrollDelta) {
 	f32 raw = 0.0f;
 	switch (binding.mouseAxis) {
 	case MouseAxis::X:

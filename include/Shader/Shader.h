@@ -27,14 +27,10 @@ struct Shader {
 		}
 	}
 
-	u32 ID{ 0 };
+	u32 ID{0};
 
 	explicit Shader(const char8* vertexPath, const char8* fragmentPath);
-	~Shader() {
-		if (ID != 0) {
-			glDeleteProgram(ID);
-		}
-	}
+	~Shader() { if (ID != 0) {glDeleteProgram(ID);} }
 
 	Shader(const Shader&) = delete;
 	Shader& operator=(const Shader&) = delete;
@@ -42,9 +38,7 @@ struct Shader {
 	Shader(Shader&& other) noexcept : ID(other.ID) { other.ID = 0; }
 	Shader& operator=(Shader&& other) noexcept {
 		if (this != &other) {
-			if (ID != 0) {
-				glDeleteProgram(ID);
-			}
+			if (ID != 0) { glDeleteProgram(ID); }
 			ID = other.ID;
 			other.ID = 0;
 		}
@@ -54,7 +48,6 @@ struct Shader {
 	void Use() const {
 		glUseProgram(ID);
 	};
-
 	void SetBool(std::string_view const name, bool const value) const {
 		glUniform1i(GetUniformLocation(name), static_cast<i32>(value));
 	}
@@ -73,13 +66,12 @@ struct Shader {
 	void SetVector4(std::string_view const name, Math::Vector4 const& value) const {
 		glUniform4fv(GetUniformLocation(name), 1, value.data);
 	}
-	void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const {
+	void SetMatrix4(std::string_view const name, Math::Matrix4x4 const& matrix) const {
 		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.Data());
 	}
 
 private:
 	mutable std::unordered_map<std::string, i32> m_UniformLocationCache;
-
 	static bool LogCompileErrors(u32 shader, Type type);
 	[[nodiscard]] i32 GetUniformLocation(std::string_view name) const;
 };

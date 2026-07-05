@@ -1,12 +1,12 @@
 #pragma once
+#include <memory>
 #include <string>
 #include "Core/Core.h"
 #include "Input/InputAction.h"
 
 namespace Crescent::Input {
 
-class Context {
-public:
+struct Context {
 	enum class Type : u32 {
 		Editor,
 		Game
@@ -18,8 +18,8 @@ public:
 	void OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta);
 
 private:
-	std::string m_Name;
-	std::unordered_map<std::string, Action> m_Actions;
+	std::string m_Name{""};
+	std::unordered_map<std::string, std::unique_ptr<Action>> m_Actions{};
 };
 
 }

@@ -3,22 +3,21 @@
 
 namespace Crescent {
 
-class Time {
-public:
+struct Time {
 	static void OnUpdate(f32 const currentEngineTime) {
 		f32 frameTime = currentEngineTime - s_LastFrameTime;
 		s_LastFrameTime = currentEngineTime;
-
 		if (frameTime > MAX_ALLOWED_DELTA) {
 			frameTime = MAX_ALLOWED_DELTA;
 		}
-
 		s_VariableDeltaTime = frameTime;
 		s_TotalTime = currentEngineTime;
 		s_Accumulator += frameTime;
 	}
 	static bool AccumulatorHasSubstep() { return s_Accumulator >= FIXED_TIMESTEP; }
 	static void ConsumeSubstep() { s_Accumulator -= FIXED_TIMESTEP; }
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Getters
 	[[nodiscard]] static f32 GetVariableDeltaTime() { return s_VariableDeltaTime; }
 	[[nodiscard]] static f32 GetFixedDeltaTime() { return FIXED_TIMESTEP; }
 	[[nodiscard]] static f32 GetTotalTime() { return s_TotalTime; }
@@ -28,9 +27,11 @@ public:
 	[[nodiscard]] static f32 GetFPS() { return 1.0f / s_VariableDeltaTime; }
 
 private:
-	inline static f32 s_VariableDeltaTime = 0.0f;
-	inline static f32 s_LastFrameTime = 0.0f;
-	inline static f32 s_TotalTime = 0.0f;
-	inline static f32 s_Accumulator = 0.0f;
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/// Tracking Variables
+	inline static f32 s_VariableDeltaTime{0.0f};
+	inline static f32 s_LastFrameTime	 {0.0f};
+	inline static f32 s_TotalTime		 {0.0f};
+	inline static f32 s_Accumulator		 {0.0f};
 };
 }

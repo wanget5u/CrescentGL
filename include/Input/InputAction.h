@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <functional>
+#include <memory>
 #include <string>
 #include "Core/Core.h"
 #include "InputCodes.h"
@@ -21,11 +22,11 @@ struct Binding {
 		MouseAxis 
 	};
 
-	Type type;
+	Type type{};
 	KeyCode keyCode = KeyCode::Space;
-	MouseButton mouseCode = MouseButton::Button0;
+	MouseButton mouseButton = MouseButton::Button0;
 	MouseAxis mouseAxis = MouseAxis::Y;
-	f32 scale = 1.0f;
+	f32 scale{1.0f};
 
 	static Binding FromKey(KeyCode const keyCode) {
 		Binding binding; 
@@ -36,7 +37,7 @@ struct Binding {
 	static Binding FromMouseButton(MouseButton const keyCode) {
 		Binding binding;
 		binding.type = Type::MouseButton; 
-		binding.mouseCode = keyCode;
+		binding.mouseButton = keyCode;
 		return binding; 
 	}
 	static Binding FromMouseAxis(MouseAxis const axis, f32 const scale) {
@@ -48,8 +49,7 @@ struct Binding {
 	}
 };
 
-class Action {
-public:
+struct Action {
 	enum class Phase {
 		Pressed,
 		Held,
@@ -67,21 +67,21 @@ public:
 	using Callback = std::function<void(Event const&)>;
 	using SubscriptionID = u32;
 
-	void BindKeyboardKey(KeyCode code);
-	void BindMouseButton(MouseButton button);
-	void BindMouseAxis(MouseAxis axis, f32 scale = 1.0f);
+	void BindKeyboardKey(KeyCode const code) { m_Bindings.push_back(Binding::FromKey(code)); }
+	void BindMouseButton(MouseButton const button) { m_Bindings.push_back(Binding::FromMouseButton(button)); }
+	void BindMouseAxis(MouseAxis const axis, f32 const scale = 1.0f) { m_Bindings.push_back(Binding::FromMouseAxis(axis, scale)); }
 	SubscriptionID Subscribe(Callback callback);
 	void Unsubscribe(SubscriptionID id);
 	void OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta);
 
 private:
-	std::string m_Name;
-	std::vector<Binding> m_Bindings;
-	std::unordered_map<u32, Callback> m_Subscribers;
-	u32 m_NextID = 0;
-	bool m_WasActive = false;
-	bool m_IsActive = false;
-	f32 m_AnalogValue = 0.0f;
+	std::string m_Name{};
+	std::vector<Binding> m_Bindings{};
+	std::unordered_map<u32, Callback> m_Subscribers{};
+	u32 m_NextID	 {0};
+	bool m_WasActive {false};
+	bool m_IsActive	 {false};
+	f32 m_AnalogValue{0.0f};
 	
 	bool EvaluateBindings(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta);
 	bool EvaluateKeyboardKeyBindings(GLFWwindow* window, Binding const& binding);
