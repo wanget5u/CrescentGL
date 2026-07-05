@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "Core/Core.h"
@@ -20,6 +21,19 @@ public:
 	~Window();
 	void OnUpdate();
 	void Show() const { glfwShowWindow(m_Window); }
+	void SetRenderCallback(std::function<void()> const& callback) { m_RenderCallback = callback; }
+	void TriggerRender() const {
+		if (m_RenderCallback != nullptr) {
+			m_RenderCallback();
+			glfwSwapBuffers(m_Window);
+		}
+	}
+	void OnResize(u32 const width, u32 const height) {
+		m_Properties.Width = width;
+		m_Properties.Height = height;
+		glViewport(0, 0, width, height);
+		TriggerRender();
+	}
 	[[nodiscard]] bool ShouldClose() const { return glfwWindowShouldClose(m_Window); }
 	[[nodiscard]] GLFWwindow* GetWindow() const { return m_Window; }
 	[[nodiscard]] u32 GetWidth() const { return m_Properties.Width; }
@@ -28,6 +42,7 @@ public:
 private:
 	GLFWwindow* m_Window = nullptr;
 	Properties m_Properties;
+	std::function<void()> m_RenderCallback;
 
 	bool Init(Properties const& properties);
 	void Shutdown() const;

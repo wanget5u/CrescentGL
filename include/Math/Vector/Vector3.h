@@ -13,10 +13,10 @@ namespace Crescent::Math {
 struct Vector3 {
 	union {
 		struct { f32 x; f32 y; f32 z; };
-		f32 data[3]{};
+		f32 data[3];
 	};
-	explicit constexpr Vector3() noexcept
-		: x(0.0f), y(0.0f), z(0.0f) {}
+
+	constexpr Vector3() noexcept = default;
 	explicit constexpr Vector3(f32 const x, f32 const y, f32 const z) noexcept
 		: x(x), y(y), z(z) {}
 	explicit constexpr Vector3(Vector2 const& xy, f32 const z = 0.0f) noexcept

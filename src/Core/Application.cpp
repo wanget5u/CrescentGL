@@ -8,6 +8,8 @@
 #include <complex>
 
 #include "Input/InputSystem.h"
+#include "Math/Trigonometry.h"
+#include "Math/Matrix/Matrix4x4.h"
 #include "Shader/Shader.h"
 
 namespace Crescent {
@@ -116,6 +118,42 @@ void Application::Run() {
 
 	f32 alphaBlendValue{};
 	f32 zoomFactorValue{};
+	f32 sinus{};
+	f32 cosinus{};
+
+	auto renderFrame = [this, &shader, texture1, texture2, VAO, &alphaBlendValue, &zoomFactorValue]() {
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		alphaBlendValue = (std::sin(Time::GetTotalTime() * 1.25f) * 0.2f) + 0.5f;
+		zoomFactorValue = (std::sin(Time::GetTotalTime() * 1.5f) * 0.1f) + 0.7f;
+		shader.SetFloat("alphaBlend", alphaBlendValue);
+		shader.SetFloat("rotationAngle", Time::GetTotalTime());
+		shader.SetFloat("zoomFactor", zoomFactorValue);
+
+		for (u8 a = 0; a < 64; a++) {
+			f32 mul = a * 2.0f;
+			Math::Matrix4x4 matrix{};
+
+			matrix.Scale(Math::Vector3(zoomFactorValue, zoomFactorValue, zoomFactorValue));
+			matrix.RotateLocal(Math::DegToRad((Time::GetTotalTime() * 20.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
+			f32 spacing = 0.03f;
+			matrix.TranslateWorld(Math::Vector3(0.2f - (a * spacing), -0.2f + (a * spacing), 0.0f));
+			matrix.RotateWorld(Math::DegToRad((Time::GetTotalTime() * 50.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
+			shader.SetMatrix4("transform", matrix);
+
+			glBindVertexArray(VAO);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		}
+	};
+
+	m_Window->SetRenderCallback(renderFrame);
+
 	while (IsRunning() == true && m_Window->ShouldClose() == false) {
 		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
 		ProcessInput();
@@ -123,24 +161,7 @@ void Application::Run() {
 		while (Time::AccumulatorHasSubstep()) {
 			Time::ConsumeSubstep();
 		}
-
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		alphaBlendValue = (std::sin(Time::GetTotalTime() * 1.25f) * 0.2f) + 0.5f;
-		zoomFactorValue = (std::sin(Time::GetTotalTime() * 2.0f) * 0.5f) + 1.0f;
-		shader.SetFloat("alphaBlend", alphaBlendValue);
-		shader.SetFloat("rotationAngle", Time::GetTotalTime());
-		shader.SetFloat("zoomFactor", zoomFactorValue);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
+		renderFrame();
 		m_Window->OnUpdate();
 	}
 

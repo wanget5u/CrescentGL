@@ -6,16 +6,15 @@
 namespace Crescent::Math {
 
 struct Matrix4x4 {
-	union {
-		f32 data[16]{};
-		f32 columns[4][4];
-		struct {
-			Vector4 column0; // X (right)
-			Vector4 column1; // Y (up)
-			Vector4 column2; // Z (forward/back)
-			Vector4 column3; // W (translation/position)
-		};
-	};
+	Vector4 column0; // X (right)
+	Vector4 column1; // Y (up)
+	Vector4 column2; // Z (forward/back)
+	Vector4 column3; // W (translation/position)
+
+	[[nodiscard]] constexpr f32 const* Data() const noexcept { return column0.data; }
+	[[nodiscard]] constexpr f32* Data() noexcept { return column0.data; }
+	[[nodiscard]] constexpr f32 const* GetData() const noexcept { return column0.data; }
+	[[nodiscard]] constexpr f32* GetData() noexcept { return column0.data; }
 
 	explicit constexpr Matrix4x4()
 		: column0(1.0f, 0.0f, 0.0f, 0.0f)
@@ -40,7 +39,7 @@ struct Matrix4x4 {
 			Vector4(0.0f, 0.0f, 0.0f, 0.0f)
 		);
 	}
-	[[nodiscard]] static constexpr Matrix4x4 Identity() noexcept {
+	[[nodiscard]] static constexpr Matrix4x4 GetIdentity() noexcept {
 		return Matrix4x4(
 			Vector4(1.0f, 0.0f, 0.0f, 0.0f),
 			Vector4(0.0f, 1.0f, 0.0f, 0.0f),
@@ -48,12 +47,44 @@ struct Matrix4x4 {
 			Vector4(0.0f, 0.0f, 0.0f, 1.0f)
 		);
 	}
-	[[nodiscard]] static constexpr Matrix4x4 Translation(Vector3 const& position) noexcept {
+	[[nodiscard]] static constexpr Matrix4x4 GetTranslation(Vector3 const& position) noexcept {
 		return Matrix4x4(
-		   Vector4(1.0f, 0.0f, 0.0f, 0.0f),
-		   Vector4(0.0f, 1.0f, 0.0f, 0.0f),
-		   Vector4(0.0f, 0.0f, 1.0f, 0.0f),
+		   Vector4(		 1.0f, 		 0.0f, 		 0.0f, 0.0f),
+		   Vector4(		 0.0f, 		 1.0f, 		 0.0f, 0.0f),
+		   Vector4(		 0.0f, 		 0.0f, 		 1.0f, 0.0f),
 		   Vector4(position.x, position.y, position.z, 1.0f)
+		);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 GetScale(Vector3 const& scale) noexcept {
+		return Matrix4x4(
+			Vector4(scale.x,    0.0f,    0.0f, 0.0f),
+			Vector4(   0.0f, scale.y,    0.0f, 0.0f),
+			Vector4(   0.0f,    0.0f, scale.z, 0.0f),
+			Vector4(   0.0f,    0.0f,    0.0f, 1.0f)
+		);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 GetRotationX(f32 const rad) {
+		return Matrix4x4(
+			Vector4(		  1.0f,	 	      0.0f,           0.0f,		       0.0f),
+			Vector4(		  0.0f,  std::cos(rad), -std::sin(rad), 		   0.0f),
+			Vector4(          0.0f,  std::sin(rad),  std::cos(rad), 		   0.0f),
+			Vector4(		  0.0f,	 	      0.0f,           0.0f, 		   1.0f)
+		);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 GetRotationY(f32 const rad) {
+		return Matrix4x4(
+			Vector4( std::cos(rad),		      0.0f,  std::sin(rad),		       0.0f),
+			Vector4(		  0.0f,		      1.0f,           0.0f, 		   0.0f),
+			Vector4(-std::sin(rad),           0.0f,  std::cos(rad), 		   0.0f),
+			Vector4(		  0.0f,		      0.0f,           0.0f, 		   1.0f)
+		);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 GetRotationZ(f32 const rad) {
+		return Matrix4x4(
+			Vector4( std::cos(rad), -std::sin(rad),			  0.0f,		       0.0f),
+			Vector4( std::sin(rad),	 std::cos(rad),           0.0f, 		   0.0f),
+			Vector4(		  0.0f,           0.0f,			  1.0f, 		   0.0f),
+			Vector4(		  0.0f,		      0.0f,           0.0f, 		   1.0f)
 		);
 	}
 
@@ -84,8 +115,14 @@ struct Matrix4x4 {
 		column3 *= scalar;
 		return *this;
 	}
+	constexpr Vector4 operator*(Vector4 const& other) const noexcept {
+		return (column0 * other.x) +
+			   (column1 * other.y) +
+			   (column2 * other.z) +
+			   (column3 * other.w);
+	}
 	constexpr Matrix4x4& operator*=(Matrix4x4 const& other) noexcept {
-		Matrix4x4 const m = *this;
+		Matrix4x4 m = *this;
 		(*this)[0]=(m.column0*other[0].x)+(m.column1*other[0].y)+(m.column2*other[0].z)+(m.column3*other[0].w);
 		(*this)[1]=(m.column0*other[1].x)+(m.column1*other[1].y)+(m.column2*other[1].z)+(m.column3*other[1].w);
 		(*this)[2]=(m.column0*other[2].x)+(m.column1*other[2].y)+(m.column2*other[2].z)+(m.column3*other[2].w);
@@ -111,10 +148,8 @@ struct Matrix4x4 {
 		column3 *= invScalar;
 		return *this;
 	}
+	// TODO:
 	// constexpr Matrix4x4& operator/=(Matrix4x4 const& other) noexcept {
-	// 	Matrix4x4 invertedOther = other.Inverse();
-	// 	*this *= invertedOther;
-	// 	return *this;
 	// }
 	constexpr Vector4 const& operator[](size_t const index) const noexcept {
 		return (&column0)[index];
@@ -126,11 +161,56 @@ struct Matrix4x4 {
 	[[nodiscard]] constexpr Vector4 GetRow(size_t const rowIndex) const {
 		return Vector4(column0[rowIndex], column1[rowIndex], column2[rowIndex], column3[rowIndex]);
 	}
-	void SetRow(size_t const rowIndex, Vector4 const& row) {
+	constexpr void SetRow(size_t const rowIndex, Vector4 const& row) {
 		column0[rowIndex] = row.x;
 		column1[rowIndex] = row.y;
 		column2[rowIndex] = row.z;
 		column3[rowIndex] = row.w;
+	}
+	constexpr void Scale(Vector3 const& scale) noexcept {
+		column0 *= scale.x;
+		column1 *= scale.y;
+		column2 *= scale.z;
+	}
+	constexpr void TranslateLocal(Vector3 const& position) noexcept {
+		*this *= GetTranslation(position);
+	}
+	constexpr void TranslateWorld(Vector3 const& position) noexcept {
+		column3.x += position.x;
+		column3.y += position.y;
+		column3.z += position.z;
+	}
+	constexpr void RotateLocal(f32 const rad, Vector3 const& axis) noexcept {
+		Vector3 normalizedAxis = axis.Normalized();
+		const f32 cos = std::cos(rad);
+		const f32 sin = std::sin(rad);
+		const f32 omc = 1.0f - std::cos(rad);
+		const f32 x = normalizedAxis.x;
+		const f32 y = normalizedAxis.y;
+		const f32 z = normalizedAxis.z;
+		Matrix4x4 rotation(
+			Vector4(  cos + x*x*omc, y*x*omc + z*sin, z*x*omc - y*sin, 0.0f),
+			Vector4(x*y*omc - z*sin,   cos + y*y*omc, z*y*omc + x*sin, 0.0f),
+			Vector4(x*z*omc + y*sin, y*z*omc - x*sin,   cos + z*z*omc, 0.0f),
+			Vector4(           0.0f,            0.0f,            0.0f, 1.0f)
+		);
+		*this *= rotation;
+	}
+	constexpr void RotateWorld(f32 const rad, Vector3 const& axis) noexcept {
+		Vector3 normalizedAxis = axis.Normalized();
+		const f32 cos = std::cos(rad);
+		const f32 sin = std::sin(rad);
+		const f32 omc = 1.0f - std::cos(rad);
+		const f32 x = normalizedAxis.x;
+		const f32 y = normalizedAxis.y;
+		const f32 z = normalizedAxis.z;
+		Matrix4x4 rotation(
+	  		Vector4(  cos + x*x*omc, x*y*omc + z*sin, x*z*omc - y*sin, 0.0f),
+	  		Vector4(y*x*omc - z*sin,   cos + y*y*omc, y*z*omc + x*sin, 0.0f),
+	  		Vector4(z*x*omc + y*sin, z*y*omc - x*sin,   cos + z*z*omc, 0.0f),
+	  		Vector4(           0.0f,            0.0f,            0.0f, 1.0f)
+		);
+		*this = rotation * (*this);
 	}
 };
 

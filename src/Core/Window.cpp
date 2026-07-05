@@ -4,11 +4,9 @@
 namespace Crescent {
 
 static void FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {
-	Window::Properties* windowProperties = static_cast<Window::Properties*>(glfwGetWindowUserPointer(window));
-	if (windowProperties != nullptr) {
-		windowProperties->Width = width;
-		windowProperties->Height = height;
-		glViewport(0, 0, width, height);
+	Window* windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (windowInstance != nullptr) {
+		windowInstance->OnResize(width, height);
 	}
 	else {
 		Log::Error(
@@ -17,6 +15,20 @@ static void FrameBufferCallback(GLFWwindow* window, i32 width, i32 height) {
 			width, height, static_cast<void*>(window)
 		);
 		assert(false && "GLFW Window User Pointer was never initialized!");
+	}
+}
+
+static void WindowPosCallback(GLFWwindow* window, i32 xpos, i32 ypos) {
+	Window* windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (windowInstance != nullptr) {
+		windowInstance->TriggerRender();
+	}
+}
+
+static void WindowRefreshCallback(GLFWwindow* window) {
+	Window* windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (windowInstance != nullptr) {
+		windowInstance->TriggerRender();
 	}
 }
 
@@ -45,9 +57,10 @@ bool Window::Init(Properties const& windowProperties) {
 
 	Create();
 
-	glfwSetWindowUserPointer(m_Window, &m_Properties);
-	glViewport(0, 0, m_Properties.Width, m_Properties.Height);
+	glfwSetWindowUserPointer(m_Window, this);
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);
+	glfwSetWindowPosCallback(m_Window, WindowPosCallback);
+	glfwSetWindowRefreshCallback(m_Window, WindowRefreshCallback);
 
 	return true;
 }
@@ -73,7 +86,7 @@ bool Window::Create() {
 		Log::Error("Failed to initialize GLAD.");
 		return false;
 	}
-	Log::Print("GLAD and OpenGL initialized successfully.");
+	Log::Info("GLAD and OpenGL initialized successfully.");
 	return true;
 }
 

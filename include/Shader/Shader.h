@@ -7,6 +7,7 @@
 #include "../Math/Vector/Vector2.h"
 #include "../Math/Vector/Vector3.h"
 #include "../Math/Vector/Vector4.h"
+#include "Math/Matrix/Matrix4x4.h"
 
 namespace Crescent {
 
@@ -72,9 +73,9 @@ struct Shader {
 	void SetVector4(std::string_view const name, Math::Vector4 const& value) const {
 		glUniform4fv(GetUniformLocation(name), 1, value.data);
 	}
-	// void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const {
-	// 	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.data);
-	// }
+	void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const {
+		glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.Data());
+	}
 
 private:
 	mutable std::unordered_map<std::string, i32> m_UniformLocationCache;

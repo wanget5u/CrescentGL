@@ -9,8 +9,10 @@ out vec2 texCoord;
 uniform float rotationAngle;
 uniform float zoomFactor;
 
+uniform mat4 transform;
+
 void main() {
-	gl_Position = vec4(aPos, 1.0);
+	gl_Position = transform * vec4(aPos, 1.0);
 	vertexColor = aColor;
 
 	vec2 shiftedCoord = aTexCoord - vec2(0.5, 0.5);

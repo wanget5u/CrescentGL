@@ -1,6 +1,6 @@
 #pragma once
 #include <Core/Core.h>
-#include <type_traits>
+#include <Math/Constants.h>
 
 namespace Crescent::Math {
 

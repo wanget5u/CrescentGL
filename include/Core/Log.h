@@ -25,6 +25,10 @@ public:
 
 	template <typename... Args>
 	static void Print(Args&&... args) {
+    	(std::cout << ... << std::forward<Args>(args)) << '\n';
+    }
+	template <typename... Args>
+	static void Info(Args&&... args) {
         static bool ansi = EnableANSI();
         static_cast<void>(ansi);
 		std::cout << "\033[1;37m[OK]\033[0m ";
