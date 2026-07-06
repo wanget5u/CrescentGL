@@ -83,16 +83,16 @@ constexpr Number ArcSin(Number radians) noexcept {
 	if (radians <= static_cast<Number>(-1.0)) { return static_cast<Number>(-PI / 2.0); }
 	if (radians >= static_cast<Number>(1.0)) { return static_cast<Number>(PI / 2.0); }
 	const Number halfPi = static_cast<Number>(PI) / static_cast<Number>(2.0);
-	return halfPi - ArcCos(radians);
+	return halfPi - Math::ArcCos(radians);
 }
 
 template <typename Number> [[nodiscard]]
 constexpr Number Tan(Number radians) {
-	const Number cos = Cos(radians);
+	const Number cos = Math::Cos(radians);
 	if (IsNearlyZero(cos) == true) {
 		return static_cast<Number>(0.0);
 	}
-	return Sin(radians) / cos;
+	return Math::Sin(radians) / cos;
 }
 
 }

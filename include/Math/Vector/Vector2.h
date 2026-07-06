@@ -136,10 +136,10 @@ struct Vector2 {
 		}
 		const f32 cosTheta = a.Dot(b) / lengthProduct;
 		const f32 clampedCos = Math::Clamp(cosTheta, -1.0f, 1.0f);
-		return ArcCos(clampedCos);
+		return Math::ArcCos(clampedCos);
 	}
 	[[nodiscard]] static f32 AngleBetweenNormalized(Vector2 const& a, Vector2 const& b) noexcept {
-		return ArcCos(Math::Clamp(a.Dot(b), -1.0f, 1.0f));
+		return Math::ArcCos(Math::Clamp(a.Dot(b), -1.0f, 1.0f));
 	}
 
 	[[nodiscard]] constexpr f32 Dot(Vector2 const& other) const noexcept {

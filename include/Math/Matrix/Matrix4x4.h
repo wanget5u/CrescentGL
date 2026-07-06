@@ -81,7 +81,7 @@ struct Matrix4x4 {
 			Log::Warning("Perspective projection farZ and nearZ are too close.");
 			return Zero();
 		}
-		const f32 tanHalfFov = Tan(fovRadians / 2.0f);
+		const f32 tanHalfFov = Math::Tan(fovRadians / 2.0f);
 		const f32 g = 1.0f / tanHalfFov;
 		const f32 invDepth = 1.0f / (farZ - nearZ);
 		return Matrix4x4(
@@ -101,26 +101,26 @@ struct Matrix4x4 {
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationX(f32 const radians) {
 		return Matrix4x4(
-			Vector4(1.0f,	      0.0f,          0.0f, 0.0f),
-			Vector4(0.0f, Cos(radians), -Sin(radians), 0.0f),
-			Vector4(0.0f, Sin(radians),  Cos(radians), 0.0f),
-			Vector4(0.0f,	      0.0f,          0.0f, 1.0f)
+			Vector4(1.0f,	            0.0f,                0.0f, 0.0f),
+			Vector4(0.0f, Math::Cos(radians), -Math::Sin(radians), 0.0f),
+			Vector4(0.0f, Math::Sin(radians),  Math::Cos(radians), 0.0f),
+			Vector4(0.0f,	            0.0f,                0.0f, 1.0f)
 		);
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationY(f32 const radians) {
 		return Matrix4x4(
-			Vector4( Cos(radians), 0.0f, Sin(radians), 0.0f),
-			Vector4(		 0.0f, 1.0f,         0.0f, 0.0f),
-			Vector4(-Sin(radians), 0.0f, Cos(radians), 0.0f),
-			Vector4(		 0.0f, 0.0f,         0.0f, 1.0f)
+			Vector4( Math::Cos(radians), 0.0f, Math::Sin(radians), 0.0f),
+			Vector4(		       0.0f, 1.0f,               0.0f, 0.0f),
+			Vector4(-Math::Sin(radians), 0.0f, Math::Cos(radians), 0.0f),
+			Vector4(		       0.0f, 0.0f,               0.0f, 1.0f)
 		);
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationZ(f32 const rad) {
 		return Matrix4x4(
-			Vector4(Cos(rad), -Sin(rad), 0.0f, 0.0f),
-			Vector4(Sin(rad),  Cos(rad), 0.0f, 0.0f),
-			Vector4(	0.0f,      0.0f, 1.0f, 0.0f),
-			Vector4(	0.0f,      0.0f, 0.0f, 1.0f)
+			Vector4(Math::Cos(rad), -Math::Sin(rad), 0.0f, 0.0f),
+			Vector4(Math::Sin(rad),  Math::Cos(rad), 0.0f, 0.0f),
+			Vector4(	      0.0f,            0.0f, 1.0f, 0.0f),
+			Vector4(	      0.0f,            0.0f, 0.0f, 1.0f)
 		);
 	}
 
@@ -218,9 +218,9 @@ struct Matrix4x4 {
 	}
 	constexpr void RotateLocal(f32 const rad, Vector3 const& axis) noexcept {
 		Vector3 normalizedAxis = axis.Normalized();
-		const f32 cos = Cos(rad);
-		const f32 sin = Sin(rad);
-		const f32 omc = 1.0f - Cos(rad);
+		const f32 cos = Math::Cos(rad);
+		const f32 sin = Math::Sin(rad);
+		const f32 omc = 1.0f - Math::Cos(rad);
 		const f32 x = normalizedAxis.x;
 		const f32 y = normalizedAxis.y;
 		const f32 z = normalizedAxis.z;
@@ -234,9 +234,9 @@ struct Matrix4x4 {
 	}
 	constexpr void RotateWorld(f32 const rad, Vector3 const& axis) noexcept {
 		Vector3 normalizedAxis = axis.Normalized();
-		const f32 cos = Cos(rad);
-		const f32 sin = Sin(rad);
-		const f32 omc = 1.0f - Cos(rad);
+		const f32 cos = Math::Cos(rad);
+		const f32 sin = Math::Sin(rad);
+		const f32 omc = 1.0f - Math::Cos(rad);
 		const f32 x = normalizedAxis.x;
 		const f32 y = normalizedAxis.y;
 		const f32 z = normalizedAxis.z;

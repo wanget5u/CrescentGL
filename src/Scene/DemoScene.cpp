@@ -9,14 +9,56 @@ namespace Crescent {
 DemoScene::DemoScene() {
 	m_Shader = std::make_unique<Shader>("Shaders/default.vert", "Shaders/default.frag");
 	f32 vertices[] = {
-		1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
-		1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
-	   -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f//
+		// Front Face (-Z)
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // 0
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // 1
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // 2
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // 3
+		// Back Face (+Z)
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // 4
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // 5
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // 6
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // 7
+		// Left Face (-X)
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // 8
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // 9
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // 10
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // 11
+		// Right Face (+X)
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // 12
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // 13
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // 14
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // 15
+		// Bottom Face (-Y)
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // 16
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // 17
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // 18
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // 19
+		// Top Face (+Y)
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // 20
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // 21
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // 22
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // 23
 	};
 	u32 indices[] = {
+		// Front Face
 		0, 1, 2,
-		0, 2, 3
+		0, 2, 3,
+		// Back Face
+		4, 5, 6,
+		4, 6, 7,
+		// Left Face
+		8, 9, 10,
+		8, 10, 11,
+		// Right Face
+		12, 13, 14,
+		12, 14, 15,
+		// Bottom Face
+		16, 17, 18,
+		16, 18, 19,
+		// Top Face
+		20, 21, 22,
+		20, 22, 23
 	};
 	m_QuadMesh = std::make_unique<Mesh>(vertices, sizeof(vertices), indices, sizeof(indices) / sizeof(u32));
 	AssetLoader::Instance().LoadTextureAsync("Assets/Textures/Tiles081_1K-JPG_Color.jpg");
@@ -37,15 +79,14 @@ void DemoScene::OnUpdate([[maybe_unused]] f32 const deltaTime) {
 		Log::Info("DemoScene: Successfully received loaded texture {", loadedTextureID, "}.");
 	}
 	m_AlphaBlendValue = (Math::Sin(Time::GetTotalTime() * 1.25f) * 0.2f) + 0.5f;
-	m_ZoomFactorValue = (Math::Sin(Time::GetTotalTime() * 1.5f) * 0.1f) + 0.7f;
 }
 
 void DemoScene::OnRender(Window& window) {
-	const f32 aspectRatio = window.GetWindowAspectRatio();
-	const Math::Matrix4x4 projectionMatrix = Math::Matrix4x4::GetOrthographicProjection(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+	const f32 aspectRatio = window.GetAspectRatio();
 
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_Texture1);
@@ -53,22 +94,21 @@ void DemoScene::OnRender(Window& window) {
 	glBindTexture(GL_TEXTURE_2D, m_Texture2);
 
 	m_Shader->Use();
-	m_Shader->SetMatrix4("projection", projectionMatrix);
-	m_Shader->SetFloat("alphaBlend", m_AlphaBlendValue);
-	m_Shader->SetFloat("rotationAngle", Time::GetTotalTime());
-	m_Shader->SetFloat("zoomFactor", m_ZoomFactorValue);
 
-	for (u16 a = 0; a < 256; a++) {
-		f32 mul = a * 0.95f;
-		Math::Matrix4x4 matrix{};
-		matrix.Scale(Math::Vector3(m_ZoomFactorValue, m_ZoomFactorValue, m_ZoomFactorValue));
-		matrix.RotateLocal(Math::DegreesToRadians((Time::GetTotalTime() * 20.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
-		f32 spacing = 0.015f;
-		matrix.TranslateWorld(Math::Vector3(0.5f - (a * spacing), -0.1f + (a * spacing), 0.0f));
-		matrix.RotateWorld(Math::DegreesToRadians((Time::GetTotalTime() * 50.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
-		m_Shader->SetMatrix4("transform", matrix);
-		m_QuadMesh->Draw();
-	}
+	Math::Matrix4x4 viewMatrix{};
+
+	Math::Matrix4x4 projection = Math::Matrix4x4::GetPerspectiveProjection(
+		Math::DegreesToRadians(70.0f), aspectRatio
+	);
+
+	Math::Matrix4x4 modelMatrix{};
+	viewMatrix.TranslateWorld(Math::Vector3(0.0f,  0.0f,  -2.0f));
+	modelMatrix.RotateLocal(Math::DegreesToRadians(Time::GetTotalTime() * 90.f), Math::Vector3(0.5f, 1.0f, 0.2f));
+	m_Shader->SetMatrix4("model", modelMatrix);
+	m_Shader->SetMatrix4("view", viewMatrix);
+	m_Shader->SetMatrix4("projection", projection);
+	m_Shader->SetFloat("alphaBlend", m_AlphaBlendValue);
+	m_QuadMesh->Draw();
 }
 
 }

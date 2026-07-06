@@ -94,7 +94,7 @@ struct Window {
     [[nodiscard]] GLFWwindow* GetWindow() const { return m_Window; }
     [[nodiscard]] i32 GetWindowWidth()    const { return m_Properties.Width; }
     [[nodiscard]] i32 GetWindowHeight()   const { return m_Properties.Height; }
-    [[nodiscard]] f32 GetWindowAspectRatio() {
+    [[nodiscard]] f32 GetAspectRatio() {
        CheckViewportResize();
        const i32 height = GetWindowHeight();
        if (height == 0) { return 1.0f; }
