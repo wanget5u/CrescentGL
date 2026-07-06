@@ -12,9 +12,15 @@ constexpr Number Lerp(Number a, Number b, Number t) {
 
 template <typename Number> [[nodiscard]]
 constexpr Number Clamp(Number number, Number min, Number max) {
-	if (number < min) { return min;}
-	if (number > max) { return max; }
+	if (number < min) { return min; }
+	if (max < number) { return max; }
 	return number;
+}
+
+template <typename Number>
+constexpr void Clamp(Number& number, Number min, Number max) {
+	if (number < min) { number = min; }
+	else if (max < number) { number = max; }
 }
 
 template <typename Number> [[nodiscard]]

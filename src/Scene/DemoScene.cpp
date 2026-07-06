@@ -1,5 +1,4 @@
 #include "Scene/DemoScene.h"
-#include <cmath>
 #include "Asset/AssetLoader.h"
 #include "Core/Log.h"
 #include "Core/Time.h"
@@ -13,7 +12,7 @@ DemoScene::DemoScene() {
 		1.0f,  1.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
 		1.0f, -1.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
 	   -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-	   -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f
+	   -1.0f,  1.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f//
 	};
 	u32 indices[] = {
 		0, 1, 2,
@@ -35,15 +34,15 @@ void DemoScene::OnUpdate([[maybe_unused]] f32 const deltaTime) {
 		} else {
 			m_Texture2 = loadedTextureID;
 		}
-		Log::Info("DemoScene: Successfully received loaded texture.");
+		Log::Info("DemoScene: Successfully received loaded texture {", loadedTextureID, "}.");
 	}
-	m_AlphaBlendValue = (std::sin(Time::GetTotalTime() * 1.25f) * 0.2f) + 0.5f;
-	m_ZoomFactorValue = (std::sin(Time::GetTotalTime() * 1.5f) * 0.1f) + 0.7f;
+	m_AlphaBlendValue = (Math::Sin(Time::GetTotalTime() * 1.25f) * 0.2f) + 0.5f;
+	m_ZoomFactorValue = (Math::Sin(Time::GetTotalTime() * 1.5f) * 0.1f) + 0.7f;
 }
 
 void DemoScene::OnRender(Window& window) {
 	const f32 aspectRatio = window.GetWindowAspectRatio();
-	const Math::Matrix4x4 projectionMatrix = Math::Matrix4x4::GetOrthographic(-aspectRatio, aspectRatio, -1.0f, 1.0f);
+	const Math::Matrix4x4 projectionMatrix = Math::Matrix4x4::GetOrthographicProjection(-aspectRatio, aspectRatio, -1.0f, 1.0f);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -63,10 +62,10 @@ void DemoScene::OnRender(Window& window) {
 		f32 mul = a * 0.95f;
 		Math::Matrix4x4 matrix{};
 		matrix.Scale(Math::Vector3(m_ZoomFactorValue, m_ZoomFactorValue, m_ZoomFactorValue));
-		matrix.RotateLocal(Math::DegToRad((Time::GetTotalTime() * 20.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
+		matrix.RotateLocal(Math::DegreesToRadians((Time::GetTotalTime() * 20.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
 		f32 spacing = 0.015f;
 		matrix.TranslateWorld(Math::Vector3(0.5f - (a * spacing), -0.1f + (a * spacing), 0.0f));
-		matrix.RotateWorld(Math::DegToRad((Time::GetTotalTime() * 50.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
+		matrix.RotateWorld(Math::DegreesToRadians((Time::GetTotalTime() * 50.0f + mul) + mul), Math::Vector3(0.0f, 0.0f, 1.0f));
 		m_Shader->SetMatrix4("transform", matrix);
 		m_QuadMesh->Draw();
 	}

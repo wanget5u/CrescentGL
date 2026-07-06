@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Core.h"
 #include "Math/Arithmetic.h"
+#include "Math/Trigonometry.h"
 #include "Math/Vector/Vector3.h"
 #include "Math/Vector/Vector4.h"
 
@@ -56,7 +57,7 @@ struct Matrix4x4 {
 		   Vector4(position.x, position.y, position.z, 1.0f)
 		);
 	}
-	[[nodiscard]] static constexpr Matrix4x4 GetOrthographic(
+	[[nodiscard]] static constexpr Matrix4x4 GetOrthographicProjection(
 		f32 const left, f32 const right, f32 const bottom, f32 const top,
 		f32 const nearZ = -1.0f, f32 const farZ = 1.0f) {
 		const f32 rightLeft = 1.0f / (right - left);
@@ -69,6 +70,27 @@ struct Matrix4x4 {
 			Vector4(-(right + left) * rightLeft, -(top + bottom) * topBottom, -(farZ + nearZ) * farNear, 1.0f)
 		);
 	}
+	[[nodiscard]] static constexpr Matrix4x4 GetPerspectiveProjection(
+		f32 const fovRadians, f32 const aspectRatio, f32 const nearZ = 0.1f, f32 const farZ = 1000.0f) noexcept {
+		if (nearZ <= 0.0f || farZ <= nearZ) {
+			Log::Warning("Perspective projection requires farZ > nearZ > 0.");
+			return Zero();
+		}
+   
+		if (Math::IsNearlyZero(farZ - nearZ)) {
+			Log::Warning("Perspective projection farZ and nearZ are too close.");
+			return Zero();
+		}
+		const f32 tanHalfFov = Tan(fovRadians / 2.0f);
+		const f32 g = 1.0f / tanHalfFov;
+		const f32 invDepth = 1.0f / (farZ - nearZ);
+		return Matrix4x4(
+		   Vector4(g / aspectRatio,          0.0f,                               0.0f,  0.0f),
+		   Vector4(           0.0f,             g,                               0.0f,  0.0f),
+		   Vector4(           0.0f,          0.0f,         -(farZ + nearZ) * invDepth, -1.0f),
+		   Vector4(           0.0f,          0.0f,  -(2.0f * farZ * nearZ) * invDepth,  0.0f)
+		);
+	}
 	[[nodiscard]] static constexpr Matrix4x4 GetScale(Vector3 const& scale) noexcept {
 		return Matrix4x4(
 			Vector4(scale.x,    0.0f,    0.0f, 0.0f),
@@ -77,28 +99,28 @@ struct Matrix4x4 {
 			Vector4(   0.0f,    0.0f,    0.0f, 1.0f)
 		);
 	}
-	[[nodiscard]] static constexpr Matrix4x4 GetRotationX(f32 const rad) {
+	[[nodiscard]] static constexpr Matrix4x4 GetRotationX(f32 const radians) {
 		return Matrix4x4(
-			Vector4(1.0f,		   0.0f,           0.0f, 0.0f),
-			Vector4(0.0f, std::cos(rad), -std::sin(rad), 0.0f),
-			Vector4(0.0f, std::sin(rad),  std::cos(rad), 0.0f),
-			Vector4(0.0f,		   0.0f,           0.0f, 1.0f)
+			Vector4(1.0f,	      0.0f,          0.0f, 0.0f),
+			Vector4(0.0f, Cos(radians), -Sin(radians), 0.0f),
+			Vector4(0.0f, Sin(radians),  Cos(radians), 0.0f),
+			Vector4(0.0f,	      0.0f,          0.0f, 1.0f)
 		);
 	}
-	[[nodiscard]] static constexpr Matrix4x4 GetRotationY(f32 const rad) {
+	[[nodiscard]] static constexpr Matrix4x4 GetRotationY(f32 const radians) {
 		return Matrix4x4(
-			Vector4( std::cos(rad),		      0.0f,  std::sin(rad),		       0.0f),
-			Vector4(		  0.0f,		      1.0f,           0.0f, 		   0.0f),
-			Vector4(-std::sin(rad),           0.0f,  std::cos(rad), 		   0.0f),
-			Vector4(		  0.0f,		      0.0f,           0.0f, 		   1.0f)
+			Vector4( Cos(radians), 0.0f, Sin(radians), 0.0f),
+			Vector4(		 0.0f, 1.0f,         0.0f, 0.0f),
+			Vector4(-Sin(radians), 0.0f, Cos(radians), 0.0f),
+			Vector4(		 0.0f, 0.0f,         0.0f, 1.0f)
 		);
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetRotationZ(f32 const rad) {
 		return Matrix4x4(
-			Vector4( std::cos(rad), -std::sin(rad),	0.0f, 0.0f),
-			Vector4( std::sin(rad),	 std::cos(rad), 0.0f, 0.0f),
-			Vector4(		  0.0f,           0.0f,	1.0f, 0.0f),
-			Vector4(		  0.0f,		      0.0f, 0.0f, 1.0f)
+			Vector4(Cos(rad), -Sin(rad), 0.0f, 0.0f),
+			Vector4(Sin(rad),  Cos(rad), 0.0f, 0.0f),
+			Vector4(	0.0f,      0.0f, 1.0f, 0.0f),
+			Vector4(	0.0f,      0.0f, 0.0f, 1.0f)
 		);
 	}
 
@@ -196,9 +218,9 @@ struct Matrix4x4 {
 	}
 	constexpr void RotateLocal(f32 const rad, Vector3 const& axis) noexcept {
 		Vector3 normalizedAxis = axis.Normalized();
-		const f32 cos = std::cos(rad);
-		const f32 sin = std::sin(rad);
-		const f32 omc = 1.0f - std::cos(rad);
+		const f32 cos = Cos(rad);
+		const f32 sin = Sin(rad);
+		const f32 omc = 1.0f - Cos(rad);
 		const f32 x = normalizedAxis.x;
 		const f32 y = normalizedAxis.y;
 		const f32 z = normalizedAxis.z;
@@ -212,9 +234,9 @@ struct Matrix4x4 {
 	}
 	constexpr void RotateWorld(f32 const rad, Vector3 const& axis) noexcept {
 		Vector3 normalizedAxis = axis.Normalized();
-		const f32 cos = std::cos(rad);
-		const f32 sin = std::sin(rad);
-		const f32 omc = 1.0f - std::cos(rad);
+		const f32 cos = Cos(rad);
+		const f32 sin = Sin(rad);
+		const f32 omc = 1.0f - Cos(rad);
 		const f32 x = normalizedAxis.x;
 		const f32 y = normalizedAxis.y;
 		const f32 z = normalizedAxis.z;

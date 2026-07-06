@@ -1,5 +1,4 @@
 #pragma once
-#include <cmath>
 #include <Core/Core.h>
 #include "Core/Log.h"
 #include "Math/Constants.h"
@@ -149,10 +148,10 @@ struct Vector4 {
 		}
 		const f32 cosTheta = a.Dot(b) / lengthProduct;
 		const f32 clampedCos = Math::Clamp(cosTheta, -1.0f, 1.0f);
-		return std::acos(clampedCos);
+		return ArcCos(clampedCos);
 	}
 	[[nodiscard]] static f32 AngleBetweenNormalized(Vector4 const& a, Vector4 const& b) noexcept {
-		return std::acos(Math::Clamp(a.Dot(b), -1.0f, 1.0f));
+		return ArcCos(Math::Clamp(a.Dot(b), -1.0f, 1.0f));
 	}
 
 	[[nodiscard]] constexpr Vector2 XY() const noexcept {

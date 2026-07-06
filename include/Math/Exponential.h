@@ -1,6 +1,5 @@
 #pragma once
 #include <Core/Core.h>
-#include <bit>
 
 namespace Crescent::Math {
 
@@ -34,6 +33,8 @@ constexpr Number InvSqrt(Number number) {
 		i = 0x5f3759df - (i >> 1);
 		y = std::bit_cast<f32>(i);
 		y = y * (1.5f - (x2 * y * y));
+		y = y * (1.5f - (x2 * y * y));
+		y = y * (1.5f - (x2 * y * y));
 		return static_cast<Number>(y);
 	}
 	else if constexpr (sizeof(Number) == 8) {
@@ -43,6 +44,9 @@ constexpr Number InvSqrt(Number number) {
 		u64 i = std::bit_cast<u64>(y);
 		i = 0x5fe6eb50c7b537a9 - (i >> 1);
 		y = std::bit_cast<f64>(i);
+		y = y * (1.5 - (x2 * y * y));
+		y = y * (1.5 - (x2 * y * y));
+		y = y * (1.5 - (x2 * y * y));
 		y = y * (1.5 - (x2 * y * y));
 		return static_cast<Number>(y);
 	}
