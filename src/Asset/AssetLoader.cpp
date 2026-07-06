@@ -21,6 +21,18 @@ void AssetLoader::Shutdown() {
 	}
 }
 
+AssetLoader::~AssetLoader() { Shutdown(); }
+
+void AssetLoader::LoadTextureAsync(std::string const &filepath) {
+	std::scoped_lock lock(m_AssetMutex);
+	m_TextureLoadQueue.push(filepath);
+}
+
+bool AssetLoader::HasReadyTextures() {
+	std::scoped_lock lock(m_AssetMutex);
+	return m_ReadyTextures.empty() == false;
+}
+
 bool AssetLoader::PopReadyTexture(u32& outTextureID) {
 	std::scoped_lock lock(m_AssetMutex);
 	if (m_ReadyTextures.empty()) {
@@ -73,8 +85,6 @@ void AssetLoader::LoadThreadLoop() {
 		if (filePath.empty() == false) {
 			Log::Info("Load Thread: Loading '", filePath, "'.");
 			LoadDataFromFilePath(filePath);
-		} else {
-			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		}
 	}
 	Window::UnbindContext();

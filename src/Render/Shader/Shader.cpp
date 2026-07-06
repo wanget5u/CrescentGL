@@ -1,10 +1,10 @@
-#include "Shader/Shader.h"
+#include "Render/Shader/Shader.h"
 #include "Core/Log.h"
 #include "Util/FileOperations.h"
 
 namespace Crescent {
 
-Shader::Shader(const char8* vertexPath, const char8* fragmentPath) {
+Render::Shader::Shader(const char8* vertexPath, const char8* fragmentPath) {
 	const std::string vertexShaderContent = Util::ReadFile(vertexPath);
 	const std::string fragmentShaderContent = Util::ReadFile(fragmentPath);
 	const char8* vertexShaderCode = vertexShaderContent.c_str();
@@ -40,7 +40,50 @@ Shader::Shader(const char8* vertexPath, const char8* fragmentPath) {
 	glDeleteShader(fragmentShader);
 }
 
-bool Shader::LogCompileErrors(u32 const shader, Type const type) {
+Render::Shader::~Shader() { if (ID != 0) {glDeleteProgram(ID);} }
+Render::Shader::Shader(Shader &&other) noexcept: ID(other.ID) { other.ID = 0; }
+Render::Shader & Render::Shader::operator=(Shader &&other) noexcept {
+	if (this != &other) {
+		if (ID != 0) { glDeleteProgram(ID); }
+		ID = other.ID;
+		other.ID = 0;
+	}
+	return *this;
+}
+
+void Render::Shader::Use() const {
+	glUseProgram(ID);
+}
+
+void Render::Shader::SetBool(std::string_view const name, bool const value) const {
+	glUniform1i(GetUniformLocation(name), static_cast<i32>(value));
+}
+
+void Render::Shader::SetInt(std::string_view const name, i32 const value) const {
+	glUniform1i(GetUniformLocation(name), value);
+}
+
+void Render::Shader::SetFloat(std::string_view const name, f32 const value) const {
+	glUniform1f(GetUniformLocation(name), value);
+}
+
+void Render::Shader::SetVector2(std::string_view const name, Math::Vector2 const &value) const {
+	glUniform2fv(GetUniformLocation(name), 1, value.data);
+}
+
+void Render::Shader::SetVector3(std::string_view const name, Math::Vector3 const &value) const {
+	glUniform3fv(GetUniformLocation(name), 1, value.data);
+}
+
+void Render::Shader::SetVector4(std::string_view const name, Math::Vector4 const &value) const {
+	glUniform4fv(GetUniformLocation(name), 1, value.data);
+}
+
+void Render::Shader::SetMatrix4(std::string_view const name, Math::Matrix4x4 const &matrix) const {
+	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.Data());
+}
+
+bool Render::Shader::LogCompileErrors(u32 const shader, Type const type) {
 	i32 success;
 	char8 infoLog[512];
 	if (type == Type::Program) {
@@ -61,16 +104,14 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 	return true;
 }
 
-i32 Shader::GetUniformLocation(std::string_view name) const {
+i32 Render::Shader::GetUniformLocation(std::string_view name) const {
 	const std::string nameKey(name);
 	auto it = m_UniformLocationCache.find(nameKey);
 	if (it != m_UniformLocationCache.end()) {
 		return it->second;
 	}
 	const i32 location = glGetUniformLocation(ID, nameKey.c_str());
-	if (location == -1) {
-		Log::Warning("Couldn't find a ", name, " uniform location.");
-	}
+	// Note: We silently ignore location == -1 because OpenGL optimizes away unused uniforms!
 	m_UniformLocationCache[nameKey] = location;
 	return location;
 }

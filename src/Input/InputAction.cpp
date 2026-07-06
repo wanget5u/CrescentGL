@@ -6,8 +6,29 @@
 #include "Input/InputAction.h"
 
 namespace Crescent::Input {
+	Binding Binding::FromKey(KeyCode const keyCode) {
+		Binding binding;
+		binding.type = Type::Key;
+		binding.keyCode = keyCode;
+		return binding;
+	}
 
-Action::SubscriptionID Action::Subscribe(Callback callback) {
+	Binding Binding::FromMouseButton(MouseButton const keyCode) {
+		Binding binding;
+		binding.type = Type::MouseButton;
+		binding.mouseButton = keyCode;
+		return binding;
+	}
+
+	Binding Binding::FromMouseAxis(MouseAxis const axis, f32 const scale) {
+		Binding binding;
+		binding.type = Type::MouseAxis;
+		binding.mouseAxis = axis;
+		binding.scale = scale;
+		return binding;
+	}
+
+	Action::SubscriptionID Action::Subscribe(Callback callback) {
 	u32 id = m_NextID++;
 	m_Subscribers[id] = std::move(callback);
 	return id;

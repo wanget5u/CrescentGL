@@ -8,10 +8,10 @@
 namespace Crescent::Math {
 
 struct Matrix4x4 {
-	Vector4 column0; // X (right)
-	Vector4 column1; // Y (up)
-	Vector4 column2; // Z (forward/back)
-	Vector4 column3; // W (translation/position)
+	Vector4 column0;
+	Vector4 column1;
+	Vector4 column2;
+	Vector4 column3;
 
 	[[nodiscard]] constexpr f32 const* Data() const noexcept { return column0.data; }
 	[[nodiscard]] constexpr f32* Data() noexcept { return column0.data; }
@@ -76,7 +76,6 @@ struct Matrix4x4 {
 			Log::Warning("Perspective projection requires farZ > nearZ > 0.");
 			return Zero();
 		}
-   
 		if (Math::IsNearlyZero(farZ - nearZ)) {
 			Log::Warning("Perspective projection farZ and nearZ are too close.");
 			return Zero();

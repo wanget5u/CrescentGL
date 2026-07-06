@@ -22,9 +22,59 @@ Window::Window(Properties const& properties) {
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);
 }
 
+GLFWmonitor* Window::GetActiveMonitor() {
+	GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+	if (primaryMonitor != nullptr) { return primaryMonitor; }
+	i32 monitorCount{};
+	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+	if (monitors != nullptr && monitorCount > 0) { return monitors[0]; }
+	return nullptr;
+}
+
+const GLFWvidmode* Window::GetActiveMonitorVideoMode() {
+	GLFWmonitor* monitor = GetActiveMonitor();
+	if (monitor == nullptr) { return nullptr; }
+	return glfwGetVideoMode(monitor);
+}
+
+i32 Window::GetActiveMonitorWidth() {
+	const GLFWvidmode* videoMode = GetActiveMonitorVideoMode();
+	return videoMode ? videoMode->width : 0;
+}
+
+i32 Window::GetActiveMonitorHeight() {
+	const GLFWvidmode* videoMode = GetActiveMonitorVideoMode();
+	return videoMode ? videoMode->height : 0;
+}
+
+i32 Window::GetActiveMonitorRefreshRate() {
+	const GLFWvidmode* videoMode = GetActiveMonitorVideoMode();
+	return videoMode ? videoMode->refreshRate : 0;
+}
+
+i32 Window::GetActiveMonitorVideoModeCenterX(i32 const targetWidth) {
+	return (GetActiveMonitorVideoMode()->width - targetWidth) / 2;
+}
+
+i32 Window::GetActiveMonitorVideoModeCenterY(i32 const targetHeight) {
+	return (GetActiveMonitorVideoMode()->height - targetHeight) / 2;
+}
+
 void Window::OnUpdate() const {
 	glfwSwapBuffers(m_Window);
 	glfwPollEvents();
+}
+
+void Window::ShowWindow() const {
+	glfwShowWindow(m_Window);
+}
+
+void Window::MakeContextCurrent() const {
+	glfwMakeContextCurrent(m_Window);
+}
+
+void Window::SwapBuffers() const {
+	glfwSwapBuffers(m_Window);
 }
 
 void Window::ToggleFullscreen() {
@@ -37,6 +87,29 @@ void Window::ToggleFullscreen() {
 		glfwSetWindowMonitor(m_Window, GetActiveMonitor(), 0, 0, GetActiveMonitorWidth(), GetActiveMonitorHeight(), GLFW_DONT_CARE);
 		m_IsFullscreen = true;
 	}
+}
+
+bool Window::IsFullscreen() const {
+	return m_IsFullscreen;
+}
+
+void Window::OnResize(u32 const width, u32 const height) {
+	m_Properties.Width = width;
+	m_Properties.Height = height;
+	m_FrameBufferResized = true;
+}
+
+void Window::CheckViewportResize() {
+	if (m_FrameBufferResized.exchange(false) == true) {
+		glViewport(0, 0, m_Properties.Width, m_Properties.Height);
+	}
+}
+
+f32 Window::GetAspectRatio() {
+	CheckViewportResize();
+	const i32 height = GetWindowHeight();
+	if (height == 0) { return 1.0f; }
+	return static_cast<f32>(GetWindowWidth()) / static_cast<f32>(height);
 }
 
 bool Window::CreateWindowInstance() {
@@ -56,4 +129,9 @@ bool Window::CreateWindowInstance() {
 	return true;
 }
 
+void Window::CenterOnPrimaryMonitor() const {
+	i32 xPos = (GetActiveMonitorWidth() - GetWindowWidth()) / 2;
+	i32 yPos = (GetActiveMonitorHeight() - GetWindowHeight()) / 2;
+	glfwSetWindowPos(m_Window, xPos, yPos);
+}
 }

@@ -4,7 +4,6 @@
 #include "Core/Core.h"
 
 namespace Crescent::Input {
-
 enum class KeyCode : i32 {
 	Space		= GLFW_KEY_SPACE,
 	Escape		= GLFW_KEY_ESCAPE,
@@ -19,5 +18,4 @@ enum class MouseButton : i32 {
 	Button1		= GLFW_MOUSE_BUTTON_2,
 	Button2		= GLFW_MOUSE_BUTTON_3,
 };
-
 }

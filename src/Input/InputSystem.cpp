@@ -62,6 +62,8 @@ Context& System::CreateContext(Context::Type contextType) {
 	return *m_Contexts.at(contextType);
 }
 
+void System::SetActiveContext(Context::Type const contextType) { m_ActiveContext = contextType; }
+
 Context* System::GetActiveContext() {
 	auto it = m_Contexts.find(m_ActiveContext);
 	if (it != m_Contexts.end()) {
@@ -69,6 +71,23 @@ Context* System::GetActiveContext() {
 	}
 	return nullptr;
 }
+
+bool System::IsKeyPressed(KeyCode keyCode) const {
+	return glfwGetKey(m_Window, static_cast<i32>(keyCode)) == GLFW_PRESS;
+}
+
+bool System::IsKeyHeld(KeyCode keyCode) const {
+	i32 keyState = glfwGetKey(m_Window, static_cast<i32>(keyCode));
+	return keyState == GLFW_PRESS || keyState == GLFW_REPEAT;
+}
+
+bool System::IsMousePressed(MouseButton mouseButton) const {
+	return glfwGetMouseButton(m_Window, static_cast<i32>(mouseButton)) == GLFW_PRESS;
+}
+
+f32 System::GetMouseDeltaX() const { return m_MouseDeltaX; }
+f32 System::GetMouseDeltaY() const { return m_MouseDeltaY; }
+f32 System::GetScrollDelta() const { return m_ScrollDelta; }
 
 void System::OnKeyboardKeyCallback([[maybe_unused]] i32 const key, [[maybe_unused]] i32 const action, [[maybe_unused]] i32 const mods) {
 	m_KeyboardKeyState[key] = (action != GLFW_RELEASE);

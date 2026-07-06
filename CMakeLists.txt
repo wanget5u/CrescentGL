@@ -10,13 +10,18 @@ set(SOURCES
     src/glad.c
     src/Core/Application.cpp
     src/Core/Window.cpp
+    src/Core/Log.cpp
+    src/Core/Time.cpp
     src/Asset/AssetLoader.cpp
     src/Render/Mesh.cpp
+    src/Render/Primitives/BoxMesh.cpp
     src/Scene/DemoScene.cpp
     src/Input/InputAction.cpp
     src/Input/InputContext.cpp
     src/Input/InputSystem.cpp
-    src/Shader/Shader.cpp
+    src/Render/Shader/Shader.cpp
+    src/Render/Material/Material.cpp
+    src/Util/FileOperations.cpp
     include/Asset/AssetLoader.h
     include/Core/Application.h
     include/Core/Core.h
@@ -24,9 +29,10 @@ set(SOURCES
     include/Core/Time.h
     include/Core/Window.h
     include/Render/Mesh.h
+    include/Render/Primitives/BoxMesh.h
     include/Scene/Scene.h
     include/Scene/DemoScene.h
-    include/Shader/Shader.h
+    include/Render/Shader/Shader.h
     include/Math/Constants.h
     include/Math/Matrix/Matrix4x4.h
     include/Math/Vector/Vector2.h
@@ -43,6 +49,9 @@ set(SOURCES
     include/Input/InputAction.h
     include/Input/InputContext.h
     include/Input/InputSystem.h
+    include/Collections/DynamicList.h
+    include/Collections/Collections.h
+    include/Render/Material/Material.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

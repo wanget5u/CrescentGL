@@ -1,7 +1,6 @@
 #include "Core/Application.h"
 #include <thread>
 #include <chrono>
-
 #include "Asset/AssetLoader.h"
 #include "Core/Log.h"
 #include "Core/Time.h"
@@ -21,7 +20,7 @@ Application::Application() {
 	// so the background threads can take them over
 	Window::UnbindContext();
 	m_MainWindow->ShowWindow();
-	SetupInputActions();
+	SetupAndBindInputActions();
 
 	AssetLoader::Instance().OnCreate(m_LoadWindow.get());
 }
@@ -35,7 +34,7 @@ void Application::Run() {
 	std::thread renderThread(&Application::RenderThreadLoop, this);
 	while (m_Running == true && m_MainWindow->ShouldClose() == false) {
 		Window::PollEvents();
-		ProcessInput();
+		Input::System::Instance().OnUpdate();
 		if (m_WantsFullscreenToggle == true) {
 			while (m_RenderThreadSafeToToggle == false) {
 				std::this_thread::yield();
@@ -48,7 +47,15 @@ void Application::Run() {
 	if (renderThread.joinable()) { renderThread.join(); }
 }
 
-void Application::SetupInputActions() {
+void Application::CloseAction() {
+	m_Running = false;
+}
+
+void Application::FullscreenAction() const {
+	m_MainWindow->ToggleFullscreen();
+}
+
+void Application::SetupAndBindInputActions() {
 	Input::System::Instance().OnCreate(m_MainWindow->GetWindow());
 	Input::Context& appContext = Input::System::Instance().CreateContext(Input::Context::Type::Editor);
 	Input::System::Instance().SetActiveContext(Input::Context::Type::Editor);
@@ -66,24 +73,20 @@ void Application::SetupInputActions() {
 	});
 }
 
-void Application::RenderThreadHandleFullscreenToggleRequest() {
-	if (m_WantsFullscreenToggle == true) {
-		Window::UnbindContext();
-		m_RenderThreadSafeToToggle = true;
-		while (m_WantsFullscreenToggle == true) {
-			std::this_thread::yield();
-		}
-		m_MainWindow->MakeContextCurrent();
-		m_RenderThreadSafeToToggle = false;
-	}
-}
-
 void Application::RenderThreadLoop() {
 	m_MainWindow->MakeContextCurrent();
 	m_ActiveScene = std::make_unique<DemoScene>();
 
 	while (m_Running == true) {
-		RenderThreadHandleFullscreenToggleRequest();
+		if (m_WantsFullscreenToggle == true) {
+			Window::UnbindContext();
+			m_RenderThreadSafeToToggle = true;
+			while (m_WantsFullscreenToggle == true) {
+				std::this_thread::yield();
+			}
+			m_MainWindow->MakeContextCurrent();
+			m_RenderThreadSafeToToggle = false;
+		}
 		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
 		while (Time::AccumulatorHasSubstep()) {
 			Time::ConsumeSubstep();
