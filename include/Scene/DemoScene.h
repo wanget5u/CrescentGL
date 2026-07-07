@@ -4,6 +4,7 @@
 #include "Math/Matrix/Matrix4x4.h"
 #include "Render/Material/Material.h"
 #include "Render/Primitives/BoxMesh.h"
+#include "Render/Texture/Texture.h"
 #include "Scene/Scene.h"
 
 namespace Crescent::Scene {
@@ -16,8 +17,9 @@ struct DemoScene : Scene {
 private:
 	std::shared_ptr<Render::Material> m_Material{};
 	DynamicList<std::unique_ptr<Render::Mesh>> m_Meshes{};
-	u32 m_Texture1{0};
-	u32 m_Texture2{0};
+	std::shared_ptr<Asset::Shader> m_ShaderAsset{nullptr};
+	std::shared_ptr<Asset::Texture> m_Texture1{nullptr};
+	std::shared_ptr<Asset::Texture> m_Texture2{nullptr};
 	f32 timer{0};
 	f32 m_Angle{};
 	Math::Matrix4x4 m_ViewMatrix{};

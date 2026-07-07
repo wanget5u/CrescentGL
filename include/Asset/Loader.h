@@ -5,16 +5,21 @@
 #include <thread>
 
 #include "Collection/Collections.h"
-#include "Core/Core.h"
 #include "Core/Window.h"
-#include "DataTypes/DataType.h"
+#include "Type/Type.h"
 
 namespace Crescent::Asset {
+struct LoadRequest {
+	std::string FilePath;
+	Type Type;
+};
+struct ReadyPacket {
+	std::string FilePath;
+	Type Type;
+	std::variant<Shader::Data, Texture::Data, Mesh::Data> Data;
+};
 /// Thread-Safe Singleton utility that offloads file I/O and texture data parsing to a dedicated loading thread.
 struct Loader {
-	struct Request {
-		std::string FilePath;
-	};
 	static Loader& Instance() {
 		static Loader s_Instance;
 		return s_Instance;
@@ -25,19 +30,18 @@ struct Loader {
 	~Loader();
 	Loader(const Loader&) = delete;
 	Loader& operator=(const Loader&) = delete;
-	void LoadTextureAsync(std::string const& filepath);
-	[[nodiscard]] bool HasReadyTextures();
-	bool PopReadyTextures(DynamicList<u32>& outTextures);
+	void LoadAssetAsync(std::string const& filepath, Type type);
+	bool PopReadyAssets(DynamicList<ReadyPacket>& outAssets);
 private:
-	std::string PopNextFilePath();
-	void LoadDataFromFilePath(std::string_view filePath);
+	LoadRequest PopNextRequest();
+	void LoadDataFromRequest(LoadRequest const& request);
 	void LoadThreadLoop();
 	Window* m_LoadWindow{nullptr};
 	std::thread m_LoadThread{};
 	std::atomic<bool> m_Running{false};
 	std::mutex m_AssetMutex{};
-	DynamicQueue<std::string> m_TextureLoadQueue{};
-	DynamicList<TextureData> m_ReadyTexturesWrite{};
-	DynamicList<TextureData> m_ReadyTexturesRead{};
+	DynamicQueue<LoadRequest> m_AssetLoadQueue{};
+	DynamicList<ReadyPacket> m_ReadyAssetWrite{};
+	DynamicList<ReadyPacket> m_ReadyAssetRead{};
 };
 }

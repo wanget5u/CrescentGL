@@ -3,6 +3,6 @@
 
 namespace Crescent::Util {
 
-std::string ReadFile(char const* filePath);
+std::string ReadFile(std::string_view filePath);
 
 }

@@ -26,13 +26,12 @@ struct Shader {
 		}
 	}
 	u32 ID{0};
-	explicit Shader(const char8* vertexPath, const char8* fragmentPath);
+	explicit Shader(std::string_view vertexSource, std::string_view fragmentSource);
 	~Shader();
 	Shader(const Shader&) = delete;
 	Shader& operator=(const Shader&) = delete;
 	Shader(Shader&& other) noexcept;
 	Shader& operator=(Shader&& other) noexcept;
-	void Use() const;;
 	void SetBool(std::string_view name, bool value) const;
 	void SetInt(std::string_view name, i32 value) const;
 	void SetFloat(std::string_view name, f32 value) const;
@@ -42,6 +41,8 @@ struct Shader {
 	void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
 private:
 	mutable std::unordered_map<std::string, i32> m_UniformLocationCache;
+	friend struct Material;
+	void Use() const;
 	static bool LogCompileErrors(u32 shader, Type type);
 	[[nodiscard]] i32 GetUniformLocation(std::string_view name) const;
 };

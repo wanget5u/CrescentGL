@@ -1,5 +1,9 @@
 #include "Render/Mesh.h"
 
+#include <glad/glad.h>
+
+#include "Render/Material/Material.h"
+
 namespace Crescent::Render {
 Mesh::VertexLayout Mesh::VertexLayout::CreatePosNormalUV() {
 	VertexLayout layout{};

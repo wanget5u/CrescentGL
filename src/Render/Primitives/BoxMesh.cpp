@@ -31,9 +31,9 @@ void BoxMesh::GenerateGeometry() {
 	// Indices
 	DynamicList<u32> indices;
 	indices.ResizeUninitialized(36); // 6 faces * 6 indices
-	const f32 halfWidth  = m_Size.x * 0.5f;
-	const f32 halfHeight = m_Size.y * 0.5f;
-	const f32 halfDepth  = m_Size.z * 0.5f;
+	const f32 halfWidth  = m_Size.x;
+	const f32 halfHeight = m_Size.y;
+	const f32 halfDepth  = m_Size.z;
 	size_t currentFloatIndex = 0;
 
 	// 1. Front Face (-Z)

@@ -1,13 +1,11 @@
 #pragma once
-#include <glad/glad.h>
-
 #include "Collection/Collections.h"
 #include "Core/Core.h"
-#include "Material/Material.h"
 #include "Math/Vector/Vector2.h"
 #include "Math/Vector/Vector3.h"
 
 namespace Crescent::Render {
+struct Material;
 struct Mesh {
 	struct Vertex {
 		Math::Vector3 Position{};
@@ -78,7 +76,7 @@ private:
 	u32 					  m_VBO		  {0};
 	u32 					  m_EBO		  {0};
 	u32 					  m_IndexCount{0};
-	std::shared_ptr<Material> m_Material  {Material::GetDefaultMaterial()};
+	std::shared_ptr<Material> m_Material  {nullptr};
 };
 
 }

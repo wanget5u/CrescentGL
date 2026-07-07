@@ -9,91 +9,95 @@
 namespace Crescent {
 
 void Asset::Loader::OnCreate(Window* loadWindow) {
-	if (m_Running == true) { return; }
+	if (m_Running == true) {
+		return;
+	}
 	m_LoadWindow = loadWindow;
 	m_Running = true;
 	m_LoadThread = std::thread(&Loader::LoadThreadLoop, this);
 }
 
 void Asset::Loader::Shutdown() {
-	if (m_Running == false) { return; }
+	if (m_Running == false) {
+		return;
+	}
 	m_Running = false;
 	if (m_LoadThread.joinable()) {
 		m_LoadThread.join();
 	}
 }
 
-Asset::Loader::~Loader() { Shutdown(); }
-
-void Asset::Loader::LoadTextureAsync(std::string const &filepath) {
-	std::scoped_lock lock(m_AssetMutex);
-	m_TextureLoadQueue.Push(filepath);
+Asset::Loader::~Loader() {
+	Shutdown();
 }
 
-bool Asset::Loader::HasReadyTextures() {
+void Asset::Loader::LoadAssetAsync(std::string const& filepath, Type type) {
 	std::scoped_lock lock(m_AssetMutex);
-	return m_ReadyTexturesWrite.IsEmpty() == false;
+	m_AssetLoadQueue.Push({filepath, type});
 }
 
-bool Asset::Loader::PopReadyTextures(DynamicList<u32>& outTextures) {
-	{
-		std::scoped_lock lock(m_AssetMutex);
-		if (m_ReadyTexturesWrite.IsEmpty() == true) { return false; }
-		std::swap(m_ReadyTexturesRead, m_ReadyTexturesWrite);
+bool Asset::Loader::PopReadyAssets(DynamicList<ReadyPacket>& outAssets) {
+	std::scoped_lock lock(m_AssetMutex);
+	if (m_ReadyAssetWrite.IsEmpty()) {
+		return false;
 	}
-	outTextures.Reserve(m_ReadyTexturesRead.GetSize());
-	for (size_t a = 0; a < m_ReadyTexturesRead.GetSize(); ++a) {
-		const TextureData& data = m_ReadyTexturesRead[a];
-		u32 textureID = 0;
-		glGenTextures(1, &textureID);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, data.Width, data.Height, 0, GL_RGB, GL_UNSIGNED_BYTE, data.Pixels);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(data.Pixels);
-		outTextures.PushBack(textureID);
-		Log::Info("Main Thread: Uploaded '{}' to VRAM. Texture ID: {}.", data.FilePath, textureID);
-	}
-	m_ReadyTexturesRead.Clear();
+	std::swap(outAssets, m_ReadyAssetWrite);
 	return true;
 }
 
-std::string Asset::Loader::PopNextFilePath() {
+	Asset::LoadRequest Asset::Loader::PopNextRequest() {
 	std::scoped_lock lock(m_AssetMutex);
-	if (m_TextureLoadQueue.IsEmpty() == true) {
-		return "";
+	if (m_AssetLoadQueue.IsEmpty()) {
+		return {};
 	}
-	std::string filePath = m_TextureLoadQueue.Pop();
-	return filePath;
+	return m_AssetLoadQueue.Pop();
 }
 
-void Asset::Loader::LoadDataFromFilePath(std::string_view const filePath) {
-	TextureData textureData{};
-	textureData.FilePath = filePath;
-	textureData.Pixels = stbi_load(filePath.data(), &textureData.Width, &textureData.Height, &textureData.Channels, 0);
-	if (textureData.Pixels == nullptr) {
-		Log::Warning("Load Thread: Failed to load '", filePath, "'.");
-		return;
+void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
+	ReadyPacket packet{};
+	packet.FilePath = request.FilePath;
+	packet.Type = request.Type;
+	if (request.Type == Type::Shader) {
+		Shader::Data shaderData{};
+		shaderData.VertexSource = Util::ReadFile(request.FilePath + ".vert");
+		shaderData.FragmentSource = Util::ReadFile(request.FilePath + ".frag");
+		if (shaderData.VertexSource.empty() || shaderData.FragmentSource.empty()) {
+			Log::Error("Failed to load shader files for: {}", request.FilePath);
+			return;
+		}
+		packet.Data = std::move(shaderData);
 	}
-	{
-		std::scoped_lock lock(m_AssetMutex);
-		m_ReadyTexturesWrite.PushBack(textureData);
+	else if (request.Type == Type::Texture) {
+		Texture::Data textureData{};
+		textureData.FilePath = request.FilePath;
+		textureData.Pixels = stbi_load(
+			textureData.FilePath.c_str(),
+			&textureData.Width,
+			&textureData.Height,
+			&textureData.Channels,
+			0
+		);
+		if (textureData.Pixels == nullptr) {
+			Log::Warning("Failed to load texture: {}", request.FilePath);
+			return;
+		}
+		packet.Data = std::move(textureData);
 	}
-	Log::Info("Load Thread: Decoded '", filePath, "' into RAM.");
+	// TODO: Add obj, glTF, FBX support
+	// else if (request.Type == Type::Mesh) {
+	//
+	// }
+	std::scoped_lock lock(m_AssetMutex);
+	m_ReadyAssetWrite.PushBack(std::move(packet));
 }
 
 void Asset::Loader::LoadThreadLoop() {
-	std::string filePath{};
-	while (m_Running == true) {
-		filePath = PopNextFilePath();
-		if (filePath.empty() == false) {
-			Log::Info("Load Thread: Loading '", filePath, "'.");
-			LoadDataFromFilePath(filePath);
-		}
-		else {
+	while (m_Running) {
+		LoadRequest request = PopNextRequest();
+		if (request.FilePath.empty() == false) {
+			Log::Info("Load Thread: Loading '{}'.", request.FilePath);
+			LoadDataFromRequest(request);
+		} else {
 			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		}
 	}

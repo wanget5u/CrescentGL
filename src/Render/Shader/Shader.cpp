@@ -5,11 +5,9 @@
 
 namespace Crescent::Render {
 
-Shader::Shader(const char8* vertexPath, const char8* fragmentPath) {
-	const std::string vertexShaderContent = Util::ReadFile(vertexPath);
-	const std::string fragmentShaderContent = Util::ReadFile(fragmentPath);
-	const char8* vertexShaderCode = vertexShaderContent.c_str();
-	const char8* fragmentShaderCode = fragmentShaderContent.c_str();
+Shader::Shader(const std::string_view vertexSource, const std::string_view fragmentSource) {
+	const char8* vertexShaderCode = vertexSource.data();
+	const char8* fragmentShaderCode = fragmentSource.data();
 	u32 vertexShader{};
 	u32 fragmentShader{};
 
@@ -52,10 +50,6 @@ Shader & Shader::operator=(Shader &&other) noexcept {
 	return *this;
 }
 
-void Shader::Use() const {
-	glUseProgram(ID);
-}
-
 void Shader::SetBool(std::string_view const name, bool const value) const {
 	glUniform1i(GetUniformLocation(name), static_cast<i32>(value));
 }
@@ -84,6 +78,10 @@ void Shader::SetMatrix4(std::string_view const name, Math::Matrix4x4 const &matr
 	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.Data());
 }
 
+void Shader::Use() const {
+	glUseProgram(ID);
+}
+
 bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 	i32 success;
 	char8 infoLog[512];
@@ -105,14 +103,14 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 	return true;
 }
 
-i32 Shader::GetUniformLocation(std::string_view name) const {
+i32 Shader::GetUniformLocation(const std::string_view name) const {
 	const std::string nameKey(name);
 	auto it = m_UniformLocationCache.find(nameKey);
 	if (it != m_UniformLocationCache.end()) {
 		return it->second;
 	}
 	const i32 location = glGetUniformLocation(ID, nameKey.c_str());
-	// Note: We silently ignore location == -1 because OpenGL optimizes away unused uniforms!
+	// silently ignore location == -1, OpenGL optimizes away unused uniforms
 	m_UniformLocationCache[nameKey] = location;
 	return location;
 }

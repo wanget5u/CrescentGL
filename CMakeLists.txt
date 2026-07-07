@@ -54,7 +54,11 @@ set(SOURCES
     include/Render/Material/Material.h
     include/Core/Random.h
         include/Collection/DynamicQueue.h
-        include/Asset/DataTypes/DataType.h
+        include/Asset/Type/Type.h
+        src/Render/Texture/Texture.cpp
+        include/Render/Texture/Texture.h
+        src/Asset/Registry.cpp
+        include/Asset/Registry.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

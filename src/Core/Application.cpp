@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "Asset/Loader.h"
+#include "Asset/Registry.h"
 #include "Core/Log.h"
 #include "Core/Random.h"
 #include "Core/Time.h"
@@ -48,7 +49,9 @@ void Application::Run() {
 		}
 	}
 	m_Running = false;
-	if (renderThread.joinable()) { renderThread.join(); }
+	if (renderThread.joinable()) {
+		renderThread.join();
+	}
 }
 
 void Application::CloseAction() {
@@ -95,6 +98,7 @@ void Application::RenderThreadLoop() {
 			Time::ConsumeSubstep();
 		}
 		m_MainWindow->CheckViewportResize();
+		Asset::Registry::Instance().OnUpdate();
 		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnRender(*m_MainWindow);
 		m_MainWindow->SwapBuffers();
