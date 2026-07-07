@@ -52,6 +52,7 @@ set(SOURCES
     include/Collections/DynamicList.h
     include/Collections/Collections.h
     include/Render/Material/Material.h
+    include/Core/Random.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

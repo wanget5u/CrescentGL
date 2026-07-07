@@ -45,7 +45,7 @@ bool AssetLoader::PopReadyTexture(u32& outTextureID) {
 
 std::string AssetLoader::PopNextFilePath() {
 	std::scoped_lock lock(m_AssetMutex);
-	if (m_TextureLoadQueue.empty()) {
+	if (m_TextureLoadQueue.empty() == true) {
 		return "";
 	}
 	std::string filePath = m_TextureLoadQueue.front();
@@ -80,8 +80,9 @@ void AssetLoader::LoadDataFromFilePath(std::string_view const filePath) {
 
 void AssetLoader::LoadThreadLoop() {
 	m_LoadWindow->MakeContextCurrent();
+	std::string filePath{};
 	while (m_Running == true) {
-		std::string filePath = PopNextFilePath();
+		filePath = PopNextFilePath();
 		if (filePath.empty() == false) {
 			Log::Info("Load Thread: Loading '", filePath, "'.");
 			LoadDataFromFilePath(filePath);

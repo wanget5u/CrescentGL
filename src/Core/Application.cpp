@@ -3,6 +3,7 @@
 #include <chrono>
 #include "Asset/AssetLoader.h"
 #include "Core/Log.h"
+#include "Core/Random.h"
 #include "Core/Time.h"
 #include "Input/InputSystem.h"
 #include "Scene/DemoScene.h"
@@ -23,6 +24,7 @@ Application::Application() {
 	SetupAndBindInputActions();
 
 	AssetLoader::Instance().OnCreate(m_LoadWindow.get());
+	Random::Initialize();
 }
 
 Application::~Application() {
@@ -91,11 +93,11 @@ void Application::RenderThreadLoop() {
 		while (Time::AccumulatorHasSubstep()) {
 			Time::ConsumeSubstep();
 		}
+		m_MainWindow->CheckViewportResize();
 		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnRender(*m_MainWindow);
 		m_MainWindow->SwapBuffers();
 	}
-
 	m_ActiveScene.reset();
 	Window::UnbindContext();
 }

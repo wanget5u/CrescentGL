@@ -9,7 +9,7 @@ namespace Crescent {
 
 DemoScene::DemoScene() {
 	auto shader = std::make_shared<Render::Shader>("Shaders/unlit.vert", "Shaders/unlit.frag");
-	m_Material = std::make_shared<Render::Material>(shader, Math::Vector4(0.3f, 0.5f, 0.7f, 1.0f));
+	m_Material = std::make_shared<Render::Material>(shader, Math::Vector4(0.7f, 0.5f, 0.7f, 1.0f));
 
 	auto boxMesh1 = std::make_unique<Render::BoxMesh>(1.0f);
 	boxMesh1->SetMaterial(m_Material);
@@ -29,7 +29,7 @@ DemoScene::DemoScene() {
 
 void DemoScene::OnUpdate([[maybe_unused]] f32 const deltaTime) {
 	u32 loadedTextureID = 0;
-	while (AssetLoader::Instance().PopReadyTexture(loadedTextureID)) {
+	while (AssetLoader::Instance().PopReadyTexture(loadedTextureID) == true) {
 		if (m_Texture1 == 0) {
 			m_Texture1 = loadedTextureID;
 			if (m_Material) {
@@ -46,53 +46,47 @@ void DemoScene::OnUpdate([[maybe_unused]] f32 const deltaTime) {
 }
 
 void DemoScene::OnRender(Window& window) {
-	const f32 aspectRatio = window.GetAspectRatio();
-
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_Texture1);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, m_Texture2);
+	f32 currentAspectRatio = window.GetAspectRatio();
+	if (currentAspectRatio != m_LastAspectRatio) {
+		m_LastAspectRatio = currentAspectRatio;
+		m_ProjectionMatrix = Math::Matrix4x4::GetPerspectiveProjection(Math::DegreesToRadians(70.0f), m_LastAspectRatio);
+	}
 
-	Math::Matrix4x4 viewMatrix{};
-	Math::Matrix4x4 projection = Math::Matrix4x4::GetPerspectiveProjection(
-		Math::DegreesToRadians(70.0f), aspectRatio
-	);
+	m_Material->Bind();
+	m_Material->Shader->SetMatrix4("view", m_ViewMatrix);
+	m_Material->Shader->SetMatrix4("projection", m_ProjectionMatrix);
 
-	f32 angle = Math::DegreesToRadians(Time::GetTotalTime() * 90.0f);
-
-	m_Material->Shader->SetMatrix4("view", viewMatrix);
-	m_Material->Shader->SetMatrix4("projection", projection);
-
-	f32 sin0 = Math::Sin((Time::GetTotalTime() + 1.0f) * 3.0f);
+	f32 totalTime = Time::GetTotalTime();
+	m_Angle = Math::DegreesToRadians(totalTime * 90.0f);
+	f32 sin0 = Math::Sin((totalTime + 1.0f) * 3.0f);
 	Math::Matrix4x4 model0{};
 	model0.TranslateWorld(Math::Vector3(-2.0f, sin0, -3.0f));
-	model0.RotateLocal(angle, Math::Vector3(0.5f, 1.0f, 0.2f));
+	model0.RotateLocal(m_Angle, Math::Vector3(0.5f, 1.0f, 0.2f));
 	m_Material->Shader->SetMatrix4("model", model0);
 	m_Meshes[0]->Render();
 
-	f32 sin1 = Math::Sin((Time::GetTotalTime() + 1.25f) * 3.0f);
+	f32 sin1 = Math::Sin((totalTime + 1.25f) * 3.0f);
 	Math::Matrix4x4 model1{};
 	model1.TranslateWorld(Math::Vector3(0.0f, sin1, -4.5f));
-	model1.RotateLocal(-angle, Math::Vector3(0.2f, 1.0f, 0.5f));
+	model1.RotateLocal(-m_Angle, Math::Vector3(0.2f, 0.6f, 0.5f));
 	m_Material->Shader->SetMatrix4("model", model1);
-	m_Meshes[2]->Render();
-
-	f32 sin2 = Math::Sin((Time::GetTotalTime() + 1.5f) * 3.0f);
-	Math::Matrix4x4 model2{};
-	model2.TranslateWorld(Math::Vector3(2.0f, sin2, -3.0f));
-	model2.RotateLocal(-angle, Math::Vector3(0.2f, 1.0f, 0.5f));
-	m_Material->Shader->SetMatrix4("model", model2);
 	m_Meshes[1]->Render();
 
-	timer += Time::GetVariableDeltaTime();
+	f32 sin2 = Math::Sin((totalTime + 1.5f) * 3.0f);
+	Math::Matrix4x4 model2{};
+	model2.TranslateWorld(Math::Vector3(2.0f, sin2, -3.0f));
+	model2.RotateLocal(-m_Angle, Math::Vector3(0.2f, 1.0f, 0.5f));
+	m_Material->Shader->SetMatrix4("model", model2);
+	m_Meshes[2]->Render();
 
-	if (timer > 1.0f) {
+	timer += Time::GetVariableDeltaTime();
+	if (timer > 0.5f) {
 		timer = 0;
-		Log::Print("{}", Math::Ceil(Time::GetFPS()));
+		Log::Print("FPS: {}", Math::Ceil(Time::GetFPS()));
 	}
 }
 }

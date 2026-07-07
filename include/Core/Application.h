@@ -15,10 +15,10 @@ private:
 	void SetupAndBindInputActions();
 	std::unique_ptr<Window> m_MainWindow;
 	std::unique_ptr<Window> m_LoadWindow;
-	std::unique_ptr<Scene>  m_ActiveScene;
-	std::atomic<bool>       m_Running{true};
-	std::atomic<bool>       m_WantsFullscreenToggle{false};
-	std::atomic<bool>       m_RenderThreadSafeToToggle{false};
+	std::unique_ptr<Scene> m_ActiveScene;
+	std::atomic<bool> m_Running{true};
+	std::atomic<bool> m_WantsFullscreenToggle{false};
+	std::atomic<bool> m_RenderThreadSafeToToggle{false};
 	void RenderThreadLoop();
 };
 }
