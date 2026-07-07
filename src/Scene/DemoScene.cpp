@@ -9,7 +9,7 @@ namespace Crescent {
 
 DemoScene::DemoScene() {
 	auto shader = std::make_shared<Render::Shader>("Shaders/unlit.vert", "Shaders/unlit.frag");
-	m_Material = std::make_shared<Render::Material>(shader, Math::Vector4(0.7f, 0.5f, 0.7f, 1.0f));
+	m_Material = std::make_shared<Render::Material>(shader, Math::Vector4(0.7f, 0.5f, 1.0f, 1.0f));
 
 	auto boxMesh1 = std::make_unique<Render::BoxMesh>(1.0f);
 	boxMesh1->SetMaterial(m_Material);
@@ -28,20 +28,23 @@ DemoScene::DemoScene() {
 }
 
 void DemoScene::OnUpdate([[maybe_unused]] f32 const deltaTime) {
-	u32 loadedTextureID = 0;
-	while (AssetLoader::Instance().PopReadyTexture(loadedTextureID) == true) {
-		if (m_Texture1 == 0) {
-			m_Texture1 = loadedTextureID;
-			if (m_Material) {
-				m_Material->AlbedoTextureID = m_Texture1;
+	Collections::DynamicList<u32> loadedTextures{};
+	if (AssetLoader::Instance().PopReadyTextures(loadedTextures) == true) {
+		for (size_t a = 0; a < loadedTextures.GetSize(); ++a) {
+			u32 const loadedTextureID = loadedTextures[a];
+			if (m_Texture1 == 0) {
+				m_Texture1 = loadedTextureID;
+				if (m_Material != nullptr) {
+					m_Material->AlbedoTextureID = m_Texture1;
+				}
+			} else {
+				m_Texture2 = loadedTextureID;
+				if (m_Material != nullptr) {
+					m_Material->NormalTextureID = m_Texture2;
+				}
 			}
-		} else {
-			m_Texture2 = loadedTextureID;
-			if (m_Material) {
-				m_Material->NormalTextureID = m_Texture2;
-			}
+			Log::Info("DemoScene: Successfully received loaded texture {}.", loadedTextureID);
 		}
-		Log::Info("DemoScene: Successfully received loaded texture {}.", loadedTextureID);
 	}
 }
 
