@@ -1,9 +1,11 @@
+#include "Input/InputAction.h"
+
+#include <unordered_map>
+#include <vector>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <vector>
-#include <unordered_map>
+
 #include "Core/Log.h"
-#include "Input/InputAction.h"
 
 namespace Crescent::Input {
 	Binding Binding::FromKey(KeyCode const keyCode) {

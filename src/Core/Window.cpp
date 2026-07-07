@@ -1,4 +1,5 @@
 #include "Core/Window.h"
+
 #include "Core/Log.h"
 
 namespace Crescent {

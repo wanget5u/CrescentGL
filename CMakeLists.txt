@@ -12,7 +12,7 @@ set(SOURCES
     src/Core/Window.cpp
     src/Core/Log.cpp
     src/Core/Time.cpp
-    src/Asset/AssetLoader.cpp
+        src/Asset/Loader.cpp
     src/Render/Mesh.cpp
     src/Render/Primitives/BoxMesh.cpp
     src/Scene/DemoScene.cpp
@@ -22,7 +22,7 @@ set(SOURCES
     src/Render/Shader/Shader.cpp
     src/Render/Material/Material.cpp
     src/Util/FileOperations.cpp
-    include/Asset/AssetLoader.h
+        include/Asset/Loader.h
     include/Core/Application.h
     include/Core/Core.h
     include/Core/Log.h
@@ -49,11 +49,12 @@ set(SOURCES
     include/Input/InputAction.h
     include/Input/InputContext.h
     include/Input/InputSystem.h
-    include/Collections/DynamicList.h
-    include/Collections/Collections.h
+        include/Collection/DynamicList.h
+        include/Collection/Collections.h
     include/Render/Material/Material.h
     include/Core/Random.h
-        include/Collections/DynamicQueue.h
+        include/Collection/DynamicQueue.h
+        include/Asset/DataTypes/DataType.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

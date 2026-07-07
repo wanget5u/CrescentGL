@@ -2,7 +2,7 @@
 #include "Core/Core.h"
 
 namespace Crescent {
-/// Cache-friendly Pseudo-Random Number Generator.
+/// Cache-friendly pseudo-random number generator
 struct Random {
 	static void Initialize(const u64 seed = 0x4d595df4d0f33173ULL, const u64 sequence = 1u) {
 		s_Inc = (sequence << 1u) | 1u;

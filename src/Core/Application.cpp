@@ -1,7 +1,9 @@
 #include "Core/Application.h"
-#include <thread>
+
 #include <chrono>
-#include "Asset/AssetLoader.h"
+#include <thread>
+
+#include "Asset/Loader.h"
 #include "Core/Log.h"
 #include "Core/Random.h"
 #include "Core/Time.h"
@@ -23,12 +25,12 @@ Application::Application() {
 	m_MainWindow->ShowWindow();
 	SetupAndBindInputActions();
 
-	AssetLoader::Instance().OnCreate(m_LoadWindow.get());
+	Asset::Loader::Instance().OnCreate(m_LoadWindow.get());
 	Random::Initialize();
 }
 
 Application::~Application() {
-	AssetLoader::Instance().Shutdown();
+	Asset::Loader::Instance().Shutdown();
 	glfwTerminate();
 }
 
@@ -77,8 +79,7 @@ void Application::SetupAndBindInputActions() {
 
 void Application::RenderThreadLoop() {
 	m_MainWindow->MakeContextCurrent();
-	m_ActiveScene = std::make_unique<DemoScene>();
-
+	m_ActiveScene = std::make_unique<Scene::DemoScene>();
 	while (m_Running == true) {
 		if (m_WantsFullscreenToggle == true) {
 			Window::UnbindContext();

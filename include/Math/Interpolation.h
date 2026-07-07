@@ -1,6 +1,4 @@
 #pragma once
-#include <Core/Core.h>
-#include "Math/Arithmetic.h"
 #include "Math/Exponential.h"
 
 namespace Crescent::Math {

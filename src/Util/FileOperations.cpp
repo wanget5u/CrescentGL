@@ -1,7 +1,9 @@
 #include "Util/FileOperations.h"
-#include "Core/Log.h"
+
 #include <fstream>
 #include <sstream>
+
+#include "Core/Log.h"
 
 namespace Crescent::Util {
 

@@ -1,6 +1,5 @@
 #pragma once
-#include <Core/Core.h>
-#include "Math/Interpolation.h"
+#include "Core/Core.h"
 #include "Math/Constants.h"
 #include "Math/Exponential.h"
 

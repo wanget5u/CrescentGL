@@ -1,11 +1,12 @@
 #include "Scene/DemoScene.h"
-#include "Asset/AssetLoader.h"
+
+#include "Asset/Loader.h"
 #include "Core/Log.h"
 #include "Core/Time.h"
 #include "Math/Math.h"
 #include "Render/Shader/Shader.h"
 
-namespace Crescent {
+namespace Crescent::Scene {
 
 DemoScene::DemoScene() {
 	auto shader = std::make_shared<Render::Shader>("Shaders/unlit.vert", "Shaders/unlit.frag");
@@ -23,13 +24,13 @@ DemoScene::DemoScene() {
 	boxMesh3->SetMaterial(m_Material);
 	m_Meshes.PushBack(std::move(boxMesh3));
 
-	AssetLoader::Instance().LoadTextureAsync("Assets/Textures/Tiles081_1K-JPG_Color.jpg");
-	AssetLoader::Instance().LoadTextureAsync("Assets/Textures/Tiles129B_1K-JPG_Color.jpg");
+	Asset::Loader::Instance().LoadTextureAsync("Assets/Textures/Tiles081_1K-JPG_Color.jpg");
+	Asset::Loader::Instance().LoadTextureAsync("Assets/Textures/Tiles129B_1K-JPG_Color.jpg");
 }
 
 void DemoScene::OnUpdate([[maybe_unused]] f32 const deltaTime) {
-	Collections::DynamicList<u32> loadedTextures{};
-	if (AssetLoader::Instance().PopReadyTextures(loadedTextures) == true) {
+	DynamicList<u32> loadedTextures{};
+	if (Asset::Loader::Instance().PopReadyTextures(loadedTextures) == true) {
 		for (size_t a = 0; a < loadedTextures.GetSize(); ++a) {
 			u32 const loadedTextureID = loadedTextures[a];
 			if (m_Texture1 == 0) {

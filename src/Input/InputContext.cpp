@@ -1,6 +1,7 @@
 #include "Input/InputContext.h"
-#include <utility>
+
 #include <ranges>
+#include <utility>
 
 namespace Crescent::Input {
 

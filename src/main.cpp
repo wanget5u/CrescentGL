@@ -1,6 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
-#include "Util/Util.h"
 #include "Core/Application.h"
+#include "Util/Util.h"
 
 int main() {
     Crescent::Application app;

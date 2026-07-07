@@ -1,35 +1,35 @@
 #include "Render/Primitives/BoxMesh.h"
 
-namespace Crescent {
+namespace Crescent::Render {
 
-Render::BoxMesh::BoxMesh(f32 const width, f32 const height, f32 const depth)
+BoxMesh::BoxMesh(f32 const width, f32 const height, f32 const depth)
 	: Mesh(VertexLayout::CreatePosNormalUV())
 	, m_Size(width, height, depth) {
 	BoxMesh::GenerateGeometry();
 }
 
-Render::BoxMesh::BoxMesh(Math::Vector3 const& size)
+BoxMesh::BoxMesh(Math::Vector3 const& size)
 	: Mesh(VertexLayout::CreatePosNormalUV())
 	, m_Size(size) {
 	BoxMesh::GenerateGeometry();
 }
 
-void Render::BoxMesh::SetSize(f32 const width, f32 const height, f32 const depth) {
+void BoxMesh::SetSize(f32 const width, f32 const height, f32 const depth) {
 	m_Size = Math::Vector3(width, height, depth);
 	BoxMesh::GenerateGeometry();
 }
 
-void Render::BoxMesh::SetSize(Math::Vector3 const& size) {
+void BoxMesh::SetSize(Math::Vector3 const& size) {
 	m_Size = size;
 	BoxMesh::GenerateGeometry();
 }
 
-void Render::BoxMesh::GenerateGeometry() {
+void BoxMesh::GenerateGeometry() {
 	// Vertices
-	Collections::DynamicList<f32> vertices;
+	DynamicList<f32> vertices;
 	vertices.ResizeUninitialized(24 * 8); // (3 Pos + 3 Normal + 2 UV)
 	// Indices
-	Collections::DynamicList<u32> indices;
+	DynamicList<u32> indices;
 	indices.ResizeUninitialized(36); // 6 faces * 6 indices
 	const f32 halfWidth  = m_Size.x * 0.5f;
 	const f32 halfHeight = m_Size.y * 0.5f;

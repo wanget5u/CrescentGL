@@ -1,12 +1,12 @@
 #pragma once
-#include <Core/Core.h>
+#include "Vector2.h"
+#include "Core/Core.h"
 #include "Core/Log.h"
-#include "Math/Constants.h"
-#include "Math/Trigonometry.h"
 #include "Math/Arithmetic.h"
+#include "Math/Constants.h"
 #include "Math/Exponential.h"
 #include "Math/Interpolation.h"
-#include "Vector2.h"
+#include "Math/Trigonometry.h"
 
 namespace Crescent::Math {
 

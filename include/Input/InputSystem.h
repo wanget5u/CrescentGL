@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include <string>
+
 #include "Input/InputContext.h"
 
 namespace Crescent::Input {

@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace Crescent::Collections {
+namespace Crescent {
 
 template <typename T, size_t Capacity = 1024, size_t MinAlign = 64>
 struct DynamicQueue {

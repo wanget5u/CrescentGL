@@ -2,7 +2,7 @@
 #include "Core/Core.h"
 #include "Core/Window.h"
 
-namespace Crescent {
+namespace Crescent::Scene {
 
 struct Scene {
 	virtual ~Scene() = default;

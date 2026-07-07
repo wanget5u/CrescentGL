@@ -1,10 +1,11 @@
 #pragma once
-#include <string_view>
 #include <functional>
 #include <memory>
 #include <string>
-#include "Core/Core.h"
+#include <string_view>
+
 #include "InputCodes.h"
+#include "Core/Core.h"
 
 namespace Crescent::Input {
 enum class MouseAxis {

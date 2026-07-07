@@ -1,19 +1,21 @@
-#include "Asset/AssetLoader.h"
+#include "Asset/Loader.h"
+
 #include <chrono>
 #include <thread>
+
 #include "Core/Log.h"
 #include "Util/Util.h"
 
 namespace Crescent {
 
-void AssetLoader::OnCreate(Window* loadWindow) {
+void Asset::Loader::OnCreate(Window* loadWindow) {
 	if (m_Running == true) { return; }
 	m_LoadWindow = loadWindow;
 	m_Running = true;
-	m_LoadThread = std::thread(&AssetLoader::LoadThreadLoop, this);
+	m_LoadThread = std::thread(&Loader::LoadThreadLoop, this);
 }
 
-void AssetLoader::Shutdown() {
+void Asset::Loader::Shutdown() {
 	if (m_Running == false) { return; }
 	m_Running = false;
 	if (m_LoadThread.joinable()) {
@@ -21,19 +23,19 @@ void AssetLoader::Shutdown() {
 	}
 }
 
-AssetLoader::~AssetLoader() { Shutdown(); }
+Asset::Loader::~Loader() { Shutdown(); }
 
-void AssetLoader::LoadTextureAsync(std::string const &filepath) {
+void Asset::Loader::LoadTextureAsync(std::string const &filepath) {
 	std::scoped_lock lock(m_AssetMutex);
 	m_TextureLoadQueue.Push(filepath);
 }
 
-bool AssetLoader::HasReadyTextures() {
+bool Asset::Loader::HasReadyTextures() {
 	std::scoped_lock lock(m_AssetMutex);
 	return m_ReadyTexturesWrite.IsEmpty() == false;
 }
 
-bool AssetLoader::PopReadyTextures(Collections::DynamicList<u32>& outTextures) {
+bool Asset::Loader::PopReadyTextures(DynamicList<u32>& outTextures) {
 	{
 		std::scoped_lock lock(m_AssetMutex);
 		if (m_ReadyTexturesWrite.IsEmpty() == true) { return false; }
@@ -41,7 +43,7 @@ bool AssetLoader::PopReadyTextures(Collections::DynamicList<u32>& outTextures) {
 	}
 	outTextures.Reserve(m_ReadyTexturesRead.GetSize());
 	for (size_t a = 0; a < m_ReadyTexturesRead.GetSize(); ++a) {
-		const TextureLoadData& data = m_ReadyTexturesRead[a];
+		const TextureData& data = m_ReadyTexturesRead[a];
 		u32 textureID = 0;
 		glGenTextures(1, &textureID);
 		glBindTexture(GL_TEXTURE_2D, textureID);
@@ -59,7 +61,7 @@ bool AssetLoader::PopReadyTextures(Collections::DynamicList<u32>& outTextures) {
 	return true;
 }
 
-std::string AssetLoader::PopNextFilePath() {
+std::string Asset::Loader::PopNextFilePath() {
 	std::scoped_lock lock(m_AssetMutex);
 	if (m_TextureLoadQueue.IsEmpty() == true) {
 		return "";
@@ -68,22 +70,22 @@ std::string AssetLoader::PopNextFilePath() {
 	return filePath;
 }
 
-void AssetLoader::LoadDataFromFilePath(std::string_view const filePath) {
-	TextureLoadData texData;
-	texData.FilePath = filePath;
-	texData.Pixels = stbi_load(filePath.data(), &texData.Width, &texData.Height, &texData.Channels, 0);
-	if (texData.Pixels == nullptr) {
+void Asset::Loader::LoadDataFromFilePath(std::string_view const filePath) {
+	TextureData textureData{};
+	textureData.FilePath = filePath;
+	textureData.Pixels = stbi_load(filePath.data(), &textureData.Width, &textureData.Height, &textureData.Channels, 0);
+	if (textureData.Pixels == nullptr) {
 		Log::Warning("Load Thread: Failed to load '", filePath, "'.");
 		return;
 	}
 	{
 		std::scoped_lock lock(m_AssetMutex);
-		m_ReadyTexturesWrite.PushBack(texData);
+		m_ReadyTexturesWrite.PushBack(textureData);
 	}
 	Log::Info("Load Thread: Decoded '", filePath, "' into RAM.");
 }
 
-void AssetLoader::LoadThreadLoop() {
+void Asset::Loader::LoadThreadLoop() {
 	std::string filePath{};
 	while (m_Running == true) {
 		filePath = PopNextFilePath();

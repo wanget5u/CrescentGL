@@ -1,7 +1,9 @@
 #include "Render/Material/Material.h"
-#include "Render/Shader/Shader.h"
-#include <glad/glad.h>
+
 #include <utility>
+#include <glad/glad.h>
+
+#include "Render/Shader/Shader.h"
 
 namespace Crescent::Render {
 

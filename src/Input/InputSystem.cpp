@@ -1,6 +1,7 @@
+#include "Input/InputSystem.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "Input/InputSystem.h"
 
 namespace Crescent::Input {
 

@@ -1,7 +1,8 @@
 #pragma once
 #include <atomic>
-#include "glad/glad.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include "Core/Core.h"
 
 namespace Crescent {

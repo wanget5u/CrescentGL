@@ -1,9 +1,7 @@
 #include "Render/Mesh.h"
 
-namespace Crescent {
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Vertex Layouts
-Render::Mesh::VertexLayout Render::Mesh::VertexLayout::CreatePosNormalUV() {
+namespace Crescent::Render {
+Mesh::VertexLayout Mesh::VertexLayout::CreatePosNormalUV() {
 	VertexLayout layout{};
 	layout.Stride = 8 * sizeof(f32);
 	layout.VertexAttributes.PushBack({ 0, 3, GL_FLOAT, 0 });
@@ -11,39 +9,43 @@ Render::Mesh::VertexLayout Render::Mesh::VertexLayout::CreatePosNormalUV() {
 	layout.VertexAttributes.PushBack({ 2, 2, GL_FLOAT, 6 * sizeof(f32) });
 	return layout;
 }
-Render::Mesh::VertexLayout Render::Mesh::VertexLayout::CreatePosUV() {
+
+Mesh::VertexLayout Mesh::VertexLayout::CreatePosUV() {
 	VertexLayout layout{};
 	layout.Stride = 5 * sizeof(f32);
 	layout.VertexAttributes.PushBack({ 0, 3, GL_FLOAT, 0 });
 	layout.VertexAttributes.PushBack({ 1, 2, GL_FLOAT, 3 * sizeof(f32) });
 	return layout;
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Lifecycle
-Render::Mesh::Mesh() : m_Layout(VertexLayout::CreatePosNormalUV()) {
+
+Mesh::Mesh() : m_Layout(VertexLayout::CreatePosNormalUV()) {
 	glGenVertexArrays(1, &m_VAO);
 	glGenBuffers(1, &m_VBO);
 	glGenBuffers(1, &m_EBO);
 }
-Render::Mesh::Mesh(VertexLayout&& layout) : m_Layout(std::move(layout)) {
+
+Mesh::Mesh(VertexLayout&& layout) : m_Layout(std::move(layout)) {
 	glGenVertexArrays(1, &m_VAO);
 	glGenBuffers(1, &m_VBO);
 	glGenBuffers(1, &m_EBO);
 }
-Render::Mesh::Mesh(const f32 *vertices, const u32 vertexDataSize, const u32* indices, const u32 indexCount, VertexLayout&& layout)
+
+Mesh::Mesh(const f32 *vertices, const u32 vertexDataSize, const u32* indices, const u32 indexCount, VertexLayout&& layout)
 	: m_Layout(std::move(layout)) {
 	glGenVertexArrays(1, &m_VAO);
 	glGenBuffers(1, &m_VBO);
 	glGenBuffers(1, &m_EBO);
 	UploadData(vertices, vertexDataSize, indices, indexCount);
 }
-Render::Mesh::Mesh(Mesh&& other) noexcept
+
+Mesh::Mesh(Mesh&& other) noexcept
 	: m_Layout(std::move(other.m_Layout))
 	, m_VAO(std::exchange(other.m_VAO, 0))
 	, m_VBO(std::exchange(other.m_VBO, 0))
 	, m_EBO(std::exchange(other.m_EBO, 0))
 	, m_IndexCount(std::exchange(other.m_IndexCount, 0)) {}
-Render::Mesh::~Mesh() {
+
+Mesh::~Mesh() {
 	if (m_VAO == 0) {
 		return;
 	}
@@ -52,22 +54,35 @@ Render::Mesh::~Mesh() {
 	glDeleteBuffers(1, &m_EBO);
 }
 
-void Render::Mesh::Bind() const { glBindVertexArray(m_VAO); }
-void Render::Mesh::Unbind() const { glBindVertexArray(0); }
-void Render::Mesh::Draw() const {
+void Mesh::Bind() const {
+	glBindVertexArray(m_VAO);
+}
+
+void Mesh::Unbind() const {
+	glBindVertexArray(0);
+}
+
+void Mesh::Draw() const {
 	glBindVertexArray(m_VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<i32>(m_IndexCount), GL_UNSIGNED_INT, nullptr);
 }
 
-void Render::Mesh::SetMaterial(std::shared_ptr<Material> material) { m_Material = std::move(material); }
-std::shared_ptr<Render::Material> Render::Mesh::GetMaterial() const { return m_Material; }
-void Render::Mesh::Render() const {
-	if (m_Material != nullptr) { m_Material->Bind(); }
+void Mesh::SetMaterial(std::shared_ptr<Material> material) {
+	m_Material = std::move(material);
+}
+
+std::shared_ptr<Material> Mesh::GetMaterial() const {
+	return m_Material;
+}
+
+void Mesh::Render() const {
+	if (m_Material != nullptr) {
+		m_Material->Bind();
+	}
 	Draw();
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////
-/// Data Uploading
-void Render::Mesh::UploadData(const Collections::DynamicList<Vertex>& vertices, const Collections::DynamicList<u32>& indices) {
+
+void Mesh::UploadData(const DynamicList<Vertex>& vertices, const DynamicList<u32>& indices) {
 	UploadData(
 		reinterpret_cast<const f32*>(vertices.GetData()),
 		static_cast<u32>(vertices.GetSizeInBytes()),
@@ -75,7 +90,8 @@ void Render::Mesh::UploadData(const Collections::DynamicList<Vertex>& vertices, 
 		static_cast<u32>(indices.GetSize())
 	);
 }
-void Render::Mesh::UploadData(const Collections::DynamicList<f32>& vertices, const Collections::DynamicList<u32>& indices) {
+
+void Mesh::UploadData(const DynamicList<f32>& vertices, const DynamicList<u32>& indices) {
 	UploadData(
 		vertices.GetData(),
 		static_cast<u32>(vertices.GetSizeInBytes()),
@@ -83,7 +99,8 @@ void Render::Mesh::UploadData(const Collections::DynamicList<f32>& vertices, con
 		static_cast<u32>(indices.GetSize())
 	);
 }
-void Render::Mesh::UploadData(const f32* vertices, u32 vertexDataSize, const u32* indices, u32 indexCount) {
+	
+void Mesh::UploadData(const f32* vertices, u32 vertexDataSize, const u32* indices, u32 indexCount) {
 	if (m_VAO == 0) {
 		glGenVertexArrays(1, &m_VAO);
 		glGenBuffers(1, &m_VBO);
@@ -113,6 +130,6 @@ void Render::Mesh::UploadData(const f32* vertices, u32 vertexDataSize, const u32
 	glBindVertexArray(0);
 }
 
-u32 Render::Mesh::GetIndexCount() const { return m_IndexCount; }
-const Render::Mesh::VertexLayout & Render::Mesh::GetLayout() const { return m_Layout; }
+u32 Mesh::GetIndexCount() const { return m_IndexCount; }
+const Mesh::VertexLayout & Mesh::GetLayout() const { return m_Layout; }
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+
 #include "Core/Core.h"
 #include "Math/Vector/Vector4.h"
 

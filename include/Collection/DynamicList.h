@@ -7,7 +7,7 @@
 
 #include "Math/Arithmetic.h"
 
-namespace Crescent::Collections {
+namespace Crescent {
 /// Over-aligned dynamic array. Handles SIMD-aligned data enforcing the alignment constraints during alloc.
 /// Avoids heap-allocation overhead when the type is trivial using `std::memcpy`
 template <typename T, size_t MinAlign = 16>
