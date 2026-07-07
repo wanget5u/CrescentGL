@@ -21,6 +21,7 @@ void Time::OnUpdate(f32 const currentEngineTime) {
 bool Time::AccumulatorHasSubstep() { return s_Accumulator >= FIXED_TIMESTEP; }
 void Time::ConsumeSubstep() { s_Accumulator -= FIXED_TIMESTEP; }
 f32 Time::GetVariableDeltaTime() { return s_VariableDeltaTime; }
+f32 Time::GetVariableDeltaTimeMs() { return s_VariableDeltaTime * 1000.0f; }
 f32 Time::GetFixedDeltaTime() { return FIXED_TIMESTEP; }
 f32 Time::GetTotalTime() { return s_TotalTime; }
 f32 Time::GetSubstepAlpha() { return s_Accumulator / FIXED_TIMESTEP; }

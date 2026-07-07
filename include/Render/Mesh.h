@@ -1,6 +1,7 @@
 #pragma once
 #include "Collection/Collections.h"
 #include "Core/Core.h"
+#include "Math/Matrix/Matrix4x4.h"
 #include "Math/Vector/Vector2.h"
 #include "Math/Vector/Vector3.h"
 
@@ -38,13 +39,16 @@ struct Mesh {
 	void Bind() const;
 	void Unbind() const;
 	void Draw() const;
+	void DrawInstanced(u32 instanceCount) const;
 	void SetMaterial(std::shared_ptr<Material> material);
 	[[nodiscard]] std::shared_ptr<Material> GetMaterial() const;
 	void Render() const;
 	void UploadData(const DynamicList<Vertex>& vertices, const DynamicList<u32>& indices);
 	void UploadData(const DynamicList<f32>& vertices, const DynamicList<u32>& indices);
 	void UploadData(const f32* vertices, u32 vertexDataSize, const u32* indices, u32 indexCount);
+	void UploadInstanceData(const DynamicList<Math::Matrix4x4>& instanceModels);
 	[[nodiscard]] u32 GetIndexCount() const;
+	[[nodiscard]] u32 GetVertexCount() const;
 	[[nodiscard]] const VertexLayout& GetLayout() const;
 protected:
 	static void WriteVertex(
@@ -71,12 +75,14 @@ protected:
 	explicit Mesh(VertexLayout&& layout);
 	virtual void GenerateGeometry() {}
 private:
-	VertexLayout              m_Layout    {};
-	u32 					  m_VAO		  {0};
-	u32 					  m_VBO		  {0};
-	u32 					  m_EBO		  {0};
-	u32 					  m_IndexCount{0};
-	std::shared_ptr<Material> m_Material  {nullptr};
+	VertexLayout              m_Layout     {};
+	u32 					  m_VAO		   {0};
+	u32 					  m_VBO		   {0};
+	u32						  m_InstanceVBO{0};
+	u32 					  m_EBO		   {0};
+	u32 					  m_IndexCount {0};
+	u32						  m_VertexCount{0};
+	std::shared_ptr<Material> m_Material   {nullptr};
 };
 
 }

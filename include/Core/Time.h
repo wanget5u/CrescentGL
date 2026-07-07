@@ -9,6 +9,7 @@ struct Time {
 	static bool AccumulatorHasSubstep();
 	static void ConsumeSubstep();
 	[[nodiscard]] static f32 GetVariableDeltaTime();
+	[[nodiscard]] static f32 GetVariableDeltaTimeMs();
 	[[nodiscard]] static f32 GetFixedDeltaTime();
 	[[nodiscard]] static f32 GetTotalTime();
 	[[nodiscard]] static f32 GetSubstepAlpha();

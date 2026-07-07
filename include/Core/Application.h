@@ -20,6 +20,7 @@ private:
 	std::atomic<bool> m_Running{true};
 	std::atomic<bool> m_WantsFullscreenToggle{false};
 	std::atomic<bool> m_RenderThreadSafeToToggle{false};
+	f32 timer{0};
 	void RenderThreadLoop();
 };
 }

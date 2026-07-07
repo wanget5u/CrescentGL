@@ -59,6 +59,8 @@ set(SOURCES
         include/Render/Texture/Texture.h
         src/Asset/Registry.cpp
         include/Asset/Registry.h
+        src/Scene/Camera/Camera.cpp
+        include/Scene/Camera/Camera.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

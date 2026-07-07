@@ -101,6 +101,11 @@ void Application::RenderThreadLoop() {
 		Asset::Registry::Instance().OnUpdate();
 		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnRender(*m_MainWindow);
+		timer += Time::GetVariableDeltaTime();
+		if (timer > 0.5f) {
+			timer = 0;
+			Log::Print("FPS: {} | Frame Time: {:.3f} ms", Math::Ceil(Time::GetFPS()), Time::GetVariableDeltaTimeMs());
+		}
 		m_MainWindow->SwapBuffers();
 	}
 	m_ActiveScene.reset();
