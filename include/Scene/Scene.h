@@ -31,11 +31,7 @@ struct Scene {
 	void RotateCamera(Math::Vector3 const& eulerDelta) const {
 		Math::Vector3 currentEuler = m_CameraNode->Transform.GetRotationEuler();
 		currentEuler += eulerDelta;
-		currentEuler.z = Math::Clamp(
-			currentEuler.z,
-			Math::DegreesToRadians(-89.0f),
-			Math::DegreesToRadians(89.0f)
-		);
+		currentEuler.x = Math::Clamp(currentEuler.x, Math::DegreesToRadians(-89.0f), Math::DegreesToRadians(89.0f));
 		m_CameraNode->Transform.SetRotationEuler(currentEuler);
 	}
 

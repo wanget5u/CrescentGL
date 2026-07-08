@@ -24,17 +24,17 @@ struct Quaternion {
 	[[nodiscard]] static constexpr Quaternion Identity() noexcept { return Quaternion(0.0f, 0.0f, 0.0f, 1.0f); }
 	[[nodiscard]] static constexpr Quaternion Zero()     noexcept { return Quaternion(0.0f, 0.0f, 0.0f, 0.0f); }
 	[[nodiscard]] static constexpr Quaternion FromEulerAngles(Vector3 const& radians) noexcept {
-		const f32 cy = Math::Cos(radians.y * 0.5f);
-		const f32 sy = Math::Sin(radians.y * 0.5f);
 		const f32 cp = Math::Cos(radians.x * 0.5f);
 		const f32 sp = Math::Sin(radians.x * 0.5f);
+		const f32 cy = Math::Cos(radians.y * 0.5f);
+		const f32 sy = Math::Sin(radians.y * 0.5f);
 		const f32 cr = Math::Cos(radians.z * 0.5f);
 		const f32 sr = Math::Sin(radians.z * 0.5f);
 		return Quaternion(
-		   sr * cp * cy - cr * sp * sy,
-		   cr * sp * cy + sr * cp * sy,
-		   cr * cp * sy - sr * sp * cy,
-		   cr * cp * cy + sr * sp * sy
+		   sp * cy * cr - cp * sy * sr,
+		   cp * sy * cr + sp * cy * sr,
+		   cp * cy * sr - sp * sy * cr,
+		   cp * cy * cr + sp * sy * sr
 		);
 	}
 	[[nodiscard]] static constexpr Vector3 ToEulerAngles(Quaternion const& quaternion) noexcept {

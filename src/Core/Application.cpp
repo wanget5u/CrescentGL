@@ -82,36 +82,41 @@ void Application::SetupAndBindInputActions() {
 	focusWindow.BindMouseButton(Input::MouseButton::Right);
 	focusWindow.Subscribe([this](Input::Action::Event const& actionEvent) {
 		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
-			glfwSetInputMode(m_MainWindow->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-			Input::System::Instance().WrapCursor(m_MainWindow->GetWindowWidth(), m_MainWindow->GetWindowHeight());
+			glfwSetInputMode(m_MainWindow->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			f64 x = 0.0;
+			f64 y = 0.0;
+			Input::System::Instance().GetCursorPos(x, y);
+			Input::System::Instance().SetCursorPos(x, y);
 		}
 		else if (actionEvent.Phase == Input::Action::Phase::Released) {
 			glfwSetInputMode(m_MainWindow->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			f64 x = 0.0;
+			f64 y = 0.0;
+			Input::System::Instance().GetCursorPos(x, y);
+			Input::System::Instance().SetCursorPos(x, y);
 		}
 	});
 
 	Input::Action& lookX = appContext.AddAction("Look_X");
 	lookX.BindMouseAxis(Input::MouseAxis::X, lookSensitivity);
 	lookX.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
-			m_ActiveScene->RotateCamera(Math::Vector3(-actionEvent.Value, 0.0f, 0.0f));
-			Input::System::Instance().WrapCursor(m_MainWindow->GetWindowWidth(), m_MainWindow->GetWindowHeight());
+		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right) && m_ActiveScene != nullptr) {
+			m_ActiveScene->RotateCamera(Math::Vector3(0.0f, -actionEvent.Value, 0.0f));
 		}
 	});
 
 	Input::Action& lookY = appContext.AddAction("Look_Y");
 	lookY.BindMouseAxis(Input::MouseAxis::Y, lookSensitivity);
 	lookY.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
-			m_ActiveScene->RotateCamera(Math::Vector3(0.0f, 0.0f, -actionEvent.Value));
-			Input::System::Instance().WrapCursor(m_MainWindow->GetWindowWidth(), m_MainWindow->GetWindowHeight());
+		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right) && m_ActiveScene != nullptr) {
+			m_ActiveScene->RotateCamera(Math::Vector3(-actionEvent.Value, 0.0f, 0.0f));
 		}
 	});
 
 	Input::Action& moveForward = appContext.AddAction("Move_Forward");
 	moveForward.BindKeyboardKey(Input::KeyCode::W);
 	moveForward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
+		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Back(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -119,7 +124,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveBackward = appContext.AddAction("Move_Backward");
 	moveBackward.BindKeyboardKey(Input::KeyCode::S);
 	moveBackward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
+		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Forward(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -127,7 +132,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveRightward = appContext.AddAction("Move_Rightward");
 	moveRightward.BindKeyboardKey(Input::KeyCode::D);
 	moveRightward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
+		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Right(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -135,7 +140,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveLeftward = appContext.AddAction("Move_Leftward");
 	moveLeftward.BindKeyboardKey(Input::KeyCode::A);
 	moveLeftward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
+		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Left(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -170,7 +175,6 @@ void Application::RenderThreadLoop() {
 			Time::ConsumeSubstep();
 		}
 		m_MainWindow->CheckViewportResize();
-		Input::System::Instance().OnUpdate();
 		Asset::Registry::Instance().OnUpdate();
 		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnRender(*m_MainWindow);
