@@ -25,66 +25,58 @@ void BoxMesh::SetSize(Math::Vector3 const& size) {
 }
 
 void BoxMesh::GenerateGeometry() {
-	// Vertices
 	DynamicList<f32> vertices;
-	vertices.ResizeUninitialized(24 * 8); // (3 Pos + 3 Normal + 2 UV)
-	// Indices
+	vertices.ResizeUninitialized(24 * 8);
+
 	DynamicList<u32> indices;
-	indices.ResizeUninitialized(36); // 6 faces * 6 indices
+	indices.ResizeUninitialized(36);
+
 	const f32 halfWidth  = m_Size.x;
 	const f32 halfHeight = m_Size.y;
 	const f32 halfDepth  = m_Size.z;
 	size_t currentFloatIndex = 0;
 
-	// 1. Front Face (-Z)
-	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f); // 0
-	WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f); // 1
-	WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f); // 2
-	WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f); // 3
+    WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f); // 0 (BL)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f); // 1 (BR)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f); // 2 (TR)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f); // 3 (TL)
 
-	// 2. Back Face (+Z)
-	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f); // 4
-	WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f); // 5
-	WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f); // 6
-	WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f); // 7
+    WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f); // 4 (BL)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f); // 5 (BR)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f); // 6 (TR)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight,  halfDepth,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f); // 7 (TL)
 
-	// 3. Left Face (-X)
-	WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight,  halfDepth, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f); // 8
-	WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight, -halfDepth, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f); // 9
-	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight, -halfDepth, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f); // 10
-	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight,  halfDepth, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f); // 11
+	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight, -halfDepth, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f); // 8 (BL)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight,  halfDepth, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f); // 9 (BR)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight,  halfDepth, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f); // 10 (TR)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight, -halfDepth, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f); // 11 (TL)
 
-	// 4. Right Face (+X)
-	WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight,  halfDepth,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f); // 12
-	WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight, -halfDepth,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f); // 13
-	WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f); // 14
-	WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight,  halfDepth,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f); // 15
+    WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight,  halfDepth,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f); // 12 (BL)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f); // 13 (BR)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight, -halfDepth,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f); // 14 (TR)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight,  halfDepth,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f); // 15 (TL)
 
-	// 5. Bottom Face (-Y)
-	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight, -halfDepth,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f); // 16
-	WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f); // 17
-	WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight,  halfDepth,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f); // 18
-	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight,  halfDepth,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f); // 19
+	WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight, -halfDepth,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f); // 16 (BL)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f); // 17 (BR)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight,  halfDepth,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f); // 18 (TR)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth, -halfHeight,  halfDepth,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f); // 19 (TL)
 
-	// 6. Top Face (+Y)
-	WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight, -halfDepth,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f); // 20
-	WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight, -halfDepth,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f); // 21
-	WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight,  halfDepth,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f); // 22
-	WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight,  halfDepth,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f); // 23
+    WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight,  halfDepth,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f); // 20 (BL)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight,  halfDepth,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f); // 21 (BR)
+    WriteVertex(vertices, currentFloatIndex,  halfWidth,  halfHeight, -halfDepth,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f); // 22 (TR)
+    WriteVertex(vertices, currentFloatIndex, -halfWidth,  halfHeight, -halfDepth,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f); // 23 (TL)
 
-	// 2 triangles per face: (0, 1, 2 | 0, 2, 3)
-	size_t currentIndexIndex = 0;
-	for (u32 face = 0; face < 6; ++face) {
-		const u32 startVertex = face * 4;
-		indices[currentIndexIndex++] = startVertex + 0;
-		indices[currentIndexIndex++] = startVertex + 1;
-		indices[currentIndexIndex++] = startVertex + 2;
-		indices[currentIndexIndex++] = startVertex + 0;
-		indices[currentIndexIndex++] = startVertex + 2;
-		indices[currentIndexIndex++] = startVertex + 3;
-	}
-
-	UploadData(vertices, indices);
+    size_t currentIndexIndex = 0;
+    for (u32 face = 0; face < 6; ++face) {
+        const u32 startVertex = face * 4;
+        indices[currentIndexIndex++] = startVertex + 0;
+        indices[currentIndexIndex++] = startVertex + 1;
+        indices[currentIndexIndex++] = startVertex + 2;
+        indices[currentIndexIndex++] = startVertex + 0;
+        indices[currentIndexIndex++] = startVertex + 2;
+        indices[currentIndexIndex++] = startVertex + 3;
+    }
+    UploadData(vertices, indices);
 }
 
 }

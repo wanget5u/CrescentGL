@@ -1,5 +1,6 @@
 #include "../../include/Asset/Registry.h"
 
+#include "Render/Mesh.h"
 #include "Render/Shader/Shader.h"
 #include "stb/stb_image.h"
 
@@ -36,15 +37,25 @@ void Registry::OnUpdate() {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+			u32 format = GL_RGB;
+			if (textureData.Channels == 1) {
+				format = GL_RED;
+			} else if (textureData.Channels == 2) {
+				format = GL_RG;
+			} else if (textureData.Channels == 3) {
+				format = GL_RGB;
+			} else if (textureData.Channels == 4) {
+				format = GL_RGBA;
+			}
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
-				GL_RGB,
+				format,
 				textureData.Width,
 				textureData.Height,
 				0,
-				GL_RGB,
+				format,
 				GL_UNSIGNED_BYTE,
 				textureData.Pixels
 			);
@@ -57,10 +68,22 @@ void Registry::OnUpdate() {
 			textureAsset->IsReady = true;
 			Log::Info("Registry: Uploaded Texture '{}' to VRAM (ID: {}).", packet.FilePath, textureAsset->TextureID);
 		}
-		// TODO: Add obj, glTF, FBX support
-		// else if (packet.Type == Type::Mesh) {
-		//
-		// }
+		else if (packet.Type == Type::Mesh) {
+			std::shared_ptr<Mesh> meshAsset = std::static_pointer_cast<Mesh>(baseAsset);
+			auto& meshData = std::get<Mesh::Data>(packet.Data);
+			meshAsset->MeshObject = std::make_shared<Render::Mesh>(
+				reinterpret_cast<const f32*>(meshData.Vertices.GetData()),
+				static_cast<u32>(meshData.Vertices.GetSizeInBytes()),
+				meshData.Indices.GetData(),
+				static_cast<u32>(meshData.Indices.GetSize()),
+				Render::Mesh::VertexLayout::CreatePosNormalUV()
+			);
+			meshAsset->IsReady = true;
+			Log::Info("Registry: Uploaded Mesh '{}' to VRAM (VAO: {}, VBO: {}, EBO: {}).",
+				packet.FilePath, meshAsset->MeshObject->GetVAO(),
+				meshAsset->MeshObject->GetVBO(), meshAsset->MeshObject->GetEBO()
+			);
+		}
 	}
 }
 

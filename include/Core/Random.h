@@ -16,7 +16,7 @@ struct Random {
 		s_State = oldState * 6364136223846793005ULL + s_Inc;
 		u32 const xorShifted = static_cast<u32>(((oldState >> 18u) ^ oldState) >> 27u);
 		u32 const rot = static_cast<u32>(oldState >> 59u);
-		return (xorShifted >> rot) | (xorShifted << ((-rot) & 31u));
+		return (xorShifted >> rot) | (xorShifted << ((32u - rot) & 31u));
 	}
 	[[nodiscard]] constexpr static u32 U32Range(const u32 min, const u32 max) noexcept {
 		if (min >= max) { return min; }

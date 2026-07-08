@@ -94,4 +94,49 @@ constexpr Number Tan(Number radians) {
 	return Math::Sin(radians) / cos;
 }
 
+template <typename Number> [[nodiscard]]
+constexpr Number ArcTan(Number value) noexcept {
+	const Number absValue = Abs(value);
+	const bool greaterThanOne = (absValue > static_cast<Number>(1.0));
+	const Number z = greaterThanOne ? (static_cast<Number>(1.0) / absValue) : absValue;
+	const Number y = Power(z, 2);
+	// Abramowitz & Stegun 4.4.47 minimax approximation using Horner's method
+	Number result = z * (static_cast<Number>(1.0) + y * (
+	   static_cast<Number>(-0.3333314528) + y * (
+	   static_cast<Number>(0.1999355085) + y * (
+	   static_cast<Number>(-0.1420889944) + y * (
+	   static_cast<Number>(0.1065626393) + y * (
+	   static_cast<Number>(-0.0752896400) + y * (
+	   static_cast<Number>(0.0429096138) + y * (
+	   static_cast<Number>(-0.0161657367) + y *
+	   static_cast<Number>(0.0028662257)
+	   ))))))));
+	if (greaterThanOne == true) {
+		result =  static_cast<Number>(HALF_PI - result);
+	}
+	return value < static_cast<Number>(0.0) ? -result : result;
+}
+
+template <typename Number> [[nodiscard]]
+constexpr Number ArcTan2(Number y, Number x) noexcept {
+	const Number pi = static_cast<Number>(PI);
+	const Number halfPi = static_cast<Number>(HALF_PI);
+	if (x > static_cast<Number>(0.0)) {
+		return Math::ArcTan(y / x);
+	}
+	if (x < static_cast<Number>(0.0)) {
+		if (y >= static_cast<Number>(0.0)) {
+			return Math::ArcTan(y / x) + pi;
+		}
+		return Math::ArcTan(y / x) - pi;
+	}
+	if (y > static_cast<Number>(0.0)) {
+		return halfPi;
+	}
+	if (y < static_cast<Number>(0.0)) {
+		return -halfPi;
+	}
+	return static_cast<Number>(0.0);
+}
+
 }

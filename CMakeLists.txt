@@ -59,8 +59,23 @@ set(SOURCES
         include/Render/Texture/Texture.h
         src/Asset/Registry.cpp
         include/Asset/Registry.h
-        src/Scene/Camera/Camera.cpp
-        include/Scene/Camera/Camera.h
+        src/Scene/Nodes3D/Camera3D.cpp
+        include/Scene/Nodes3D/Camera3D.h
+        src/Scene/Tree.cpp
+        include/Scene/Tree.h
+        src/Scene/Node.cpp
+        include/Scene/Node.h
+        src/Scene/Nodes3D/Node3D.cpp
+        include/Scene/Nodes3D/Node3D.h
+        src/Scene/Transform.cpp
+        include/Scene/Transform.h
+        include/Math/Quaternion/Quaternion.h
+        src/Scene/Nodes3D/MeshInstance3D.cpp
+        include/Scene/Nodes3D/MeshInstance3D.h
+        src/Render/BatchRenderer.cpp
+        include/Render/BatchRenderer.h
+        src/Scene/Nodes3D/MultiMeshInstance3D.cpp
+        include/Scene/Nodes3D/MultiMeshInstance3D.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

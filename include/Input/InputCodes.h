@@ -13,10 +13,11 @@ enum class KeyCode : i32 {
 	S			= GLFW_KEY_S,
 	D			= GLFW_KEY_D,
 	F11			= GLFW_KEY_F11,
+	LeftShift	= GLFW_KEY_LEFT_SHIFT,
 };
 enum class MouseButton : i32 {
-	Button0		= GLFW_MOUSE_BUTTON_1,
-	Button1		= GLFW_MOUSE_BUTTON_2,
-	Button2		= GLFW_MOUSE_BUTTON_3,
+	Left		= GLFW_MOUSE_BUTTON_1,
+	Right		= GLFW_MOUSE_BUTTON_2,
+	Middle		= GLFW_MOUSE_BUTTON_3,
 };
 }

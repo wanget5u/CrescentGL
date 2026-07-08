@@ -94,21 +94,6 @@ void Mesh::DrawInstanced(const u32 instanceCount) const {
 	Unbind();
 }
 
-void Mesh::SetMaterial(std::shared_ptr<Material> material) {
-	m_Material = std::move(material);
-}
-
-std::shared_ptr<Material> Mesh::GetMaterial() const {
-	return m_Material;
-}
-
-void Mesh::Render() const {
-	if (m_Material != nullptr) {
-		m_Material->Bind();
-	}
-	Draw();
-}
-
 void Mesh::UploadData(const DynamicList<Vertex>& vertices, const DynamicList<u32>& indices) {
 	UploadData(
 		reinterpret_cast<const f32*>(vertices.GetData()),
@@ -162,36 +147,6 @@ void Mesh::UploadData(const f32* vertices, u32 vertexDataSize, const u32* indice
 	glBindVertexArray(0);
 }
 
-void Mesh::UploadInstanceData(const DynamicList<Math::Matrix4x4> &instanceModels) {
-	Bind();
-	if (m_InstanceVBO == 0) {
-		glGenBuffers(1, &m_InstanceVBO);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, m_InstanceVBO);
-	glBufferData(
-		GL_ARRAY_BUFFER,
-		instanceModels.GetSize() * sizeof(Math::Matrix4x4),
-		instanceModels.GetData(),
-		GL_DYNAMIC_DRAW
-	);
-	size_t vector4Size = sizeof(f32) * 4;
-	for (u8 a = 0; a < 4; a++) {
-		// config attribute locations 3, 4, 5, 6 in the shader
-		glEnableVertexAttribArray(3 + a);
-		glVertexAttribPointer(
-			3 + a,
-			4,
-			GL_FLOAT,
-			GL_FALSE,
-			sizeof(Math::Matrix4x4),
-			reinterpret_cast<void*>(a * vector4Size)
-		);
-		glVertexAttribDivisor(3 + a, 1);
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	Unbind();
-}
-
 u32 Mesh::GetIndexCount() const {
 	return m_IndexCount;
 }
@@ -202,6 +157,18 @@ u32 Mesh::GetVertexCount() const {
 
 const Mesh::VertexLayout & Mesh::GetLayout() const {
 	return m_Layout;
+}
+
+u32 Mesh::GetVAO() const noexcept {
+	return m_VAO;
+}
+	
+u32 Mesh::GetVBO() const noexcept {
+	return m_VBO;
+}
+
+u32 Mesh::GetEBO() const noexcept {
+	return m_EBO;
 }
 
 }

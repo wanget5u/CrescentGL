@@ -1,0 +1,31 @@
+#pragma once
+#include "Math/Matrix/Matrix4x4.h"
+#include "Node3D.h"
+
+namespace Crescent::Scene {
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///
+struct Camera3D : Node3D {
+	Camera3D() = default;
+	~Camera3D() override = default;
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///
+	///
+	///
+	void SetPerspective(f32 fovDegrees, f32 aspectRatio, f32 nearZ = 0.1f, f32 farZ = 1000.0f) noexcept;
+	///
+	[[nodiscard]] const Math::Matrix4x4& GetViewMatrix() const noexcept;
+	///
+	[[nodiscard]] const Math::Matrix4x4& GetProjectionMatrix() const noexcept;
+private:
+	///
+	f32 m_FOV{70.f};
+	f32 m_AspectRatio{1.777777777777778f};
+	f32 m_NearZ{0.1f};
+	f32 m_FarZ{1000.0f};
+	///
+	mutable Math::Matrix4x4 m_ViewMatrix{};
+	///
+	Math::Matrix4x4 m_ProjectionMatrix{};
+};
+}

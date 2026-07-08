@@ -90,15 +90,70 @@ f32 System::GetMouseDeltaX() const { return m_MouseDeltaX; }
 f32 System::GetMouseDeltaY() const { return m_MouseDeltaY; }
 f32 System::GetScrollDelta() const { return m_ScrollDelta; }
 
+void System::SetCursorPos(f64 const x, f64 const y) {
+	if (m_Window != nullptr) {
+		glfwSetCursorPos(m_Window, x, y);
+		m_LastCursorX = x;
+		m_LastCursorY = y;
+	}
+}
+
+void System::GetCursorPos(f64& x, f64& y) const {
+	if (m_Window != nullptr) {
+		glfwGetCursorPos(m_Window, &x, &y);
+	}
+	else {
+		x = 0.0;
+		y = 0.0;
+	}
+}
+
+void System::WrapCursor(i32 const windowWidth, i32 const windowHeight) {
+	if (m_Window == nullptr || windowWidth <= 4 || windowHeight <= 4) {
+		return;
+	}
+	f64 cursorX = 0.0;
+	f64 cursorY = 0.0;
+	glfwGetCursorPos(m_Window, &cursorX, &cursorY);
+	bool wrapped = false;
+	constexpr f64 margin = 2.0;
+	const f64 width = windowWidth;
+	const f64 height = windowHeight;
+	const f64 offsetX = width - 4.0;
+	const f64 offsetY = height - 4.0;
+	if (cursorX < margin) {
+		cursorX += offsetX;
+		wrapped = true;
+	}
+	else if (cursorX > width - margin) {
+		cursorX -= offsetX;
+		wrapped = true;
+	}
+	if (cursorY < margin) {
+		cursorY += offsetY;
+		wrapped = true;
+	}
+	else if (cursorY > height - margin) {
+		cursorY -= offsetY;
+		wrapped = true;
+	}
+	if (wrapped == true) {
+		SetCursorPos(cursorX, cursorY);
+	}
+}
+
 void System::OnKeyboardKeyCallback([[maybe_unused]] i32 const key, [[maybe_unused]] i32 const action, [[maybe_unused]] i32 const mods) {
 	m_KeyboardKeyState[key] = (action != GLFW_RELEASE);
 }
+
 void System::OnMouseButtonCallback([[maybe_unused]] i32 const button, [[maybe_unused]] i32 const action, [[maybe_unused]] i32 const mods) {
 	m_MouseButtonState[button] = (action != GLFW_RELEASE);
 }
+
 void System::OnMouseScrollCallback([[maybe_unused]] f64 const xOffset, [[maybe_unused]] f64 const yOffset) {
 	m_ScrollDelta += static_cast<f32>(yOffset);
 }
+
 void System::OnCursorCallback([[maybe_unused]] f64 const xPos, [[maybe_unused]] f64 const yPos) const {
 	// TODO:
 }

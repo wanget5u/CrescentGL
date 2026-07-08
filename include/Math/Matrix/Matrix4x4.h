@@ -1,7 +1,6 @@
 #pragma once
 #include "Core/Core.h"
 #include "Math/Arithmetic.h"
-#include "Math/Trigonometry.h"
 #include "Math/Vector/Vector3.h"
 #include "Math/Vector/Vector4.h"
 
@@ -88,6 +87,17 @@ struct Matrix4x4 {
 		   Vector4(           0.0f,             g,                               0.0f,  0.0f),
 		   Vector4(           0.0f,          0.0f,         -(farZ + nearZ) * invDepth, -1.0f),
 		   Vector4(           0.0f,          0.0f,  -(2.0f * farZ * nearZ) * invDepth,  0.0f)
+		);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 GetLookAt(Vector3 const& eye, Vector3 const& target, Vector3 const& up) noexcept {
+		Vector3 const forwardVector = (target - eye).Normalized();
+		Vector3 const rightVector = forwardVector.Cross(up).Normalized();
+		Vector3 const upVector = rightVector.Cross(forwardVector);
+		return Matrix4x4(
+		   Vector4(        rightVector.x,         upVector.x,        -forwardVector.x, 0.0f),
+		   Vector4(        rightVector.y,         upVector.y,        -forwardVector.y, 0.0f),
+		   Vector4(        rightVector.z,         upVector.z,        -forwardVector.z, 0.0f),
+		   Vector4(-rightVector.Dot(eye), -upVector.Dot(eye),  forwardVector.Dot(eye), 1.0f)
 		);
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetScale(Vector3 const& scale) noexcept {

@@ -24,7 +24,7 @@ std::shared_ptr<Material> Material::GetDefaultMaterial() {
 }
 
 Math::Vector4 Material::GetDefaultColor() noexcept {
-	return Math::Vector4{ 1.0f, 0.6f, 0.8f, 1.0f };
+	return Math::Vector4{ 0.7f, 0.6f, 0.9f, 1.0f };
 }
 
 std::shared_ptr<Asset::Shader> Material::GetActiveShader() const noexcept {

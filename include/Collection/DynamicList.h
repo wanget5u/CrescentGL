@@ -23,6 +23,7 @@ struct DynamicList {
 	~DynamicList() {
 		Clear();
 		FreeStorage(m_Data);
+		m_Capacity = 0;
 	}
 	DynamicList& operator=(DynamicList const&) = delete;
 	DynamicList& operator=(DynamicList&& other) noexcept {
@@ -135,6 +136,61 @@ struct DynamicList {
 		m_Data = newStorage;
 		m_Capacity = newCapacity;
 	}
+	/// Removes an element at the specified index and shifts subsequent elements left
+	/// Preserves the order of the list
+	void RemoveAt(size_t const index) {
+		assert(index < m_Size && "Erase index out of bounds.");
+		// If not erasing the very last element, shift data left
+		if (index < m_Size - 1) {
+			if constexpr (std::is_trivially_copyable_v<T> == true) {
+				// Destroy the target element first
+				if constexpr (std::is_trivially_destructible_v<T> == false) {
+					m_Data[index].~T();
+				}
+				// Shift memory left, must use memmove not memcpy, because memory overlaps
+				std::memmove(m_Data + index, m_Data + index + 1, (m_Size - index - 1) * sizeof(T));
+			}
+			else {
+				// For complex objects, use move assignment to shift them left one by one
+				for (size_t a = index; a < m_Size - 1; ++a) {
+					m_Data[a] = std::move(m_Data[a + 1]);
+				}
+				// The last element is now in a moved-from state, explicitly destroy it
+				if constexpr (std::is_trivially_destructible_v<T> == false) {
+					m_Data[m_Size - 1].~T();
+				}
+			}
+		}
+		else {
+			if constexpr (std::is_trivially_destructible_v<T> == false) {
+				m_Data[index].~T();
+			}
+		}
+		m_Size--;
+	}
+	/// Removes an element by swapping it with the last element, then popping the back
+	/// Does not preserve order
+	void RemoveUnsorted(size_t const index) {
+		assert(index < m_Size && "EraseUnsorted index out of bounds.");
+		if (index < m_Size - 1) {
+			m_Data[index] = std::move(m_Data[m_Size - 1]);
+		}
+		if constexpr (std::is_trivially_destructible_v<T> == false) {
+			m_Data[m_Size - 1].~T();
+		}
+		m_Size--;
+	}
+	/// Finds the first instance of a value and removes it
+	/// Returns true if found and removed, false otherwise
+	bool Remove(T const& value) {
+		for (size_t a = 0; a < m_Size; ++a) {
+			if (m_Data[a] == value) {
+				RemoveAt(a);
+				return true;
+			}
+		}
+		return false;
+	}
 	/// Destroys all elements without releasing reserved memory chunk capacity
 	void Clear() {
 		// only calling the destructors when the data is not trivial
@@ -144,6 +200,7 @@ struct DynamicList {
 			}
 		}
 		m_Size = 0;
+		m_Capacity = 0;
 	}
 	/// Generating a procedural mesh or loading assets, the amount of vertices
 	/// is known upfront. Calling PushBack/EmplaceBack forces thousands of redundant
@@ -186,9 +243,9 @@ struct DynamicList {
 	[[nodiscard]]       size_t GetCapacityInBytes() const noexcept { return m_Capacity * sizeof(T); }
 	[[nodiscard]] const     T* GetData()	        const noexcept { return m_Data; }
 	[[nodiscard]]		  bool IsEmpty()            const noexcept { return m_Size == 0; }
-	[[nodiscard]] const 	T* cbegin() 			const noexcept { return m_Data; }
+	[[nodiscard]] const		T* begin()				const noexcept { return m_Data; }
 	[[nodiscard]]			T* begin()				      noexcept { return m_Data; }
-	[[nodiscard]] const 	T* cend()   			const noexcept { return m_Data + m_Size; }
+	[[nodiscard]] const 	T* end()   				const noexcept { return m_Data + m_Size; }
 	[[nodiscard]]			T* end()					  noexcept { return m_Data + m_Size; }
 	[[nodiscard]] const 	T* data()   			const noexcept { return m_Data; }
 	[[nodiscard]]       	T* data()					  noexcept { return m_Data; }

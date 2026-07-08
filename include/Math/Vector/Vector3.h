@@ -30,8 +30,8 @@ struct Vector3 {
 	[[nodiscard]] static constexpr Vector3 Down()		noexcept { return Vector3( 0.0f, -1.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 Left()		noexcept { return Vector3(-1.0f,  0.0f,  0.0f); }
 	[[nodiscard]] static constexpr Vector3 Right()		noexcept { return Vector3( 1.0f,  0.0f,  0.0f); }
-	[[nodiscard]] static constexpr Vector3 Forward()	noexcept { return Vector3( 0.0f,  0.0f,  1.0f); }
-	[[nodiscard]] static constexpr Vector3 Back()		noexcept { return Vector3( 0.0f,  0.0f, -1.0f); }
+	[[nodiscard]] static constexpr Vector3 Forward()	noexcept { return Vector3( 0.0f,  0.0f, -1.0f); }
+	[[nodiscard]] static constexpr Vector3 Back()		noexcept { return Vector3( 0.0f,  0.0f,  1.0f); }
 
 	constexpr Vector3& operator+=(Vector3 const& other) noexcept {
 		x += other.x; y += other.y; z += other.z;

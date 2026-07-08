@@ -3,6 +3,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <variant>
 
 #include "Collection/Collections.h"
 #include "Core/Window.h"

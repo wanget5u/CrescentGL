@@ -1,4 +1,6 @@
 #pragma once
+#include <type_traits>
+
 #include "Core/Core.h"
 #include "Math/Constants.h"
 
@@ -43,7 +45,7 @@ constexpr Number Mod(Number a, Number b) {
 template <typename Number> [[nodiscard]]
 constexpr Number Abs(Number number) {
 	if constexpr (std::is_signed_v<Number>) {
-		if (number < 0) {
+		if (number < static_cast<Number>(0)) {
 			return -number;
 		}
 	}

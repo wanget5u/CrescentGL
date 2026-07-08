@@ -21,9 +21,9 @@ struct Binding {
 		MouseAxis 
 	};
 	Type type{};
-	KeyCode keyCode = KeyCode::Space;
-	MouseButton mouseButton = MouseButton::Button0;
-	MouseAxis mouseAxis = MouseAxis::Y;
+	KeyCode keyCode;
+	MouseButton mouseButton;
+	MouseAxis mouseAxis;
 	f32 scale{1.0f};
 	static Binding FromKey(KeyCode keyCode);
 	static Binding FromMouseButton(MouseButton keyCode);

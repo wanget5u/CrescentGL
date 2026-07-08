@@ -89,14 +89,14 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (success == false) {
 			glGetProgramInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-			Log::Error("Shader Program linking Error (", GetTypeName(type) ,"):\n", infoLog);
+			Log::Error("Shader Program linking Error ({}):\n{}", GetTypeName(type), infoLog);
 			return false;
 		}
 	} else {
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 		if (success == false) {
 			glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-			Log::Error("Shader Compilation error (", GetTypeName(type), "):\n", infoLog);
+			Log::Error("Shader Compilation error ({}):\n{}", GetTypeName(type), infoLog);
 			return false;
 		}
 	}
