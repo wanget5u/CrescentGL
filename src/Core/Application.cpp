@@ -71,13 +71,17 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& closeAction = appContext.AddAction("Close");
 	closeAction.BindKeyboardKey(Input::KeyCode::Escape);
 	closeAction.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed) { CloseAction(); }
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			CloseAction();
+		}
 	});
 
 	Input::Action& fullscreenAction = appContext.AddAction("Fullscreen");
 	fullscreenAction.BindKeyboardKey(Input::KeyCode::F11);
 	fullscreenAction.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed) { m_WantsFullscreenToggle = true; }
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			m_WantsFullscreenToggle = true;
+		}
 	});
 
 	constexpr f32 lookSensitivity = 0.002f;
@@ -103,7 +107,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& lookX = appContext.AddAction("Look_X");
 	lookX.BindMouseAxis(Input::MouseAxis::X, lookSensitivity);
 	lookX.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right) && m_ActiveScene != nullptr) {
+		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
 			m_ActiveScene->RotateCamera(Math::Vector3(0.0f, -actionEvent.Value, 0.0f));
 		}
 	});
@@ -111,7 +115,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& lookY = appContext.AddAction("Look_Y");
 	lookY.BindMouseAxis(Input::MouseAxis::Y, lookSensitivity);
 	lookY.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right) && m_ActiveScene != nullptr) {
+		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
 			m_ActiveScene->RotateCamera(Math::Vector3(-actionEvent.Value, 0.0f, 0.0f));
 		}
 	});
@@ -119,7 +123,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveForward = appContext.AddAction("Move_Forward");
 	moveForward.BindKeyboardKey(Input::KeyCode::W);
 	moveForward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Back(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -127,7 +131,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveBackward = appContext.AddAction("Move_Backward");
 	moveBackward.BindKeyboardKey(Input::KeyCode::S);
 	moveBackward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Forward(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -135,7 +139,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveRightward = appContext.AddAction("Move_Rightward");
 	moveRightward.BindKeyboardKey(Input::KeyCode::D);
 	moveRightward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Right(), Time::GetVariableDeltaTime());
 		}
 	});
@@ -143,7 +147,7 @@ void Application::SetupAndBindInputActions() {
 	Input::Action& moveLeftward = appContext.AddAction("Move_Leftward");
 	moveLeftward.BindKeyboardKey(Input::KeyCode::A);
 	moveLeftward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if ((actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) && m_ActiveScene != nullptr) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
 			m_ActiveScene->MoveCamera(Math::Vector3::Left(), Time::GetVariableDeltaTime());
 		}
 	});

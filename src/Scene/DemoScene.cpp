@@ -19,10 +19,16 @@ namespace Crescent::Scene {
 constexpr u32 INSTANCE_COUNT = 524288;
 
 DemoScene::DemoScene() {
-    auto shaderAsset = Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/demo", Asset::Type::Shader);
+    // shaders
+    std::shared_ptr<Asset::Shader> shaderAsset =
+        Asset::Registry::Instance()
+        .GetOrLoad<Asset::Shader>("Shaders/demo", Asset::Type::Shader);
+    // materials
     m_Material = std::make_shared<Render::Material>(shaderAsset);
-    m_Material->AlbedoTexture = Asset::Registry::Instance().GetOrLoad<Asset::Texture>("Assets/Textures/Tiles081_1K-JPG_Color.jpg", Asset::Type::Texture);
-
+    m_Material->AlbedoTexture =
+        Asset::Registry::Instance()
+        .GetOrLoad<Asset::Texture>("Assets/Textures/Tiles081_1K-JPG_Color.jpg", Asset::Type::Texture);
+    // meshes
     m_BoxMesh = std::make_shared<Render::BoxMesh>(1.0f, 1.0f, 1.0f);
 
     m_CubeNode = m_Tree->AddChild<MeshInstance3D>("Cube");
@@ -33,7 +39,7 @@ DemoScene::DemoScene() {
     m_OrbitingCubesNode = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
     m_OrbitingCubesNode->SetMesh(m_BoxMesh);
     m_OrbitingCubesNode->SetMaterial(m_Material);
-
+    // init
     DynamicList<Math::Matrix4x4> initialTransforms{};
     initialTransforms.Reserve(INSTANCE_COUNT);
     for (u32 a = 0; a < INSTANCE_COUNT; ++a) {
@@ -79,7 +85,7 @@ void DemoScene::OnRender(Window& window) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     f32 currentAspectRatio = window.GetAspectRatio();
-    if (currentAspectRatio != m_LastAspectRatio && m_PreviewCamera != nullptr) {
+    if (currentAspectRatio != m_LastAspectRatio) {
         m_LastAspectRatio = currentAspectRatio;
         m_PreviewCamera->SetPerspective(70.0f, m_LastAspectRatio, 0.1f, 1000.0f);
     }

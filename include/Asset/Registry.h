@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include "Loader.h"
-#include "Core/Core.h"
 #include "Type/Type.h"
 
 namespace Crescent::Asset {
@@ -15,7 +14,8 @@ struct Registry {
 	}
 	template <typename T>
 	std::shared_ptr<T> GetOrLoad(std::string const& filePath, Type type) {
-		auto it = m_Registry.find(filePath);
+		std::unordered_map<std::string, std::shared_ptr<Asset>>::iterator it
+			= m_Registry.find(filePath);
 		if (it != m_Registry.end()) {
 			return std::static_pointer_cast<T>(it->second);
 		}

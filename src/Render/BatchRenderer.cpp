@@ -59,9 +59,6 @@ void BatchRenderer::EndBatchUnload() {
 }
 
 void BatchRenderer::RegisterMesh(Scene::MeshInstance3D* meshInstance) {
-	if (meshInstance == nullptr) {
-		return;
-	}
 	if (m_IsBatchLoading == true) {
 		m_StagedMeshInstances.PushBack(meshInstance);
 	}
@@ -71,9 +68,6 @@ void BatchRenderer::RegisterMesh(Scene::MeshInstance3D* meshInstance) {
 }
 
 void BatchRenderer::UnregisterMesh(Scene::MeshInstance3D* meshInstance) {
-	if (meshInstance == nullptr) {
-		return;
-	}
 	if (m_IsBatchUnloading == true) {
 		for (size_t a = 0; a < m_RegisteredMeshInstances.GetSize(); ++a) {
 			if (m_RegisteredMeshInstances[a] == meshInstance) {
@@ -88,9 +82,6 @@ void BatchRenderer::UnregisterMesh(Scene::MeshInstance3D* meshInstance) {
 }
 
 void BatchRenderer::RegisterMultiMesh(Scene::MultiMeshInstance3D* multiMeshInstance) {
-	if (multiMeshInstance == nullptr) {
-		return;
-	}
 	if (m_IsBatchLoading == true) {
 		m_StagedMultiMeshInstances.PushBack(multiMeshInstance);
 	}
@@ -100,9 +91,6 @@ void BatchRenderer::RegisterMultiMesh(Scene::MultiMeshInstance3D* multiMeshInsta
 }
 
 void BatchRenderer::UnregisterMultiMesh(Scene::MultiMeshInstance3D* multiMeshInstance) {
-	if (multiMeshInstance == nullptr) {
-		return;
-	}
 	if (m_IsBatchUnloading) {
 		for (size_t a = 0; a < m_RegisteredMultiMeshInstances.GetSize(); ++a) {
 			if (m_RegisteredMultiMeshInstances[a] == multiMeshInstance) {
@@ -117,20 +105,13 @@ void BatchRenderer::UnregisterMultiMesh(Scene::MultiMeshInstance3D* multiMeshIns
 }
 
 void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
-	if (camera == nullptr) {
-		return;
-	}
 	Math::Matrix4x4 const& viewMatrix = camera->GetViewMatrix();
 	Math::Matrix4x4 viewProjection = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 	std::shared_ptr<Material> lastBoundMaterial = nullptr;
-
 	for (size_t a = 0; a < m_RegisteredMeshInstances.GetSize(); ++a) {
 		Scene::MeshInstance3D* meshInstance = m_RegisteredMeshInstances[a];
-		if (meshInstance == nullptr) {
-			continue;
-		}
 		std::shared_ptr<Material> material = meshInstance->GetMaterial();
-		if (material != nullptr && material != lastBoundMaterial) {
+		if (material != lastBoundMaterial) {
 			material->Bind();
 			material->SetMatrix4("u_View", viewMatrix);
 			material->SetMatrix4("u_Projection", viewProjection);

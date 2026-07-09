@@ -1,9 +1,7 @@
 #pragma once
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <Core/Core.h>
+#include <map>
 
+#include "Core/Core.h"
 #include "../../Math/Vector/Vector2.h"
 #include "../../Math/Vector/Vector3.h"
 #include "../../Math/Vector/Vector4.h"
@@ -39,7 +37,7 @@ struct Shader {
 	void SetVector4(std::string_view name, Math::Vector4 const& value) const;
 	void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
 private:
-	mutable std::unordered_map<std::string, i32> m_UniformLocationCache;
+	mutable std::map<std::string, i32, std::less<>> m_UniformLocationCache;
 	friend struct Material;
 	void Use() const;
 	static bool LogCompileErrors(u32 shader, Type type);

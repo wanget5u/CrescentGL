@@ -69,7 +69,7 @@ void Node::AddChildren(DynamicList<std::unique_ptr<Node>>&& children) {
 	const size_t originalSize = m_Children.GetSize();
 	m_Children.Reserve(originalSize + children.GetSize());
 	for (size_t a = 0; a < children.GetSize(); ++a) {
-		auto& child = children[a];
+		std::unique_ptr<Node>& child = children[a];
 		if (child == nullptr) {
 			continue;
 		}
@@ -97,9 +97,6 @@ Node * Node::GetChild(const std::string_view name) const {
 }
 
 std::unique_ptr<Node> Node::DetachChild(Node *child) {
-	if (child == nullptr) {
-		return nullptr;
-	}
 	for (size_t a = 0; a < m_Children.GetSize(); ++a) {
 		if (m_Children[a].get() == child) {
 			if (m_Tree != nullptr) {

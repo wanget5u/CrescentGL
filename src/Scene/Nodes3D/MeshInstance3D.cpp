@@ -11,16 +11,12 @@ MeshInstance3D::MeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset, std::shar
 
 void MeshInstance3D::OnTreeEnter() {
 	Node3D::OnTreeEnter();
-	if (m_Tree != nullptr) {
-		m_Tree->GetBatchRenderer()->RegisterMesh(this);
-	}
+	m_Tree->GetBatchRenderer()->RegisterMesh(this);
 }
 
 void MeshInstance3D::OnTreeExit() {
 	Node3D::OnTreeExit();
-	if (m_Tree != nullptr) {
-		m_Tree->GetBatchRenderer()->UnregisterMesh(this);
-	}
+	m_Tree->GetBatchRenderer()->UnregisterMesh(this);
 }
 
 void MeshInstance3D::SetMeshAsset(std::shared_ptr<Asset::Mesh> meshAsset) noexcept {
@@ -40,7 +36,7 @@ std::shared_ptr<Render::Material> MeshInstance3D::GetMaterial() const noexcept {
 }
 
 Render::Mesh * MeshInstance3D::GetMesh() const noexcept {
-	if (m_MeshAsset != nullptr && m_MeshAsset->IsReady == true) {
+	if (m_MeshAsset->IsReady == true) {
 		return m_MeshAsset->MeshObject.get();
 	}
 	return nullptr;
@@ -60,9 +56,6 @@ void MeshInstance3D::SetMesh(std::shared_ptr<Render::Mesh> proceduralMesh) noexc
 
 void MeshInstance3D::Draw(Math::Matrix4x4 const& worldMatrix) const {
 	Render::Mesh* gpuMesh = GetMesh();
-	if (gpuMesh == nullptr || m_Material == nullptr) {
-		return;
-	}
 	m_Material->SetMatrix4("u_Model", worldMatrix);
 	gpuMesh->Bind();
 	gpuMesh->Draw();

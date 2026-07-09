@@ -78,10 +78,6 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 			&textureData.Channels,
 			0
 		);
-		if (textureData.Pixels == nullptr) {
-			Log::Warning("Failed to load texture: {}", request.FilePath);
-			return;
-		}
 		packet.Data = std::move(textureData);
 	}
 	// TODO: Add obj, glTF, FBX support

@@ -4,14 +4,12 @@ namespace Crescent::Scene {
 
 void Node3D::OnTreeEnter() {
 	Node::OnTreeEnter();
-	Node* node = GetParent();
-	while (node != nullptr) {
-		if (auto* parent3D = dynamic_cast<Node3D*>(node)) {
-			Transform.SetParent(&parent3D->Transform);
-			return;
-		}
-		node = node->GetParent();
+	Node3D* parent3D = GetFirstAncestorOfType<Node3D>();
+	if (parent3D != nullptr) {
+		Transform.SetParent(&parent3D->Transform);
+		return;
 	}
+	// if parent3D is nullptr, then this is a root node
 	Transform.SetParent(nullptr);
 }
 

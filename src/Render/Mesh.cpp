@@ -155,7 +155,7 @@ u32 Mesh::GetVertexCount() const {
 	return  m_VertexCount;
 }
 
-const Mesh::VertexLayout & Mesh::GetLayout() const {
+const Mesh::VertexLayout& Mesh::GetLayout() const {
 	return m_Layout;
 }
 

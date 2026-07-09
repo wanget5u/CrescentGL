@@ -53,7 +53,8 @@ void System::OnUpdate() {
 	m_MouseDeltaY = static_cast<f32>(cursorY - m_LastCursorY);
 	m_LastCursorX = cursorX;
 	m_LastCursorY = cursorY;
-	auto it = m_Contexts.find(m_ActiveContext);
+	std::unordered_map<Context::Type, std::unique_ptr<Context>>::iterator it
+		= m_Contexts.find(m_ActiveContext);
 	if (it != m_Contexts.end()) {
 		it->second->OnUpdate(m_Window, m_MouseDeltaX, m_MouseDeltaY, m_ScrollDelta);
 	}
@@ -69,7 +70,8 @@ Context& System::CreateContext(Context::Type contextType) {
 void System::SetActiveContext(Context::Type const contextType) { m_ActiveContext = contextType; }
 
 Context* System::GetActiveContext() {
-	auto it = m_Contexts.find(m_ActiveContext);
+	std::unordered_map<Context::Type, std::unique_ptr<Context>>::iterator it
+		= m_Contexts.find(m_ActiveContext);
 	if (it != m_Contexts.end()) {
 		return it->second.get();
 	}
@@ -94,55 +96,13 @@ f32 System::GetMouseDeltaY() const { return m_MouseDeltaY; }
 f32 System::GetScrollDelta() const { return m_ScrollDelta; }
 
 void System::SetCursorPos(f64 const x, f64 const y) {
-	if (m_Window != nullptr) {
-		glfwSetCursorPos(m_Window, x, y);
-		m_LastCursorX = x;
-		m_LastCursorY = y;
-	}
+	glfwSetCursorPos(m_Window, x, y);
+	m_LastCursorX = x;
+	m_LastCursorY = y;
 }
 
 void System::GetCursorPos(f64& x, f64& y) const {
-	if (m_Window != nullptr) {
-		glfwGetCursorPos(m_Window, &x, &y);
-	}
-	else {
-		x = 0.0;
-		y = 0.0;
-	}
-}
-
-void System::WrapCursor(i32 const windowWidth, i32 const windowHeight) {
-	if (m_Window == nullptr || windowWidth <= 4 || windowHeight <= 4) {
-		return;
-	}
-	f64 cursorX = 0.0;
-	f64 cursorY = 0.0;
-	glfwGetCursorPos(m_Window, &cursorX, &cursorY);
-	bool wrapped = false;
-	constexpr f64 margin = 2.0;
-	const f64 width = windowWidth;
-	const f64 height = windowHeight;
-	const f64 offsetX = width - 4.0;
-	const f64 offsetY = height - 4.0;
-	if (cursorX < margin) {
-		cursorX += offsetX;
-		wrapped = true;
-	}
-	else if (cursorX > width - margin) {
-		cursorX -= offsetX;
-		wrapped = true;
-	}
-	if (cursorY < margin) {
-		cursorY += offsetY;
-		wrapped = true;
-	}
-	else if (cursorY > height - margin) {
-		cursorY -= offsetY;
-		wrapped = true;
-	}
-	if (wrapped == true) {
-		SetCursorPos(cursorX, cursorY);
-	}
+	glfwGetCursorPos(m_Window, &x, &y);
 }
 
 void System::OnKeyboardKeyCallback([[maybe_unused]] i32 const key, [[maybe_unused]] i32 const action, [[maybe_unused]] i32 const mods) {

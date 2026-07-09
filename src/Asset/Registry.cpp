@@ -16,14 +16,15 @@ void Registry::OnUpdate() {
 	readyPackets.Reserve(readyPackets.GetSize());
 	for (size_t a = 0; a < readyPackets.GetSize(); ++a) {
 		ReadyPacket& packet = readyPackets[a];
-		auto it = m_Registry.find(packet.FilePath);
+		std::unordered_map<std::string, std::shared_ptr<Asset>>::iterator it
+			= m_Registry.find(packet.FilePath);
 		if (it == m_Registry.end()) {
 			continue;
 		}
 		std::shared_ptr<Asset>& baseAsset = it->second;
 		if (packet.Type == Type::Shader) {
 			std::shared_ptr<Shader> shaderAsset = std::static_pointer_cast<Shader>(baseAsset);
-			auto& shaderData = std::get<Shader::Data>(packet.Data);
+			Shader::Data& shaderData = std::get<Shader::Data>(packet.Data);
 			shaderAsset->ShaderObject = std::make_shared<Render::Shader>(
 				shaderData.VertexSource, shaderData.FragmentSource
 			);
@@ -32,7 +33,7 @@ void Registry::OnUpdate() {
 		}
 		else if (packet.Type == Type::Texture) {
 			std::shared_ptr<Texture> textureAsset = std::static_pointer_cast<Texture>(baseAsset);
-			auto& textureData = std::get<Texture::Data>(packet.Data);
+			Texture::Data& textureData = std::get<Texture::Data>(packet.Data);
 			glGenTextures(1, &textureAsset->TextureID);
 			glBindTexture(GL_TEXTURE_2D, textureAsset->TextureID);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -40,15 +41,10 @@ void Registry::OnUpdate() {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			u32 format = GL_RGB;
-			if (textureData.Channels == 1) {
-				format = GL_RED;
-			} else if (textureData.Channels == 2) {
-				format = GL_RG;
-			} else if (textureData.Channels == 3) {
-				format = GL_RGB;
-			} else if (textureData.Channels == 4) {
-				format = GL_RGBA;
-			}
+			if (textureData.Channels == 1) { format = GL_RED; }
+			else if (textureData.Channels == 2) { format = GL_RG; }
+			else if (textureData.Channels == 3) { format = GL_RGB; }
+			else if (textureData.Channels == 4) { format = GL_RGBA; }
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glTexImage2D(
 				GL_TEXTURE_2D,
@@ -61,7 +57,6 @@ void Registry::OnUpdate() {
 				GL_UNSIGNED_BYTE,
 				textureData.Pixels
 			);
-
 			glGenerateMipmap(GL_TEXTURE_2D);
 			stbi_image_free(textureData.Pixels);
 			textureAsset->Width = textureData.Width;
@@ -72,7 +67,7 @@ void Registry::OnUpdate() {
 		}
 		else if (packet.Type == Type::Mesh) {
 			std::shared_ptr<Mesh> meshAsset = std::static_pointer_cast<Mesh>(baseAsset);
-			auto& meshData = std::get<Mesh::Data>(packet.Data);
+			Mesh::Data& meshData = std::get<Mesh::Data>(packet.Data);
 			meshAsset->MeshObject = std::make_shared<Render::Mesh>(
 				reinterpret_cast<const f32*>(meshData.Vertices.GetData()),
 				static_cast<u32>(meshData.Vertices.GetSizeInBytes()),

@@ -9,21 +9,21 @@
 
 namespace Crescent::Input {
 	Binding Binding::FromKey(KeyCode const keyCode) {
-		Binding binding;
+		Binding binding{};
 		binding.type = Type::Key;
 		binding.keyCode = keyCode;
 		return binding;
 	}
 
 	Binding Binding::FromMouseButton(MouseButton const keyCode) {
-		Binding binding;
+		Binding binding{};
 		binding.type = Type::MouseButton;
 		binding.mouseButton = keyCode;
 		return binding;
 	}
 
 	Binding Binding::FromMouseAxis(MouseAxis const axis, f32 const scale) {
-		Binding binding;
+		Binding binding{};
 		binding.type = Type::MouseAxis;
 		binding.mouseAxis = axis;
 		binding.scale = scale;
@@ -64,8 +64,8 @@ void Action::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouse
 	}
 	if (shouldFire == true) {
 		Event event(m_Name, phase, m_AnalogValue);
-		for (auto const& [id, callback] : m_Subscribers) {
-			callback(event);
+		for (std::pair<u32, Callback> subscriber: m_Subscribers) {
+			subscriber.second(event);
 		}
 	}
 	m_WasActive = m_IsActive;

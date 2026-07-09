@@ -118,7 +118,7 @@ void MultiMeshInstance3D::UploadTransformsToGPU() {
 
 void MultiMeshInstance3D::DrawInstanced() const {
 	Render::Mesh* gpuMesh = GetMesh();
-	if (gpuMesh == nullptr || m_Material == nullptr || m_InstanceCount == 0) {
+	if (m_InstanceCount == 0) {
 		return;
 	}
 	if (m_TransformsDirty == true) {
@@ -150,13 +150,13 @@ void MultiMeshInstance3D::DrawInstanced() const {
 
 void MultiMeshInstance3D::CheckAndBuildInstanceVAO() const {
 	Render::Mesh* gpuMesh = GetMesh();
-	if (gpuMesh == nullptr || gpuMesh->GetVBO() == 0) {
+	if (gpuMesh->GetVBO() == 0) {
 		return;
 	}
 	glBindVertexArray(m_InstanceVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, gpuMesh->GetVBO());
-	const auto& layout = gpuMesh->GetLayout();
-	for (const auto& attribute : layout.VertexAttributes) {
+	Render::Mesh::VertexLayout const& layout = gpuMesh->GetLayout();
+	for (Render::Mesh::VertexAttribute const& attribute : layout.VertexAttributes) {
 		glEnableVertexAttribArray(attribute.Location);
 		glVertexAttribPointer(
 			attribute.Location,

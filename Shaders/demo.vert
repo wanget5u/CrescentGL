@@ -42,7 +42,7 @@ void main() {
         int z = id % 16;
 
         float yOffset = sin(u_Time * 2.0 + float(x) * 0.3) * 0.5;
-        modelMatrix[3][1] += yOffset; // Add Y wave to translation column
+        modelMatrix[3][1] += yOffset;
 
         float angle = radians(u_Time * 45.0) + float(x + y + z) * 0.2;
         mat4 rotMatrix = getRotationMatrix(vec3(0.5, 1.0, 0.2), angle);

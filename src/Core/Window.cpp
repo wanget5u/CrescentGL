@@ -6,7 +6,6 @@ namespace Crescent {
 
 static void FrameBufferCallback(GLFWwindow* window, i32 const width, i32 const height) {
 	Window* windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
-	if (windowInstance == nullptr) { return; }
 	windowInstance->OnResize(width, height);
 }
 
@@ -26,17 +25,19 @@ Window::Window(Properties const& properties) {
 
 GLFWmonitor* Window::GetActiveMonitor() {
 	GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
-	if (primaryMonitor != nullptr) { return primaryMonitor; }
+	if (primaryMonitor != nullptr) {
+		return primaryMonitor;
+	}
 	i32 monitorCount{};
 	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
-	if (monitors != nullptr && monitorCount > 0) { return monitors[0]; }
+	if (monitorCount > 0) {
+		return monitors[0];
+	}
 	return nullptr;
 }
 
 const GLFWvidmode* Window::GetActiveMonitorVideoMode() {
-	GLFWmonitor* monitor = GetActiveMonitor();
-	if (monitor == nullptr) { return nullptr; }
-	return glfwGetVideoMode(monitor);
+	return glfwGetVideoMode(GetActiveMonitor());
 }
 
 i32 Window::GetActiveMonitorWidth() {

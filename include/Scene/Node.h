@@ -38,6 +38,9 @@ struct Node {
 	/// Retrieves the immediate parent of the node
 	/// If nullptr, this node is a root node
 	Node* GetParent() const;
+	///
+	template <typename T>
+	T* GetFirstAncestorOfType() const;
 	/// Instantiates and appends a new child node to this node
 	template <typename T, typename... Args>
 	T* AddChild(std::string_view name, Args&&... args);
@@ -78,11 +81,24 @@ protected:
 	DynamicList<std::unique_ptr<Node>, 8> m_Children{};
 	/// Deferment flag indicating if this node is flagged to be purged by QueueFree
 	bool m_IsQueuedForDeletion{false};
-
+	/// Tree handshake to use the m_Tree
 	friend struct Tree;
 	/// Internal binding to the overarching execution Tree context.
 	Tree* m_Tree{nullptr};
 };
+
+template<typename T>
+T * Node::GetFirstAncestorOfType() const {
+	Node* current = GetParent();
+	// parent can be nullptr, meaning this is a root node
+	while (current != nullptr) {
+		if (T* castedNode = dynamic_cast<T*>(current)) {
+			return castedNode;
+		}
+		current = current->GetParent();
+	}
+	return nullptr;
+}
 
 template<typename T, typename ... Args>
 T* Node::AddChild(std::string_view name, Args &&...args) {
@@ -90,11 +106,9 @@ T* Node::AddChild(std::string_view name, Args &&...args) {
 	T* childPointer = child.get();
 	child->m_Name = name;
 	child->m_Parent = this;
-	if (this->m_Tree != nullptr) {
-		child->m_Tree = this->m_Tree;
-		child->OnTreeEnter();
-		child->OnCreate();
-	}
+	child->m_Tree = this->m_Tree;
+	child->OnTreeEnter();
+	child->OnCreate();
 	m_Children.PushBack(std::move(child));
 	return childPointer;
 }

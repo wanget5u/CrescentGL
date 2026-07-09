@@ -13,12 +13,13 @@ Material::Material(std::shared_ptr<Asset::Shader> shaderAsset, Math::Vector4 con
 
 
 std::shared_ptr<Asset::Shader> Material::GetDefaultShader() {
-	static auto defaultShader = Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::Type::Shader);
+	static std::shared_ptr<Asset::Shader> defaultShader =
+		Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::Type::Shader);
 	return defaultShader;
 }
 
 std::shared_ptr<Material> Material::GetDefaultMaterial() {
-	static auto defaultMaterial = std::make_shared<Material>(
+	static std::shared_ptr<Material> defaultMaterial = std::make_shared<Material>(
 		Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::Type::Shader),
 		GetDefaultColor()
 	);
@@ -30,7 +31,7 @@ Math::Vector4 Material::GetDefaultColor() noexcept {
 }
 
 std::shared_ptr<Asset::Shader> Material::GetActiveShader() const noexcept {
-	if (ShaderAsset != nullptr && ShaderAsset->IsReady == true && ShaderAsset->ShaderObject != nullptr) {
+	if (ShaderAsset->IsReady == true) {
 		return ShaderAsset;
 	}
 	return GetDefaultShader();
@@ -38,9 +39,6 @@ std::shared_ptr<Asset::Shader> Material::GetActiveShader() const noexcept {
 
 void Material::Bind() const {
 	std::shared_ptr<Asset::Shader> activeShader = GetActiveShader();
-	if (activeShader == nullptr || activeShader->IsReady == false || activeShader->ShaderObject == nullptr) {
-		return;
-	}
 	activeShader->ShaderObject->Use();
 	activeShader->ShaderObject->SetVector4("u_TintColor", TintColor);
 	BindAlbedoTexture(activeShader);
@@ -50,21 +48,21 @@ void Material::Bind() const {
 }
 
 void Material::SetMatrix4(const std::string_view name, Math::Matrix4x4 const& matrix) const {
-	auto activeShader = GetActiveShader();
+	std::shared_ptr<Asset::Shader> activeShader = GetActiveShader();
 	if (activeShader && activeShader->IsReady && activeShader->ShaderObject) {
 		activeShader->ShaderObject->SetMatrix4(name, matrix);
 	}
 }
 
 void Material::SetVector4(const std::string_view name, Math::Vector4 const& vector) const {
-	auto activeShader = GetActiveShader();
+	std::shared_ptr<Asset::Shader> activeShader = GetActiveShader();
 	if (activeShader && activeShader->IsReady && activeShader->ShaderObject) {
 		activeShader->ShaderObject->SetVector4(name, vector);
 	}
 }
 
 void Material::SetFloat(const std::string_view name, const f32 value) const {
-	auto activeShader = GetActiveShader();
+	std::shared_ptr<Asset::Shader> activeShader = GetActiveShader();
 	if (activeShader && activeShader->IsReady && activeShader->ShaderObject) {
 		activeShader->ShaderObject->SetFloat(name, value);
 	}

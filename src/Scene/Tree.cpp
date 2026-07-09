@@ -42,9 +42,6 @@ Render::BatchRenderer* Tree::GetBatchRenderer() const noexcept {
 }
 
 void Tree::QueueForDeletion(Node *node) {
-	if (node == nullptr) {
-		return;
-	}
 	node->m_IsQueuedForDeletion = true;
 	if (m_DeletionQueue.Push(node) == false) {
 		Log::Warning("({}) DeletionQueue ring buffer full.", m_Root->m_Name);

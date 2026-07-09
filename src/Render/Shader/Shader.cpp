@@ -105,14 +105,14 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 }
 
 i32 Shader::GetUniformLocation(const std::string_view name) const {
-	const std::string nameKey(name);
-	auto it = m_UniformLocationCache.find(nameKey);
+	std::map<std::string, i32, std::less<>>::iterator it
+		= m_UniformLocationCache.find(name);
 	if (it != m_UniformLocationCache.end()) {
 		return it->second;
 	}
+	std::string nameKey(name);
 	const i32 location = glGetUniformLocation(ID, nameKey.c_str());
-	// silently ignore location == -1, OpenGL optimizes away unused uniforms
-	m_UniformLocationCache[nameKey] = location;
+	m_UniformLocationCache[std::move(nameKey)] = location;
 	return location;
 }
 

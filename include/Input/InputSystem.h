@@ -23,7 +23,6 @@ struct System {
 	f32 GetScrollDelta() const;
 	void SetCursorPos(f64 x, f64 y);
 	void GetCursorPos(f64& x, f64& y) const;
-	void WrapCursor(i32 windowWidth, i32 windowHeight);
 	void OnKeyboardKeyCallback(i32 key, i32 action, i32 mods);
 	void OnMouseButtonCallback(i32 button, i32 action, i32 mods);
 	void OnMouseScrollCallback(f64 xOffset, f64 yOffset);
