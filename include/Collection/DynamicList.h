@@ -108,20 +108,10 @@ struct DynamicList {
 			}
 			else {
 				size_t a{0};
-				try {
-					for (; a < m_Size; a++) {
-						// creating new objects and invoking their constructors one by one
-						// std::move_if_noexcept prevents data corruption
-						new (&newStorage[a]) T(std::move_if_noexcept(m_Data[a]));
-					}
-				} catch (...) {
-					// cleanup for newly created objects, if their
-					// constructor throws an exception for some reason
-					for (size_t b = 0; b < a; ++b) {
-						newStorage[b].~T();
-					}
-					FreeStorage(newStorage);
-					throw;
+				for (; a < m_Size; a++) {
+					// creating new objects and invoking their constructors one by one
+					// std::move_if_noexcept prevents data corruption
+					new (&newStorage[a]) T(std::move_if_noexcept(m_Data[a]));
 				}
 				// destroying old objects if the migration to
 				// the new chunk of memory was successful
