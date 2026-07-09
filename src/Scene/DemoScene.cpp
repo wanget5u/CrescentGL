@@ -11,31 +11,26 @@
 #include "Scene/Nodes3D/MeshInstance3D.h"
 #include "Scene/Nodes3D/MultiMeshInstance3D.h"
 #include "Scene/Tree.h"
+#include "Core/Window.h"
+#include "Render/BatchRenderer.h"
 
 namespace Crescent::Scene {
 
-constexpr u32 INSTANCE_COUNT = 65536;
+constexpr u32 INSTANCE_COUNT = 524288;
 
 DemoScene::DemoScene() {
-    Tree::Instance().OnCreate();
-    Node* root = Tree::Instance().GetRoot();
-
-    m_CameraNode = root->AddChild<Camera3D>("MainCamera");
-    m_CameraNode->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, 15.0f));
-    Tree::Instance().SetActiveCamera(m_CameraNode);
-
     auto shaderAsset = Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/demo", Asset::Type::Shader);
     m_Material = std::make_shared<Render::Material>(shaderAsset);
     m_Material->AlbedoTexture = Asset::Registry::Instance().GetOrLoad<Asset::Texture>("Assets/Textures/Tiles081_1K-JPG_Color.jpg", Asset::Type::Texture);
 
     m_BoxMesh = std::make_shared<Render::BoxMesh>(1.0f, 1.0f, 1.0f);
 
-    m_CubeNode = root->AddChild<MeshInstance3D>("Cube");
+    m_CubeNode = m_Tree->AddChild<MeshInstance3D>("Cube");
     m_CubeNode->SetMesh(m_BoxMesh);
     m_CubeNode->SetMaterial(m_Material);
     m_CubeNode->Transform.SetScale(2.5f);
 
-    m_OrbitingCubesNode = root->AddChild<MultiMeshInstance3D>("OrbitingCubes");
+    m_OrbitingCubesNode = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
     m_OrbitingCubesNode->SetMesh(m_BoxMesh);
     m_OrbitingCubesNode->SetMaterial(m_Material);
 
@@ -47,10 +42,10 @@ DemoScene::DemoScene() {
     m_OrbitingCubesNode->SetTransforms(std::move(initialTransforms));
 
     constexpr f32 spacing = 10.0f;
-    constexpr f32 centerOffset = (32.0f - 1.0f) / 2.0f;
-    for (u8 x = 0; x < 32; ++x) {
-        for (u8 y = 0; y < 32; ++y) {
-            for (u8 z = 0; z < 32; ++z) {
+    constexpr f32 centerOffset = (64.0f - 1.0f) / 2.0f;
+    for (u8 x = 0; x < 64; ++x) {
+        for (u8 y = 0; y < 64; ++y) {
+            for (u8 z = 0; z < 64; ++z) {
                 f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
                 f32 yPos = (static_cast<f32>(y) - centerOffset) * spacing;
                 f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
@@ -68,16 +63,12 @@ DemoScene::~DemoScene() {}
 
 void DemoScene::OnUpdate(f32 const deltaTime) {
     m_TotalTime += deltaTime;
-    if (m_Material != nullptr) {
-        m_Material->SetFloat("u_Time", m_TotalTime);
-    }
-    if (m_CubeNode != nullptr) {
-        m_CubeNode->Transform.SetRotationEuler(Math::Vector3(
-            Math::DegreesToRadians(m_TotalTime * 30.0f),
-            Math::DegreesToRadians(m_TotalTime * 45.0f),
-            0.0f
-        ));
-    }
+    m_Material->SetFloat("u_Time", m_TotalTime);
+    m_CubeNode->Transform.SetRotationEuler(Math::Vector3(
+        Math::DegreesToRadians(m_TotalTime * 30.0f),
+        Math::DegreesToRadians(m_TotalTime * 45.0f),
+        0.0f
+    ));
 }
 
 void DemoScene::OnRender(Window& window) {
@@ -88,13 +79,11 @@ void DemoScene::OnRender(Window& window) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     f32 currentAspectRatio = window.GetAspectRatio();
-    if (currentAspectRatio != m_LastAspectRatio && m_CameraNode != nullptr) {
+    if (currentAspectRatio != m_LastAspectRatio && m_PreviewCamera != nullptr) {
         m_LastAspectRatio = currentAspectRatio;
-        m_CameraNode->SetPerspective(70.0f, m_LastAspectRatio, 0.1f, 1000.0f);
+        m_PreviewCamera->SetPerspective(70.0f, m_LastAspectRatio, 0.1f, 1000.0f);
     }
-    if (Tree::Instance().GetBatchRenderer() != nullptr && Tree::Instance().GetActiveCamera() != nullptr) {
-        Tree::Instance().GetBatchRenderer()->RenderScene(Tree::Instance().GetActiveCamera());
-    }
+    m_Tree->GetBatchRenderer()->RenderScene(m_PreviewCamera.get());
 }
 
 }

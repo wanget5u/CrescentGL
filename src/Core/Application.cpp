@@ -3,12 +3,15 @@
 #include <chrono>
 #include <thread>
 
-#include "Asset/Loader.h"
-#include "Asset/Registry.h"
 #include "Core/Log.h"
 #include "Core/Random.h"
 #include "Core/Time.h"
+#include "Core/Window.h"
+#include "Scene/Scene.h"
+#include "Asset/Loader.h"
+#include "Asset/Registry.h"
 #include "Input/InputSystem.h"
+#include "Input/InputAction.h"
 #include "Scene/DemoScene.h"
 
 namespace Crescent {
@@ -77,7 +80,7 @@ void Application::SetupAndBindInputActions() {
 		if (actionEvent.Phase == Input::Action::Phase::Pressed) { m_WantsFullscreenToggle = true; }
 	});
 
-	const f32 lookSensitivity = 0.002f;
+	constexpr f32 lookSensitivity = 0.002f;
 	Input::Action& focusWindow = appContext.AddAction("Focus_Window");
 	focusWindow.BindMouseButton(Input::MouseButton::Right);
 	focusWindow.Subscribe([this](Input::Action::Event const& actionEvent) {

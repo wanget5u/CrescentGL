@@ -2,6 +2,13 @@
 
 namespace Crescent::Scene {
 
+void Camera3D::OnTreeEnter() {
+	Node3D::OnTreeEnter();
+}
+void Camera3D::OnTreeExit() {
+	Node3D::OnTreeExit();
+}
+
 void Camera3D::SetPerspective(const f32 fovDegrees, const f32 aspectRatio, const f32 nearZ, const f32 farZ) noexcept {
 	m_FOV = fovDegrees;
 	m_AspectRatio = aspectRatio;

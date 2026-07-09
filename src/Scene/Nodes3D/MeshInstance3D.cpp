@@ -1,5 +1,6 @@
 #include "../../../include/Scene/Nodes3D/MeshInstance3D.h"
 
+#include "Render/BatchRenderer.h"
 #include "Render/Material/Material.h"
 #include "Scene/Tree.h"
 

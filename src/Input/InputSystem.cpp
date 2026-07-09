@@ -1,9 +1,12 @@
 #include "Input/InputSystem.h"
+#include "Input/InputAction.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace Crescent::Input {
+
+System::~System() = default;
 
 void GLFWKeyboardKeyCallback(
 	[[maybe_unused]] GLFWwindow* window,

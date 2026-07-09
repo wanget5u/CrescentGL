@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "Input/InputContext.h"
+#include "Input/InputCodes.h"
 
 namespace Crescent::Input {
 struct System {
@@ -29,6 +30,7 @@ struct System {
 	void OnCursorCallback(f64 xPos, f64 yPos) const;
 private:
 	System() = default;
+	~System();
 	GLFWwindow* m_Window{nullptr};
 	Context::Type m_ActiveContext{};
 	std::unordered_map<Context::Type, std::unique_ptr<Context>> m_Contexts{};

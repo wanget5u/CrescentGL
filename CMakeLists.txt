@@ -76,6 +76,7 @@ set(SOURCES
         include/Render/BatchRenderer.h
         src/Scene/Nodes3D/MultiMeshInstance3D.cpp
         include/Scene/Nodes3D/MultiMeshInstance3D.h
+        src/Scene/Scene.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

@@ -2,10 +2,13 @@
 #include <atomic>
 #include <memory>
 
-#include "Core/Window.h"
-#include "Scene/Scene.h"
+#include "Core/Core.h"
 
 namespace Crescent {
+struct Window;
+namespace Scene {
+struct Scene;
+}
 struct Application {
 	Application();
 	~Application();

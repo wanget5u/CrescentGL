@@ -1,13 +1,15 @@
 #pragma once
 #include <atomic>
 #include <mutex>
-#include <string>
 #include <thread>
 #include <variant>
 
 #include "Collection/Collections.h"
-#include "Core/Window.h"
 #include "Type/Type.h"
+
+namespace Crescent {
+struct Window;
+}
 
 namespace Crescent::Asset {
 struct LoadRequest {
@@ -19,6 +21,7 @@ struct ReadyPacket {
 	Type Type;
 	std::variant<Shader::Data, Texture::Data, Mesh::Data> Data;
 };
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Thread-Safe Singleton utility that offloads file I/O and texture data parsing to a dedicated loading thread.
 struct Loader {
 	static Loader& Instance() {

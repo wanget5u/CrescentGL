@@ -1,4 +1,5 @@
 #include "Input/InputContext.h"
+#include "Input/InputAction.h"
 
 #include <ranges>
 #include <utility>
@@ -6,6 +7,10 @@
 namespace Crescent::Input {
 
 Context::Context(std::string name) : m_Name(std::move(name)) {}
+
+Context::~Context() = default;
+Context::Context(Context&&) noexcept = default;
+Context& Context::operator=(Context&&) noexcept = default;
 
 Action& Context::AddAction(std::string const& actionName) {
 	auto [it, inserted] = m_Actions.try_emplace(actionName, std::make_unique<Action>());

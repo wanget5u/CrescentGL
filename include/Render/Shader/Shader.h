@@ -2,7 +2,6 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include <glad/glad.h>
 #include <Core/Core.h>
 
 #include "../../Math/Vector/Vector2.h"

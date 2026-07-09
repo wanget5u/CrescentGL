@@ -1,5 +1,7 @@
 #include "../../include/Asset/Registry.h"
 
+#include <glad/glad.h>
+
 #include "Render/Mesh.h"
 #include "Render/Shader/Shader.h"
 #include "stb/stb_image.h"

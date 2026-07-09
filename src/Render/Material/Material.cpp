@@ -1,5 +1,7 @@
 #include "Render/Material/Material.h"
 
+#include <glad/glad.h>
+
 #include "Asset/Type/Type.h"
 #include "Asset/Registry.h"
 #include "Render/Shader/Shader.h"

@@ -1,5 +1,6 @@
 #include "Render/Shader/Shader.h"
 
+#include <glad/glad.h>
 #include "Core/Log.h"
 #include "Util/FileOperations.h"
 

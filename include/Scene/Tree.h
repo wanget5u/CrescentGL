@@ -3,23 +3,21 @@
 
 #include "Core/Core.h"
 #include "Collection/DynamicQueue.h"
-#include "Render/BatchRenderer.h"
 #include "Scene/Node.h"
+
+namespace Crescent::Render {
+struct BatchRenderer;
+}
 
 namespace Crescent::Scene {
 struct Camera3D;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
 struct Tree {
-	static Tree& Instance() {
-		static Tree s_Instance;
-		return s_Instance;
-	}
+	Tree();
+	~Tree();
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Update Cycle
-	///
-	///
-	void OnCreate();
 	///
 	void OnUpdate(f32 deltaTime);
 	///
@@ -32,11 +30,10 @@ struct Tree {
 	///
 	[[nodiscard]] Node* GetRoot() const;
 	///
+	template <typename T, typename... Args>
+	T* AddChild(std::string_view name, Args&&... args);
+	///
 	[[nodiscard]] Render::BatchRenderer* GetBatchRenderer() const noexcept;
-	///
-	[[nodiscard]] Camera3D* GetActiveCamera() const noexcept;
-	///
-	void SetActiveCamera(Camera3D* camera) noexcept;
 	///
 	void QueueForDeletion(Node* node);
 	///
@@ -44,12 +41,15 @@ struct Tree {
 private:
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	///
-	std::unique_ptr<Node> m_Root						  {nullptr};
-	///
-	Camera3D* m_ActiveCamera							  {nullptr};
+	std::unique_ptr<Node> m_Root{nullptr};
 	///
 	std::unique_ptr<Render::BatchRenderer> m_BatchRenderer{nullptr};
 	///
-	DynamicQueue<Node*, 2048> m_DeletionQueue			  {};
+	DynamicQueue<Node*, 2048> m_DeletionQueue{};
 };
+
+template<typename T, typename ... Args>
+T * Tree::AddChild(std::string_view name, Args &&...args) {
+	return m_Root->AddChild<T>(name, std::forward<Args>(args)...);
+}
 }

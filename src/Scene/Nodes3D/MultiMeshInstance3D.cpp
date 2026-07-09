@@ -1,6 +1,8 @@
 #include "../../../include/Scene/Nodes3D/MultiMeshInstance3D.h"
+
 #include <glad/glad.h>
 
+#include "Render/BatchRenderer.h"
 #include "Render/Material/Material.h"
 #include "Scene/Tree.h"
 

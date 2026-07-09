@@ -1,17 +1,23 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "Core/Core.h"
-#include "Input/InputAction.h"
+
+struct GLFWwindow;
 
 namespace Crescent::Input {
+struct Action;
 struct Context {
 	enum class Type : u32 {
 		Editor,
 		Game
 	};
 	explicit Context(std::string name);
+	~Context();
+	Context(Context&&) noexcept;
+	Context& operator=(Context&&) noexcept;
 	Action& AddAction(std::string const& actionName);
 	Action* GetAction(std::string_view actionName);
 	void OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta);

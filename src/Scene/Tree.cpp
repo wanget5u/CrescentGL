@@ -1,15 +1,18 @@
-#include "../../include/Scene/Tree.h"
+#include "Scene/Tree.h"
+#include "Render/BatchRenderer.h"
 
 #include "Core/Log.h"
 
 namespace Crescent::Scene {
-void Tree::OnCreate() {
+Tree::Tree() {
 	m_BatchRenderer = std::make_unique<Render::BatchRenderer>();
 	m_Root = std::make_unique<Node>();
 	m_Root->m_Tree = this;
 	m_Root->OnTreeEnter();
 	m_Root->OnCreate();
 }
+
+Tree::~Tree() = default;
 
 void Tree::OnUpdate(const f32 deltaTime) {
 	if (m_Root != nullptr) {
@@ -36,18 +39,6 @@ Node * Tree::GetRoot() const {
 
 Render::BatchRenderer* Tree::GetBatchRenderer() const noexcept {
 	return m_BatchRenderer.get();
-}
-
-Camera3D * Tree::GetActiveCamera() const noexcept {
-	return m_ActiveCamera;
-}
-
-void Tree::SetActiveCamera(Camera3D* camera) noexcept {
-	if (camera == nullptr) {
-		Log::Warning("({}) Tree `{}` SetActiveCamera(): Provided missing Camera3D.", m_Root->m_ID, m_Root->m_Name);
-		return;
-	}
-	m_ActiveCamera = camera;
 }
 
 void Tree::QueueForDeletion(Node *node) {

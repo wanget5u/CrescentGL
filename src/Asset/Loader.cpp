@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "Core/Log.h"
+#include "Core/Window.h"
 #include "Util/Util.h"
 
 namespace Crescent {
