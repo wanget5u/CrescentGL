@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <unordered_set>
 
 #include "Core/Core.h"
 #include "../../Math/Vector/Vector2.h"
@@ -29,6 +30,7 @@ struct Shader {
 	Shader& operator=(const Shader&) = delete;
 	Shader(Shader&& other) noexcept;
 	Shader& operator=(Shader&& other) noexcept;
+	std::string ParseIncludes(std::string_view source, std::unordered_set<std::string> includedFiles);
 	void SetBool(std::string_view name, bool value) const;
 	void SetInt(std::string_view name, i32 value) const;
 	void SetFloat(std::string_view name, f32 value) const;

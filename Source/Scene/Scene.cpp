@@ -35,4 +35,57 @@ void Scene::RotateCamera(Math::Vector3 const &eulerDelta) const {
 	m_PreviewCamera->Transform.SetRotationEuler(currentEuler);
 }
 
+void Scene::QueueCameraRotation(Math::Vector3 const& eulerDelta) {
+	std::scoped_lock lock(m_CameraMutex);
+	m_PendingEulerDelta += eulerDelta;
+}
+
+void Scene::SetMoveInputForward(const bool active) {
+	std::scoped_lock lock(m_CameraMutex);
+	m_MoveForward = active;
+}
+
+void Scene::SetMoveInputBackward(const bool active) {
+	std::scoped_lock lock(m_CameraMutex);
+	m_MoveBackward = active;
+}
+
+void Scene::SetMoveInputRightward(const bool active) {
+	std::scoped_lock lock(m_CameraMutex);
+	m_MoveRightward = active;
+}
+
+void Scene::SetMoveInputLeftward(const bool active) {
+	std::scoped_lock lock(m_CameraMutex);
+	m_MoveLeftward = active;
+}
+
+void Scene::UpdateCamera(const f32 deltaTime) {
+	Math::Vector3 direction = Math::Vector3::Zero();
+	Math::Vector3 eulerDelta = Math::Vector3::Zero();
+	{
+		std::scoped_lock lock(m_CameraMutex);
+		if (m_MoveForward) {
+			direction += Math::Vector3::Back();
+		}
+		if (m_MoveBackward) {
+			direction += Math::Vector3::Forward();
+		}
+		if (m_MoveRightward) {
+			direction += Math::Vector3::Right();
+		}
+		if (m_MoveLeftward) {
+			direction += Math::Vector3::Left();
+		}
+		eulerDelta = m_PendingEulerDelta;
+		m_PendingEulerDelta = Math::Vector3::Zero();
+	}
+	if (direction != Math::Vector3::Zero()) {
+		MoveCamera(direction, deltaTime);
+	}
+	if (eulerDelta != Math::Vector3::Zero()) {
+		RotateCamera(eulerDelta);
+	}
+}
+
 }

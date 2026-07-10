@@ -1,5 +1,6 @@
 #include "Render/Shader/Shader.h"
 
+#include <sstream>
 #include <glad/glad.h>
 #include "Core/Log.h"
 #include "Util/FileOperations.h"
@@ -7,8 +8,10 @@
 namespace Crescent::Render {
 
 Shader::Shader(const std::string_view vertexSource, const std::string_view fragmentSource) {
-	const char8* vertexShaderCode = vertexSource.data();
-	const char8* fragmentShaderCode = fragmentSource.data();
+	std::string parsedVertex = ParseIncludes(vertexSource, std::unordered_set<std::string>{});
+	std::string parsedFragment = ParseIncludes(fragmentSource, std::unordered_set<std::string>{});
+	const char8* vertexShaderCode = parsedVertex.c_str();
+	const char8* fragmentShaderCode = parsedFragment.c_str();
 	u32 vertexShader{};
 	u32 fragmentShader{};
 
@@ -49,6 +52,42 @@ Shader & Shader::operator=(Shader &&other) noexcept {
 		other.ID = 0;
 	}
 	return *this;
+}
+
+std::string Shader::ParseIncludes(const std::string_view source, std::unordered_set<std::string> includedFiles) {
+	std::stringstream output{};
+	std::string line{};
+	std::stringstream sourceStream((std::string(source)));
+	while (std::getline(sourceStream, line)) {
+		// searching for the # to be the start if someone makes some indentation
+		size_t hashPosition = line.find('#');
+		if (hashPosition == std::string::npos || line.compare(hashPosition, 8, "#include") != 0) {
+			output << line << "\n";
+			continue;
+		}
+		// #include "Shaders/SceneData.glsl"
+		size_t start = line.find('"');
+		size_t end = line.find('"', start + 1);
+		if (start == std::string::npos || end == std::string::npos) {
+			Log::Error("Shader #include directive: {}", line);
+			output << line << "\n";
+			continue;
+		}
+		std::string rawPath = line.substr(start + 1, end - start - 1);
+		std::string includePath = rawPath.starts_with("Shaders/") ? rawPath : "Shaders/" + rawPath;
+		// this acts like #pragma once
+		if (includedFiles.contains(includePath)) {
+			continue;
+		}
+		includedFiles.insert(includePath);
+		std::string includeContent = Util::ReadFile(includePath);
+		if (includeContent.empty()) {
+			Log::Error("Shader include file empty or missing: {}", includePath);
+			continue;
+		}
+		output << ParseIncludes(includeContent, includedFiles) << "\n";
+	}
+	return output.str();
 }
 
 void Shader::SetBool(std::string_view const name, bool const value) const {

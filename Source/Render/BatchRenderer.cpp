@@ -1,5 +1,10 @@
 #include "Render/BatchRenderer.h"
+
+#include <cstring>
+#include "Core/Time.h"
+#include "glad/glad.h"
 #include "Render/Material/Material.h"
+#include "Render/SceneData.h"
 #include "Scene/Nodes3D/Camera3D.h"
 #include "Scene/Nodes3D/Light/PointLight3D.h"
 #include "Scene/Nodes3D/Geometry/MeshInstance3D.h"
@@ -84,6 +89,44 @@ template RenderGroup<Scene::MeshInstance3D>* BatchRenderer::GetRenderGroup<Scene
 template RenderGroup<Scene::InstancedVisual3D>* BatchRenderer::GetRenderGroup<Scene::InstancedVisual3D>();
 template RenderGroup<Scene::Light3D>* BatchRenderer::GetRenderGroup<Scene::Light3D>();
 
+void BatchRenderer::InitializeBuffers() {
+    glGenBuffers(1, &m_SceneDataUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, m_SceneDataUBO);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(GPU::SceneData), nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_SceneDataUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void BatchRenderer::PrepareFrame(Scene::Camera3D const* camera) {
+    GPU::SceneData sceneData{};
+    sceneData.View = camera->GetViewMatrix();
+    sceneData.Projection = camera->GetProjectionMatrix();
+    sceneData.ViewProjection = sceneData.Projection * sceneData.View;
+    sceneData.CameraPosition = camera->Transform.GetPosition();
+    sceneData.Time = Time::GetTotalTime();
+
+    RenderGroup<Scene::Light3D>* light3DRenderGroup = GetRenderGroup<Scene::Light3D>();
+    i32 lightCount{0};
+    for (size_t a = 0; a < light3DRenderGroup->Registered.GetSize() && lightCount < 32; ++a) {
+        Scene::Light3D* light3D = light3DRenderGroup->Registered[a];
+        if (light3D->IsOn() && light3D->IsVisible() && light3D->GetLightType() == Scene::LightType::Point) {
+            Scene::PointLight3D* pointLight3D = dynamic_cast<Scene::PointLight3D*>(light3D);
+            GPU::PointLightData& pointLightData = sceneData.PointLights[lightCount];
+            pointLightData.Position = pointLight3D->Transform.GetPosition();
+            pointLightData.Range = pointLight3D->GetRange();
+            pointLightData.Color = pointLight3D->GetColor();
+            pointLightData.Energy = pointLight3D->GetEnergy();
+            pointLightData.Constant = pointLight3D->GetConstant();
+            pointLightData.Linear = pointLight3D->GetLinear();
+            pointLightData.Quadratic = pointLight3D->GetQuadratic();
+            lightCount++;
+        }
+    }
+    sceneData.PointLightCount = lightCount;
+    glBindBuffer(GL_UNIFORM_BUFFER, m_SceneDataUBO);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPU::SceneData), &sceneData);
+}
+
 void BatchRenderer::BeginBatchLoad() {
     m_IsBatchLoading = true;
 }
@@ -114,45 +157,7 @@ void BatchRenderer::Clear() {
 }
 
 void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
-    Math::Matrix4x4 const& viewMatrix = camera->GetViewMatrix();
-    Math::Matrix4x4 viewProjection = camera->GetProjectionMatrix() * camera->GetViewMatrix();
-    Math::Vector3 const& cameraPos = camera->Transform.GetPosition();
-
-    // Light3D
-    RenderGroup<Scene::Light3D>* light3DRenderGroup = GetRenderGroup<Scene::Light3D>();
-    DynamicList<Scene::PointLight3D*> activePointLights{};
-    for (size_t a = 0; a < light3DRenderGroup->Registered.GetSize(); ++a) {
-        Scene::Light3D* light3D = light3DRenderGroup->Registered[a];
-        if (light3D != nullptr && light3D->m_IsOn && light3D->IsVisible()) {
-            if (light3D->GetLightType() == Scene::LightType::Point) {
-                activePointLights.PushBack(static_cast<Scene::PointLight3D*>(light3D));
-            }
-        }
-    }
-
-    std::shared_ptr<Material> lastBoundMaterial = nullptr;
-    auto bindCameraAndLights = [&](std::shared_ptr<Material>& material, Math::Matrix4x4 const& modelMat, bool isInstanced) {
-        if (material != lastBoundMaterial) {
-            material->Bind();
-            material->SetMatrix4("u_View", viewMatrix);
-            material->SetMatrix4("u_Projection", viewProjection);
-            material->SetVector3("u_CameraPosition", cameraPos);
-            material->SetInt("u_PointLightCount", static_cast<i32>(activePointLights.GetSize()));
-            for (size_t a = 0; a < activePointLights.GetSize() && a < Scene::Light3D::MaxPointLightsPerDrawCall; ++a) {
-                std::string prefix = "u_PointLights[" + std::to_string(a) + "].";
-                material->SetVector3(prefix + "Position", activePointLights[a]->Transform.GetPosition());
-                material->SetVector3(prefix + "Color", activePointLights[a]->m_Color);
-                material->SetFloat(prefix + "Energy", activePointLights[a]->m_Energy);
-                material->SetFloat(prefix + "Range", activePointLights[a]->m_Range);
-                material->SetFloat(prefix + "Constant", activePointLights[a]->m_Constant);
-                material->SetFloat(prefix + "Linear", activePointLights[a]->m_Linear);
-                material->SetFloat(prefix + "Quadratic", activePointLights[a]->m_Quadratic);
-            }
-            lastBoundMaterial = material;
-        }
-        material->SetMatrix4("u_Model", modelMat);
-        material->SetFloat("u_IsInstanced", isInstanced ? 1.0f : 0.0f);
-    };
+    PrepareFrame(camera);
 
     // MeshInstance3D
     RenderGroup<Scene::MeshInstance3D>* meshInstance3DRenderGroup = GetRenderGroup<Scene::MeshInstance3D>();
@@ -165,7 +170,10 @@ void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
         if (material == nullptr) {
             continue;
         }
-        bindCameraAndLights(material, meshInstance3D->Transform.GetWorldMatrix(), false);
+        material->Bind();
+        material->SetBool("u_IsInstanced", false);
+        material->SetMatrix4("u_View", camera->GetViewMatrix());
+        material->SetMatrix4("u_Projection", camera->GetProjectionMatrix());
         meshInstance3D->Draw(meshInstance3D->Transform.GetWorldMatrix());
     }
 
@@ -180,7 +188,10 @@ void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
         if (material == nullptr) {
             continue;
         }
-        bindCameraAndLights(material, instancedVisual3D->Transform.GetWorldMatrix(), true);
+        material->Bind();
+        material->SetBool("u_IsInstanced", true);
+        material->SetMatrix4("u_View", camera->GetViewMatrix());
+        material->SetMatrix4("u_Projection", camera->GetProjectionMatrix());
         instancedVisual3D->Draw();
     }
 }

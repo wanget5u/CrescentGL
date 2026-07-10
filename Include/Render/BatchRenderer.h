@@ -35,6 +35,8 @@ struct RenderGroup : IRenderGroup {
 struct BatchRenderer {
 	BatchRenderer() = default;
 	~BatchRenderer() = default;
+	void InitializeBuffers();
+	void PrepareFrame(Scene::Camera3D const* camera);
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Batch Loading / Unloading
 	///
@@ -60,6 +62,11 @@ private:
 	bool m_IsBatchLoading{false};
 	bool m_IsBatchUnloading{false};
 	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>> m_RenderGroups{};
+	///
+	u32 m_SceneDataUBO{0};
+	u32 m_DirectionalLightSSBO{0};
+	u32 m_InstanceDataSSBO{0};
+	u32 m_materialDataUBO{0};
 };
 template<typename T>
 void BatchRenderer::Register(T* instance) {

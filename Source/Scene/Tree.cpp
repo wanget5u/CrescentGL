@@ -6,6 +6,7 @@
 namespace Crescent::Scene {
 Tree::Tree() {
 	m_BatchRenderer = std::make_unique<Render::BatchRenderer>();
+	m_BatchRenderer->InitializeBuffers();
 	m_Root = std::make_unique<Node>();
 	m_Root->m_Tree = this;
 	m_Root->OnTreeEnter();

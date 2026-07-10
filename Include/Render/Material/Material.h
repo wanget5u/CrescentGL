@@ -28,6 +28,8 @@ struct Material {
 	void SetVector4(std::string_view name, Math::Vector4 const& vector) const;
 	void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
 	Math::Vector4					TintColor		  {GetDefaultColor()};
+	f32								MetallicFactor    {1.0f};
+	f32								RoughnessFactor   {1.0f};
 	std::shared_ptr<Asset::Shader>  ShaderAsset       {nullptr};
 	std::shared_ptr<Asset::Texture> AlbedoTexture     {nullptr};
 	std::shared_ptr<Asset::Texture> MetallicTexture   {nullptr};

@@ -27,9 +27,9 @@ struct PointLight3D : Light3D {
 	[[nodiscard]] f32 GetQuadratic() const noexcept;
 
 protected:
-	f32 m_Range{0.0f};
+	f32 m_Range{20.0f};
 	f32 m_Constant{1.0f};
-	f32 m_Linear{0.7f};
-	f32 m_Quadratic{1.8f};
+	f32 m_Linear{0.09f};
+	f32 m_Quadratic{0.032f};
 };
 }

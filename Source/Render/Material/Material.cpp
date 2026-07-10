@@ -44,6 +44,8 @@ void Material::Bind() const {
 	}
 	activeShader->ShaderObject->Use();
 	activeShader->ShaderObject->SetVector4("u_TintColor", TintColor);
+	activeShader->ShaderObject->SetFloat("u_MetallicFactor", MetallicFactor);
+	activeShader->ShaderObject->SetFloat("u_RoughnessFactor", RoughnessFactor);
 	BindAlbedoTexture(activeShader);
 	BindMetallicTexture(activeShader);
 	BindRoughnessTexture(activeShader);
@@ -53,14 +55,14 @@ void Material::Bind() const {
 void Material::SetBool(const std::string_view name, const bool value) const {
 	std::shared_ptr<Asset::Shader> activeShader = GetActiveShader();
 	if (activeShader->IsReady == true) {
-		activeShader->ShaderObject->SetFloat(name, value);
+		activeShader->ShaderObject->SetBool(name, value);
 	}
 }
 
 void Material::SetInt(const std::string_view name, const i32 value) const {
 	std::shared_ptr<Asset::Shader> activeShader = GetActiveShader();
 	if (activeShader->IsReady == true) {
-		activeShader->ShaderObject->SetFloat(name, value);
+		activeShader->ShaderObject->SetInt(name, value);
 	}
 }
 
@@ -119,31 +121,31 @@ u32 Material::GetWhiteFallbackTexture() noexcept {
 }
 
 u32 Material::GetNormalFallbackTexture() noexcept {
-	static u32 textureID = Create1x1Texture(128, 128, 128);
+	static u32 textureID = Create1x1Texture(128, 128, 255);
 	return textureID;
 }
 
 void Material::BindAlbedoTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept {
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, AlbedoTexture != nullptr ? AlbedoTexture->TextureID : GetWhiteFallbackTexture());
+	glBindTexture(GL_TEXTURE_2D, AlbedoTexture != nullptr && AlbedoTexture->IsReady ? AlbedoTexture->TextureID : GetWhiteFallbackTexture());
 	activeShader->ShaderObject->SetInt("u_AlbedoMap", 0);
 }
 
 void Material::BindMetallicTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept {
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, MetallicTexture != nullptr ? MetallicTexture->TextureID : GetWhiteFallbackTexture());
+	glBindTexture(GL_TEXTURE_2D, MetallicTexture != nullptr && MetallicTexture->IsReady ? MetallicTexture->TextureID : GetWhiteFallbackTexture());
 	activeShader->ShaderObject->SetInt("u_MetallicMap", 1);
 }
 
 void Material::BindRoughnessTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept {
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, RoughnessTexture != nullptr ? RoughnessTexture->TextureID : GetWhiteFallbackTexture());
+	glBindTexture(GL_TEXTURE_2D, RoughnessTexture != nullptr && RoughnessTexture->IsReady ? RoughnessTexture->TextureID : GetWhiteFallbackTexture());
 	activeShader->ShaderObject->SetInt("u_RoughnessMap", 2);
 }
 
 void Material::BindNormalTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept {
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, NormalTexture != nullptr ? NormalTexture->TextureID : GetNormalFallbackTexture());
+	glBindTexture(GL_TEXTURE_2D, NormalTexture != nullptr && NormalTexture->IsReady ? NormalTexture->TextureID : GetNormalFallbackTexture());
 	activeShader->ShaderObject->SetInt("u_NormalMap", 3);
 }
 

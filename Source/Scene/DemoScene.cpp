@@ -16,55 +16,81 @@
 
 namespace Crescent::Scene {
 
-constexpr u32 INSTANCE_COUNT = 524288;
+constexpr u32 INSTANCE_COUNT = 1048576;
 
 DemoScene::DemoScene() {
     // shaders
     std::shared_ptr<Asset::Shader> shaderAsset =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Shader>("Shaders/demo", Asset::Type::Shader);
+        .GetOrLoad<Asset::Shader>("Shaders/lit", Asset::Type::Shader);
     // materials
     m_Material = std::make_shared<Render::Material>(shaderAsset);
     m_Material->AlbedoTexture =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("Assets/Textures/Tiles081_1K-JPG_Color.jpg", Asset::Type::Texture);
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Color.jpg", Asset::Type::Texture);
+    m_Material->MetallicTexture =
+        Asset::Registry::Instance()
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Metalness.jpg", Asset::Type::Texture);
+    m_Material->NormalTexture =
+        Asset::Registry::Instance()
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_NormalGL.jpg", Asset::Type::Texture);
+    m_Material->RoughnessTexture =
+        Asset::Registry::Instance()
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Roughness.jpg", Asset::Type::Texture);
+
+    m_Material->SetFloat("u_MetallicFactor", 1.0f);
     // meshes
     m_BoxMesh = std::make_shared<Render::BoxMesh>(1.0f, 1.0f, 1.0f);
 
-    m_CubeNode = m_Tree->AddChild<MeshInstance3D>("Cube");
-    m_CubeNode->SetMesh(m_BoxMesh);
-    m_CubeNode->SetMaterialOverride(m_Material);
-    m_CubeNode->Transform.SetScale(1.5f);
-    m_CubeNode->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
+    m_Cube = m_Tree->AddChild<MeshInstance3D>("Cube");
+    m_Cube->SetMesh(m_BoxMesh);
+    m_Cube->SetMaterialOverride(m_Material);
+    m_Cube->Transform.SetScale(5.0f);
+    m_Cube->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
 
-    // m_OrbitingCubesNode = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
-    // m_OrbitingCubesNode->SetMesh(m_BoxMesh);
-    // m_OrbitingCubesNode->SetMaterial(m_Material);
+    // m_OrbitingCubes = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
+    // m_OrbitingCubes->SetMesh(m_BoxMesh);
+    // m_OrbitingCubes->SetMaterial(m_Material);
     // DynamicList<Math::Matrix4x4> initialTransforms{};
     // for (u8 a = 0; a < 8; ++a) {
     //     initialTransforms.PushBack(Math::Matrix4x4::GetIdentity());
     // }
-    // m_OrbitingCubesNode->SetTransforms(initialTransforms);
-    // m_OrbitingCubesNode->UploadTransformsToGPU();
+    // m_OrbitingCubes->SetTransforms(initialTransforms);
+    // m_OrbitingCubes->UploadTransformsToGPU();
 
-    m_OrbitingCubesNode = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
-    m_OrbitingCubesNode->SetMesh(m_BoxMesh);
-    m_OrbitingCubesNode->SetMaterial(m_Material);
+    for (u8 a = 0; a < 16; ++a) {
+        PointLight3D* light = m_Tree->AddChild<PointLight3D>("PointLight3D");
+        light->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
+        light->SetRange(500.0f);
+        light->SetEnergy(20.0f);
+        light->SetColor(Math::Vector3(1.0f, 0.85f, 0.75f));
+        m_PointLights.PushBack(light);
+    }
+
+    // m_PointLight = m_Tree->AddChild<PointLight3D>("PointLight3D");
+    // m_PointLight->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
+    // m_PointLight->SetRange(100.0f);
+    // m_PointLight->SetEnergy(10.0f);
+    // m_PointLight->SetColor(Math::Vector3(1.0f, 0.85f, 0.7f));
+
+    m_OrbitingCubes = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
+    m_OrbitingCubes->SetMesh(m_BoxMesh);
+    m_OrbitingCubes->SetMaterial(m_Material);
     // init
     DynamicList<Math::Matrix4x4> initialTransforms{};
     initialTransforms.Reserve(INSTANCE_COUNT);
     for (u32 a = 0; a < INSTANCE_COUNT; ++a) {
         initialTransforms.PushBack(Math::Matrix4x4::GetIdentity());
     }
-    m_OrbitingCubesNode->SetTransforms(std::move(initialTransforms));
+    m_OrbitingCubes->SetTransforms(std::move(initialTransforms));
 
-    constexpr f32 spacing = 10.0f;
-    constexpr f32 centerOffset = (64.0f - 1.0f) / 2.0f;
-    for (u8 x = 0; x < 64; ++x) {
-        for (u8 y = 0; y < 64; ++y) {
-            for (u8 z = 0; z < 64; ++z) {
+    constexpr f32 spacing = 3.0f;
+    constexpr f32 centerOffset = (256.0f - 1.0f) / 2.0f;
+    for (u16 x = 0; x < 256; ++x) {
+        for (u16 y = 0; y < 2; ++y) {
+            for (u16 z = 0; z < 256; ++z) {
                 f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
-                f32 yPos = (static_cast<f32>(y) - centerOffset) * spacing;
+                f32 yPos = (static_cast<f32>(y) - ((13.0f - 1.0f) / 2.0f)) * spacing;
                 f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
                 Math::Matrix4x4 modelMatrix{};
                 modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
@@ -72,38 +98,73 @@ DemoScene::DemoScene() {
             }
         }
     }
-    m_OrbitingCubesNode->SetTransforms(std::move(initialTransforms));
-    m_OrbitingCubesNode->UploadTransformsToGPU();
+    for (u16 x = 0; x < 256; ++x) {
+        for (u16 y = 0; y < 2; ++y) {
+            for (u16 z = 0; z < 256; ++z) {
+                f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
+                f32 yPos = (static_cast<f32>(y) + ((13.0f - 1.0f) / 2.0f)) * spacing;
+                f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
+                Math::Matrix4x4 modelMatrix{};
+                modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
+                initialTransforms.PushBack(modelMatrix);
+            }
+        }
+    }
+    m_OrbitingCubes->SetTransforms(std::move(initialTransforms));
+    m_OrbitingCubes->UploadTransformsToGPU();
 }
 
 DemoScene::~DemoScene() {}
 
 void DemoScene::OnUpdate(f32 const deltaTime) {
     m_TotalTime += deltaTime;
+    f32 const numLights = static_cast<f32>(m_PointLights.GetSize());
+    f32 horizontalRadius = 30.0f + ((Math::Sin(m_TotalTime * 1.5f) + 0.5f) * 10.0f);
+    f32 const ringRotationSpeed = 0.2f;
+
+    for (u8 a = 0; a < m_PointLights.GetSize(); ++a) {
+        f32 angle = (static_cast<f32>(a) / numLights) * 2.0f * 3.14159265f;
+        f32 currentAngle = angle + (m_TotalTime * ringRotationSpeed);
+
+        f32 xPos = Math::Sin(currentAngle) * horizontalRadius;
+        f32 yPos = Math::Sin(m_TotalTime * 1.5f + a) * 2.0f;
+        f32 zPos = (Math::Cos(currentAngle) * horizontalRadius) - 10.0f;
+
+        m_PointLights[a]->Transform.SetPosition(Math::Vector3(xPos, yPos, zPos));
+
+        f32 pulseEnergy = 100.0f + (Math::Sin(m_TotalTime * 3.0f + a) * 3.0f);
+        m_PointLights[a]->SetEnergy(pulseEnergy);
+
+        f32 r = (Math::Sin(m_TotalTime * 1.0f + a) * 0.5f) + 0.5f;
+        f32 g = (Math::Sin(m_TotalTime * 0.7f + a * 2.0f) * 0.5f) + 0.5f;
+        f32 b = (Math::Cos(m_TotalTime * 1.2f + a) * 0.5f) + 0.5f;
+
+        m_PointLights[a]->SetColor(Math::Vector3(r, g, b));
+    }
     m_Material->SetFloat("u_Time", m_TotalTime);
-    m_CubeNode->Transform.SetRotationEuler(Math::Vector3(
+    m_Cube->Transform.SetRotationEuler(Math::Vector3(
         Math::DegreesToRadians(m_TotalTime * 30.0f),
         Math::DegreesToRadians(m_TotalTime * 45.0f),
         0.0f
     ));
     // DynamicList<Math::Matrix4x4> transforms{};
     // constexpr f32 spacing = 5.0f;
-    // constexpr f32 offset = (2.0f - 1.0f) / 2.0f;
-    // for (u8 x = 0; x < 2; ++x) {
-    //     for (u8 y = 0; y < 2; ++y) {
-    //         for (u8 z = 0; z < 2; ++z) {
+    // constexpr f32 offset = (8.0f - 1.0f) / 2.0f;
+    // for (u8 x = 0; x < 16; ++x) {
+    //     for (u8 y = 0; y < 16; ++y) {
+    //         for (u8 z = 0; z < 16; ++z) {
     //             f32 xPos = (static_cast<f32>(x) - offset) * spacing;
     //             f32 yPos = (static_cast<f32>(y) - offset) * spacing;
     //             f32 zPos = (static_cast<f32>(z) - offset) * spacing - 10.0f;
     //             Math::Matrix4x4 modelMatrix{};
     //             modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
-    //             modelMatrix.RotateLocal(Math::DegreesToRadians(m_TotalTime * 30.0f), Math::Vector3::Forward());
+    //             modelMatrix.RotateLocal(Math::DegreesToRadians(m_TotalTime * 10.0f), Math::Vector3::Forward());
     //             transforms.PushBack(modelMatrix);
     //         }
     //     }
     // }
-    // m_OrbitingCubesNode->SetTransforms(transforms);
-    // m_OrbitingCubesNode->UploadTransformsToGPU();
+    // m_OrbitingCubes->SetTransforms(transforms);
+    // m_OrbitingCubes->UploadTransformsToGPU();
 }
 
 void DemoScene::OnRender(Window& window) {

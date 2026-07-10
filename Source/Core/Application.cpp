@@ -108,7 +108,10 @@ void Application::SetupAndBindInputActions() {
 	lookX.BindMouseAxis(Input::MouseAxis::X, lookSensitivity);
 	lookX.Subscribe([this](Input::Action::Event const& actionEvent) {
 		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
-			m_ActiveScene->RotateCamera(Math::Vector3(0.0f, -actionEvent.Value, 0.0f));
+			std::scoped_lock lock(m_ActiveSceneMutex);
+			if (m_ActiveScene) {
+				m_ActiveScene->QueueCameraRotation(Math::Vector3(0.0f, -actionEvent.Value, 0.0f));
+			}
 		}
 	});
 
@@ -116,57 +119,58 @@ void Application::SetupAndBindInputActions() {
 	lookY.BindMouseAxis(Input::MouseAxis::Y, lookSensitivity);
 	lookY.Subscribe([this](Input::Action::Event const& actionEvent) {
 		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
-			m_ActiveScene->RotateCamera(Math::Vector3(-actionEvent.Value, 0.0f, 0.0f));
+			std::scoped_lock lock(m_ActiveSceneMutex);
+			if (m_ActiveScene) {
+				m_ActiveScene->QueueCameraRotation(Math::Vector3(-actionEvent.Value, 0.0f, 0.0f));
+			}
 		}
 	});
 
 	Input::Action& moveForward = appContext.AddAction("Move_Forward");
 	moveForward.BindKeyboardKey(Input::KeyCode::W);
 	moveForward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
-			m_ActiveScene->MoveCamera(Math::Vector3::Back(), Time::GetVariableDeltaTime());
-		}
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene->SetMoveInputForward(actionEvent.Phase != Input::Action::Phase::Released);
 	});
 
 	Input::Action& moveBackward = appContext.AddAction("Move_Backward");
 	moveBackward.BindKeyboardKey(Input::KeyCode::S);
 	moveBackward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
-			m_ActiveScene->MoveCamera(Math::Vector3::Forward(), Time::GetVariableDeltaTime());
-		}
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene->SetMoveInputBackward(actionEvent.Phase != Input::Action::Phase::Released);
 	});
 
 	Input::Action& moveRightward = appContext.AddAction("Move_Rightward");
 	moveRightward.BindKeyboardKey(Input::KeyCode::D);
 	moveRightward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
-			m_ActiveScene->MoveCamera(Math::Vector3::Right(), Time::GetVariableDeltaTime());
-		}
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene->SetMoveInputRightward(actionEvent.Phase != Input::Action::Phase::Released);
 	});
 
 	Input::Action& moveLeftward = appContext.AddAction("Move_Leftward");
 	moveLeftward.BindKeyboardKey(Input::KeyCode::A);
 	moveLeftward.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
-			m_ActiveScene->MoveCamera(Math::Vector3::Left(), Time::GetVariableDeltaTime());
-		}
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene->SetMoveInputLeftward(actionEvent.Phase != Input::Action::Phase::Released);
 	});
 
 	Input::Action& moveAccelerate = appContext.AddAction("Move_Accelerate");
 	moveAccelerate.BindKeyboardKey(Input::KeyCode::LeftShift);
 	moveAccelerate.Subscribe([this](Input::Action::Event const& actionEvent) {
-		if (actionEvent.Phase == Input::Action::Phase::Pressed || actionEvent.Phase == Input::Action::Phase::Held) {
-			m_ActiveScene->IsAccelerating = true;
-		}
-		else {
-			m_ActiveScene->IsAccelerating = false;
-		}
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene->IsAccelerating = (actionEvent.Phase != Input::Action::Phase::Released);
 	});
+
+	// TODO: add camera zoom with mouse scroll
+	// TODO: add acceleration with shift mouse scroll
 }
 
 void Application::RenderThreadLoop() {
 	m_MainWindow->MakeContextCurrent();
-	m_ActiveScene = std::make_unique<Scene::DemoScene>();
+	{
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene = std::make_unique<Scene::DemoScene>();
+	}
 	while (m_Running == true) {
 		if (m_WantsFullscreenToggle == true) {
 			Window::UnbindContext();
@@ -183,6 +187,7 @@ void Application::RenderThreadLoop() {
 		}
 		m_MainWindow->CheckViewportResize();
 		Asset::Registry::Instance().OnUpdate();
+		m_ActiveScene->UpdateCamera(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnRender(*m_MainWindow);
 		timer += Time::GetVariableDeltaTime();
@@ -192,7 +197,10 @@ void Application::RenderThreadLoop() {
 		}
 		m_MainWindow->SwapBuffers();
 	}
-	m_ActiveScene.reset();
+	{
+		std::scoped_lock lock(m_ActiveSceneMutex);
+		m_ActiveScene.reset();
+	}
 	Window::UnbindContext();
 }
 

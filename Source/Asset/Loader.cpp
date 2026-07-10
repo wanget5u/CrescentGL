@@ -78,6 +78,23 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 			&textureData.Channels,
 			0
 		);
+		if (textureData.Pixels == nullptr) {
+			std::string altPath = "Assets/Textures/" + textureData.FilePath;
+			textureData.Pixels = stbi_load(
+				altPath.c_str(),
+				&textureData.Width,
+				&textureData.Height,
+				&textureData.Channels,
+				0
+			);
+			if (textureData.Pixels != nullptr) {
+				textureData.FilePath = altPath;
+			}
+		}
+		if (textureData.Pixels == nullptr) {
+			Log::Error("Failed to load texture file: {} ({})", request.FilePath, stbi_failure_reason());
+			return;
+		}
 		packet.Data = std::move(textureData);
 	}
 	// TODO: Add obj, glTF, FBX support

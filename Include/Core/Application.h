@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include <memory>
+#include <mutex>
 
 #include "Core/Core.h"
 
@@ -20,6 +21,7 @@ private:
 	std::unique_ptr<Window> m_MainWindow;
 	std::unique_ptr<Window> m_LoadWindow;
 	std::unique_ptr<Scene::Scene> m_ActiveScene;
+	mutable std::mutex m_ActiveSceneMutex;
 	std::atomic<bool> m_Running{true};
 	std::atomic<bool> m_WantsFullscreenToggle{false};
 	std::atomic<bool> m_RenderThreadSafeToToggle{false};

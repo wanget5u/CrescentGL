@@ -46,6 +46,5 @@ private:
 	std::mutex m_AssetMutex{};
 	DynamicQueue<LoadRequest> m_AssetLoadQueue{};
 	DynamicList<ReadyPacket> m_ReadyAssetWrite{};
-	DynamicList<ReadyPacket> m_ReadyAssetRead{};
 };
 }

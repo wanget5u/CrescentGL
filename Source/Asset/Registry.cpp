@@ -34,6 +34,10 @@ void Registry::OnUpdate() {
 		else if (packet.Type == Type::Texture) {
 			std::shared_ptr<Texture> textureAsset = std::static_pointer_cast<Texture>(baseAsset);
 			Texture::Data& textureData = std::get<Texture::Data>(packet.Data);
+			if (textureData.Pixels == nullptr) {
+				Log::Error("Registry: Cannot upload null or invalid texture data for '{}'", packet.FilePath);
+				return;
+			}
 			glGenTextures(1, &textureAsset->TextureID);
 			glBindTexture(GL_TEXTURE_2D, textureAsset->TextureID);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

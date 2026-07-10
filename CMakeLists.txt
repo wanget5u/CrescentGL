@@ -87,6 +87,7 @@ set(SOURCES
         include/Scene/Nodes3D/Light/PointLight3D.h
         Source/Scene/Nodes3D/Geometry/InstancedVisual3D.cpp
         include/Scene/Nodes3D/Geometry/InstancedVisual3D.h
+        Include/Render/SceneData.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
