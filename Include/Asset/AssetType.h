@@ -27,6 +27,7 @@ struct Shader : Asset {
 	struct Data {
 		std::string VertexSource;
 		std::string FragmentSource;
+		std::string GeometrySource;
 	};
 };
 struct Texture : Asset {

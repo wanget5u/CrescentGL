@@ -11,7 +11,7 @@ namespace Crescent::Util {
 std::string ResolveAssetPath(const std::string_view filePath) {
 #ifdef CRESCENT_ASSET_ROOT
 	std::filesystem::path rootPath = std::filesystem::path(CRESCENT_ASSET_ROOT) / filePath;
-	if (std::filesystem::exists(rootPath)) {
+	if (std::filesystem::exists(rootPath) == true) {
 		return rootPath.generic_string();
 	}
 #endif

@@ -18,7 +18,6 @@ struct DemoScene : Scene {
 	void OnUpdate(f32 deltaTime) override;
 	void OnRender(Window& window) override;
 private:
-	std::shared_ptr<Render::Material> m_Material{nullptr};
 	std::shared_ptr<Render::Mesh> m_BoxMesh{nullptr};
 	std::shared_ptr<Render::Mesh> m_FloorMesh{nullptr};
 	MeshInstance3D* m_Cube{nullptr};

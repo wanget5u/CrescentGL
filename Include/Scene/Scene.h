@@ -9,6 +9,9 @@
 #include "Math/Vector/Vector3.h"
 
 namespace Crescent {
+namespace Render {
+struct Material;
+}
 struct Window;
 }
 namespace Crescent::Scene {
@@ -33,6 +36,7 @@ struct Scene {
 	void SetMoveInputRightward(bool active);
 	void SetMoveInputLeftward(bool active);
 	void UpdateCamera(f32 deltaTime);
+	void SetSceneMaterial(std::shared_ptr<Render::Material> material);
 protected:
 	constexpr static f32 CameraSpeed1 = 10.0f;
 	constexpr static f32 CameraSpeed2 = 40.0f;
@@ -49,10 +53,15 @@ protected:
 	bool m_MoveRightward{false};
 	bool m_MoveLeftward{false};
 	void SetupInputActions();
+	void SetupDefaultMaterials();
 	struct ActionSubscription {
 		Input::Action* ActionPtr{nullptr};
 		u32 SubscriptionID{0};
 	};
 	DynamicList<ActionSubscription> m_InputSubscriptions{};
+	std::shared_ptr<Render::Material> m_Material{};
+	std::shared_ptr<Render::Material> m_WireframeMaterial{};
+	std::shared_ptr<Render::Material> m_UnlitMaterial{};
+	std::shared_ptr<Render::Material> m_LitMaterial{};
 };
 }

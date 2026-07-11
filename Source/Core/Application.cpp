@@ -84,7 +84,7 @@ void Application::SetupGlobalInputActions() {
 	});
 
 	Input::Action& toggleDebugPanel = editorContext->AddAction("Toggle_Debug");
-	toggleDebugPanel.BindKeyboardKey(Input::KeyCode::F1);
+	toggleDebugPanel.BindKeyboardKey(Input::KeyCode::F4);
 	toggleDebugPanel.Subscribe([](Input::Action::Event const& actionEvent) {
 		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
 			UI::DebugPanel* debugPanel = UI::System::Instance().GetPanel<UI::DebugPanel>();

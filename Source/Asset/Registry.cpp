@@ -27,7 +27,7 @@ void Registry::OnUpdate() {
 			std::shared_ptr<Shader> shaderAsset = std::static_pointer_cast<Shader>(baseAsset);
 			Shader::Data& shaderData = std::get<Shader::Data>(packet.Data);
 			shaderAsset->ShaderObject = std::make_shared<Render::Shader>(
-				shaderData.VertexSource, shaderData.FragmentSource
+				shaderData.VertexSource, shaderData.FragmentSource, shaderData.GeometrySource
 			);
 			shaderAsset->IsReady = true;
 			Log::Info("Registry: Uploaded Shader '{}' to VRAM.", packet.FilePath);

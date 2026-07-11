@@ -8,15 +8,23 @@
 
 namespace Crescent::Render {
 
-Shader::Shader(const std::string_view vertexSource, const std::string_view fragmentSource) {
+Shader::Shader(const std::string_view vertexSource, const std::string_view fragmentSource, const std::string_view geometrySource) {
 	std::unordered_set<std::string> vertexIncludedFiles{};
 	std::string parsedVertex = ParseIncludes(vertexSource, vertexIncludedFiles);
 	std::unordered_set<std::string> fragmentIncludedFiles{};
 	std::string parsedFragment = ParseIncludes(fragmentSource, fragmentIncludedFiles);
+	std::unordered_set<std::string> geometryIncludedFiles{};
+	std::string parsedGeometry{};
+	bool useGeometry = geometrySource.empty() == false;
+	if (useGeometry == true) {
+		parsedGeometry = ParseIncludes(geometrySource, geometryIncludedFiles);
+	}
 	const char8* vertexShaderCode = parsedVertex.c_str();
 	const char8* fragmentShaderCode = parsedFragment.c_str();
+	const char8* geometryShaderCode = parsedGeometry.c_str();
 	u32 vertexShader{};
 	u32 fragmentShader{};
+	u32 geometryShader{};
 
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vertexShader, 1, &vertexShaderCode, nullptr);
@@ -28,22 +36,44 @@ Shader::Shader(const std::string_view vertexSource, const std::string_view fragm
 	glCompileShader(fragmentShader);
 	const bool fragmentSuccess = LogCompileErrors(fragmentShader, Type::Fragment);
 
+	bool geometrySuccess{false};
+	if (useGeometry == true) {
+		geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geometryShader, 1, &geometryShaderCode, nullptr);
+		glCompileShader(geometryShader);
+		geometrySuccess = LogCompileErrors(geometryShader, Type::Geometry);
+	}
+
 	if (vertexSuccess == false || fragmentSuccess == false) {
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
+		if (useGeometry == true && geometrySuccess == false) {
+			glDeleteShader(geometryShader);
+		}
 		return;
 	}
 
 	ID = glCreateProgram();
 	glAttachShader(ID, vertexShader);
 	glAttachShader(ID, fragmentShader);
+	if (useGeometry == true) {
+		glAttachShader(ID, geometryShader);
+	}
+
 	glLinkProgram(ID);
 	LogCompileErrors(ID, Type::Program);
 
 	glDetachShader(ID, vertexShader);
 	glDetachShader(ID, fragmentShader);
+	if (useGeometry == true) {
+		glDetachShader(ID, geometryShader);
+	}
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+	if (useGeometry == true) {
+		glDeleteShader(geometryShader);
+	}
 }
 
 Shader::~Shader() {

@@ -13,18 +13,20 @@ struct Shader {
 	enum class Type {
 		Vertex,
 		Fragment,
+		Geometry,
 		Program
 	};
 	static const char8* GetTypeName(Type const type) {
 		switch (type) {
 			case Type::Vertex:   return "Vertex";
 			case Type::Fragment: return "Fragment";
+			case Type::Geometry: return "Geometry";
 			case Type::Program:  return "Program";
 			default:             return "Unknown";
 		}
 	}
 	u32 ID{0};
-	explicit Shader(std::string_view vertexSource, std::string_view fragmentSource);
+	explicit Shader(std::string_view vertexSource, std::string_view fragmentSource, std::string_view geometrySource = "");
 	~Shader();
 	Shader(const Shader&) = delete;
 	Shader& operator=(const Shader&) = delete;

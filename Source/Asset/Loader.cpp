@@ -1,6 +1,7 @@
 #include "Asset/Loader.h"
 
 #include <chrono>
+#include <filesystem>
 #include <thread>
 
 #include "Core/Log.h"
@@ -71,6 +72,10 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 		Shader::Data shaderData{};
 		shaderData.VertexSource = Util::ReadFile(request.FilePath + ".vert");
 		shaderData.FragmentSource = Util::ReadFile(request.FilePath + ".frag");
+		std::string geometryPath = request.FilePath + ".geom";
+		if (std::filesystem::exists(Util::ResolveAssetPath(geometryPath))) {
+			shaderData.GeometrySource = Util::ReadFile(geometryPath);
+		}
 		if (shaderData.VertexSource.empty() || shaderData.FragmentSource.empty()) {
 			Log::Error("Failed to load shader files for: {}", request.FilePath);
 			return;

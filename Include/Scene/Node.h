@@ -57,6 +57,9 @@ struct Node {
 	/// Safely schedules this node and its entire sub-hierarchy for deletion at the end of the frame.
 	/// This avoids crashing when destroying elements inside execution updates
 	void QueueFree();
+	/// Recursively visits all child nodes and their descendants
+	template <typename Func>
+	void ForEachDescendant(Func&& visitor);
 protected:
 	/// Global auto-incremented counter used to mint distinct node IDs
 	static u64 s_ID;
@@ -98,5 +101,14 @@ T* Node::AddChild(std::string_view name, Args &&...args) {
 	child->OnCreate();
 	m_Children.PushBack(std::move(child));
 	return childPointer;
+}
+template <typename Func>
+void Node::ForEachDescendant(Func&& visitor) {
+	for (size_t a = 0; a < m_Children.GetSize(); ++a) {
+		if (Node* child = m_Children[a].get()) {
+			visitor(child);
+			child->ForEachDescendant(visitor);
+		}
+	}
 }
 }

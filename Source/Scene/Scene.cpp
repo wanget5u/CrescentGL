@@ -1,8 +1,13 @@
 #include "Scene/Scene.h"
+
+#include "Asset/AssetType.h"
+#include "Asset/Registry.h"
 #include "Core/Window.h"
 #include "Input/InputAction.h"
 #include "Input/InputSystem.h"
+#include "Render/Material/Material.h"
 #include "Scene/Nodes3D/Camera3D.h"
+#include "Scene/Nodes3D/Geometry/GeometryInstance3D.h"
 #include "Scene/Tree.h"
 
 namespace Crescent::Scene {
@@ -11,6 +16,7 @@ Scene::Scene() {
 	m_Tree = std::make_unique<Tree>();
 	m_PreviewCamera = std::make_unique<Camera3D>();
 	SetupInputActions();
+	SetupDefaultMaterials();
 }
 
 Scene::~Scene() {
@@ -95,6 +101,23 @@ void Scene::UpdateCamera(const f32 deltaTime) {
 	}
 }
 
+void Scene::SetSceneMaterial(std::shared_ptr<Render::Material> material) {
+	m_Material = material;
+	if (m_Tree != nullptr && m_Tree->GetRoot() != nullptr) {
+		m_Tree->GetRoot()->ForEachDescendant([material](Node* node) {
+			if (GeometryInstance3D* geom = dynamic_cast<GeometryInstance3D*>(node)) {
+				if (geom->GetMaterialOverride() != nullptr) {
+					geom->SetMaterialOverride(material);
+				} else if (geom->GetMaterial() != nullptr) {
+					geom->SetMaterial(material);
+				} else {
+					geom->SetMaterialOverride(material);
+				}
+			}
+		});
+	}
+}
+
 void Scene::SetupInputActions() {
 	Input::Context* editorContext = Input::System::Instance().GetContext(Input::Context::Type::SceneEditor);
 	Input::System::Instance().SetContextActive(Input::Context::Type::SceneEditor);
@@ -173,8 +196,48 @@ void Scene::SetupInputActions() {
 	});
 	m_InputSubscriptions.PushBack({&moveAccelerateAction, moveAccelerateSubscription});
 
+	Input::Action& setLitAction = editorContext->AddAction("Set_Lit");
+	setLitAction.BindKeyboardKey(Input::KeyCode::F1);
+	u32 setLitSubscription = setLitAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			SetSceneMaterial(m_LitMaterial);
+		}
+	});
+	m_InputSubscriptions.PushBack({&setLitAction, setLitSubscription});
+
+	Input::Action& setUnlitAction = editorContext->AddAction("Set_Unlit");
+	setUnlitAction.BindKeyboardKey(Input::KeyCode::F2);
+	u32 setUnlitSubscription = setUnlitAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			SetSceneMaterial(m_UnlitMaterial);
+		}
+	});
+	m_InputSubscriptions.PushBack({&setUnlitAction, setUnlitSubscription});
+
+	Input::Action& setWireframeAction = editorContext->AddAction("Set_Wireframe");
+	setWireframeAction.BindKeyboardKey(Input::KeyCode::F3);
+	u32 setWireframeSubscription = setWireframeAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			SetSceneMaterial(m_WireframeMaterial);
+		}
+	});
+	m_InputSubscriptions.PushBack({&setWireframeAction, setWireframeSubscription});
+
 	// TODO: add camera zoom with mouse scroll
 	// TODO: add acceleration with shift mouse scroll
+}
+
+void Scene::SetupDefaultMaterials() {
+	std::shared_ptr<Asset::Shader> shaderAsset = Asset::Registry::Instance()
+		.GetOrLoad<Asset::Shader>("Shaders/wire", Asset::AssetType::Shader);
+	m_WireframeMaterial = std::make_shared<Render::Material>(shaderAsset);
+	shaderAsset = Asset::Registry::Instance()
+		.GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::AssetType::Shader);
+	m_UnlitMaterial = std::make_shared<Render::Material>(shaderAsset);
+	shaderAsset = Asset::Registry::Instance()
+		.GetOrLoad<Asset::Shader>("Shaders/lit", Asset::AssetType::Shader);
+	m_LitMaterial = std::make_shared<Render::Material>(shaderAsset);
+	m_Material = m_LitMaterial;
 }
 
 }

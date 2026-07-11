@@ -17,30 +17,37 @@
 namespace Crescent::Scene {
 
 DemoScene::DemoScene() {
-    // shaders
-    std::shared_ptr<Asset::Shader> shaderAsset =
-        Asset::Registry::Instance()
-        .GetOrLoad<Asset::Shader>("Shaders/lit", Asset::AssetType::Shader);
-    // materials
-    m_Material = std::make_shared<Render::Material>(shaderAsset);
-    // m_Material->SetVector4("u_TintColor", Math::Vector4(0.5f, 0.0f, 1.0f, 1.0f));
-
-    // m_Material->SetVector3("u_ObjectColor", Math::Vector3(0.5f, 0.0f, 1.0f));
-    // m_Material->SetVector3("u_LightColor", Math::Vector3(1.0f, 1.0f, 1.0f));
-    // m_Material->SetVector3("u_LightPosition", Math::Vector3(1.0f, 1.0f, 1.0f));
-
-    m_Material->AlbedoTexture =
+    std::shared_ptr<Asset::Texture> albedoTexture =
         Asset::Registry::Instance()
         .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Color.jpg", Asset::AssetType::Texture);
-    m_Material->MetallicTexture =
+    std::shared_ptr<Asset::Texture> metallicTexture =
         Asset::Registry::Instance()
         .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Metalness.jpg", Asset::AssetType::Texture);
-    m_Material->NormalTexture =
+    std::shared_ptr<Asset::Texture> normalTexture =
         Asset::Registry::Instance()
         .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_NormalGL.jpg", Asset::AssetType::Texture);
-    m_Material->RoughnessTexture =
+    std::shared_ptr<Asset::Texture> roughnessTexture =
         Asset::Registry::Instance()
         .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Roughness.jpg", Asset::AssetType::Texture);
+
+    if (m_LitMaterial != nullptr) {
+        m_LitMaterial->AlbedoTexture = albedoTexture;
+        m_LitMaterial->MetallicTexture = metallicTexture;
+        m_LitMaterial->NormalTexture = normalTexture;
+        m_LitMaterial->RoughnessTexture = roughnessTexture;
+    }
+    if (m_UnlitMaterial != nullptr) {
+        m_UnlitMaterial->AlbedoTexture = albedoTexture;
+    }
+    if (m_WireframeMaterial != nullptr) {
+        m_WireframeMaterial->AlbedoTexture = albedoTexture;
+    }
+    if (m_Material != nullptr) {
+        m_Material->AlbedoTexture = albedoTexture;
+        m_Material->MetallicTexture = metallicTexture;
+        m_Material->NormalTexture = normalTexture;
+        m_Material->RoughnessTexture = roughnessTexture;
+    }
 
     // meshes
     m_FloorMesh = std::make_shared<Render::BoxMesh>(3.0f, 0.5f, 3.0f);
@@ -111,7 +118,7 @@ void DemoScene::OnUpdate(f32 const deltaTime) {
 
         m_PointLights[a]->SetColor(Math::Vector3(r, g, b));
     }
-    m_Material->SetFloat("u_Time", m_TotalTime);
+    m_Material->TrySetFloat("u_Time", m_TotalTime);
 }
 
 void DemoScene::OnRender(Window& window) {
