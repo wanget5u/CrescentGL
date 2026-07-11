@@ -2,13 +2,15 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+
 #include "Core/Core.h"
+#include "Collection/DynamicList.h"
+#include "Input/InputAction.h"
 #include "Math/Vector/Vector3.h"
 
 namespace Crescent {
 struct Window;
 }
-
 namespace Crescent::Scene {
 struct Node;
 struct Tree;
@@ -32,11 +34,12 @@ struct Scene {
 	void SetMoveInputLeftward(bool active);
 	void UpdateCamera(f32 deltaTime);
 protected:
+	constexpr static f32 CameraSpeed1 = 40.0f;
+	constexpr static f32 CameraSpeed2 = 80.0f;
+	constexpr static f32 CameraLookSensitivity = 0.002f;
 	///
 	std::unique_ptr<Tree> m_Tree{nullptr};
 	///
-	constexpr static f32 cameraSpeed1 = 40.0f;
-	constexpr static f32 cameraSpeed2 = 80.0f;
 	std::unique_ptr<Camera3D> m_PreviewCamera{nullptr};
 	///
 	mutable std::mutex m_CameraMutex;
@@ -45,5 +48,11 @@ protected:
 	bool m_MoveBackward{false};
 	bool m_MoveRightward{false};
 	bool m_MoveLeftward{false};
+	void SetupInputActions();
+	struct ActionSubscription {
+		Input::Action* ActionPtr{nullptr};
+		u32 SubscriptionID{0};
+	};
+	DynamicList<ActionSubscription> m_InputSubscriptions{};
 };
 }

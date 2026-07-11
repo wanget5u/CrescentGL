@@ -54,7 +54,7 @@ set(SOURCES
         include/Render/Material/Material.h
         include/Core/Random.h
         include/Collection/DynamicQueue.h
-        include/Asset/Type/Type.h
+        Include/Asset/AssetType.h
         Source/Render/Texture/Texture.cpp
         include/Render/Texture/Texture.h
         Source/Asset/Registry.cpp
@@ -88,6 +88,36 @@ set(SOURCES
         Source/Scene/Nodes3D/Geometry/InstancedVisual3D.cpp
         include/Scene/Nodes3D/Geometry/InstancedVisual3D.h
         Include/Render/SceneData.h
+        Include/Render/RenderGroup.h
+        Source/UI/UISystem.cpp
+        Include/UI/UISystem.h
+        Source/UI/Panel.cpp
+        Include/UI/Panel.h
+        Source/UI/ToolbarPanel.cpp
+        Include/UI/ToolbarPanel.h
+        Source/UI/DebugPanel.cpp
+        Include/UI/DebugPanel.h
+        Source/UI/SceneTabBarPanel.cpp
+        Include/UI/SceneTabBarPanel.h
+        Source/UI/SceneHierarchyPanel.cpp
+        Include/UI/SceneHierarchyPanel.h
+        Source/UI/UIObserver.cpp
+        Include/UI/UIObserver.h
+        Include/Render/RenderStats.h
+)
+
+add_library(imgui STATIC
+        Dependencies/imgui/imgui.cpp
+        Dependencies/imgui/imgui_draw.cpp
+        Dependencies/imgui/imgui_tables.cpp
+        Dependencies/imgui/imgui_widgets.cpp
+        Dependencies/imgui/imgui_impl_glfw.cpp
+        Dependencies/imgui/imgui_impl_opengl3.cpp
+)
+
+target_include_directories(imgui PRIVATE
+        ${CMAKE_SOURCE_DIR}/Dependencies/include
+        ${CMAKE_SOURCE_DIR}/Dependencies/imgui
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -95,6 +125,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Dependencies/include
+    ${CMAKE_SOURCE_DIR}/Dependencies/imgui
 )
 
 target_link_directories(${PROJECT_NAME} PRIVATE
@@ -102,6 +133,7 @@ target_link_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
+    imgui
     glfw3
     opengl32
     gdi32
@@ -113,6 +145,10 @@ if (MSVC)
 else()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 endif()
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    CRESCENT_ASSET_ROOT="${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory

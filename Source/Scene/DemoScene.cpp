@@ -16,27 +16,27 @@
 
 namespace Crescent::Scene {
 
-constexpr u32 INSTANCE_COUNT = 1048576;
+constexpr u32 INSTANCE_COUNT = 16384;
 
 DemoScene::DemoScene() {
     // shaders
     std::shared_ptr<Asset::Shader> shaderAsset =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Shader>("Shaders/lit", Asset::Type::Shader);
+        .GetOrLoad<Asset::Shader>("Shaders/lit", Asset::AssetType::Shader);
     // materials
     m_Material = std::make_shared<Render::Material>(shaderAsset);
     m_Material->AlbedoTexture =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Color.jpg", Asset::Type::Texture);
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Color.jpg", Asset::AssetType::Texture);
     m_Material->MetallicTexture =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Metalness.jpg", Asset::Type::Texture);
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Metalness.jpg", Asset::AssetType::Texture);
     m_Material->NormalTexture =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_NormalGL.jpg", Asset::Type::Texture);
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_NormalGL.jpg", Asset::AssetType::Texture);
     m_Material->RoughnessTexture =
         Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Roughness.jpg", Asset::Type::Texture);
+        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Roughness.jpg", Asset::AssetType::Texture);
 
     m_Material->SetFloat("u_MetallicFactor", 1.0f);
     // meshes
@@ -47,6 +47,8 @@ DemoScene::DemoScene() {
     m_Cube->SetMaterialOverride(m_Material);
     m_Cube->Transform.SetScale(5.0f);
     m_Cube->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
+
+    m_PreviewCamera->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, 30.0f));
 
     // m_OrbitingCubes = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
     // m_OrbitingCubes->SetMesh(m_BoxMesh);
@@ -61,7 +63,7 @@ DemoScene::DemoScene() {
     for (u8 a = 0; a < 16; ++a) {
         PointLight3D* light = m_Tree->AddChild<PointLight3D>("PointLight3D");
         light->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
-        light->SetRange(500.0f);
+        light->SetRange(100.0f);
         light->SetEnergy(20.0f);
         light->SetColor(Math::Vector3(1.0f, 0.85f, 0.75f));
         m_PointLights.PushBack(light);
@@ -85,10 +87,10 @@ DemoScene::DemoScene() {
     m_OrbitingCubes->SetTransforms(std::move(initialTransforms));
 
     constexpr f32 spacing = 3.0f;
-    constexpr f32 centerOffset = (256.0f - 1.0f) / 2.0f;
-    for (u16 x = 0; x < 256; ++x) {
-        for (u16 y = 0; y < 2; ++y) {
-            for (u16 z = 0; z < 256; ++z) {
+    constexpr f32 centerOffset = (128.0f - 1.0f) / 2.0f;
+    for (u16 x = 0; x < 128; ++x) {
+        for (u16 y = 0; y < 1; ++y) {
+            for (u16 z = 0; z < 128; ++z) {
                 f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
                 f32 yPos = (static_cast<f32>(y) - ((13.0f - 1.0f) / 2.0f)) * spacing;
                 f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
@@ -98,18 +100,18 @@ DemoScene::DemoScene() {
             }
         }
     }
-    for (u16 x = 0; x < 256; ++x) {
-        for (u16 y = 0; y < 2; ++y) {
-            for (u16 z = 0; z < 256; ++z) {
-                f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
-                f32 yPos = (static_cast<f32>(y) + ((13.0f - 1.0f) / 2.0f)) * spacing;
-                f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
-                Math::Matrix4x4 modelMatrix{};
-                modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
-                initialTransforms.PushBack(modelMatrix);
-            }
-        }
-    }
+    // for (u16 x = 0; x < 128; ++x) {
+    //     for (u16 y = 0; y < 2; ++y) {
+    //         for (u16 z = 0; z < 128; ++z) {
+    //             f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
+    //             f32 yPos = (static_cast<f32>(y) + ((13.0f - 1.0f) / 2.0f)) * spacing;
+    //             f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
+    //             Math::Matrix4x4 modelMatrix{};
+    //             modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
+    //             initialTransforms.PushBack(modelMatrix);
+    //         }
+    //     }
+    // }
     m_OrbitingCubes->SetTransforms(std::move(initialTransforms));
     m_OrbitingCubes->UploadTransformsToGPU();
 }
@@ -118,9 +120,9 @@ DemoScene::~DemoScene() {}
 
 void DemoScene::OnUpdate(f32 const deltaTime) {
     m_TotalTime += deltaTime;
-    f32 const numLights = static_cast<f32>(m_PointLights.GetSize());
-    f32 horizontalRadius = 30.0f + ((Math::Sin(m_TotalTime * 1.5f) + 0.5f) * 10.0f);
-    f32 const ringRotationSpeed = 0.2f;
+    const f32  numLights = static_cast<f32>(m_PointLights.GetSize());
+    f32 horizontalRadius = 50.0f + ((Math::Sin(m_TotalTime * 1.5f) + 0.5f) * 30.0f);
+    const f32 ringRotationSpeed = 0.2f;
 
     for (u8 a = 0; a < m_PointLights.GetSize(); ++a) {
         f32 angle = (static_cast<f32>(a) / numLights) * 2.0f * 3.14159265f;

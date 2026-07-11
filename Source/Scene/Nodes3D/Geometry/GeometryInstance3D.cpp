@@ -1,6 +1,6 @@
 #include "../../../../Include/Scene/Nodes3D/Geometry/GeometryInstance3D.h"
 
-#include "Asset/Type/Type.h"
+#include "../../../../Include/Asset/AssetType.h"
 #include "Render/Mesh.h"
 
 namespace Crescent::Scene {
@@ -51,7 +51,7 @@ void GeometryInstance3D::SetMesh(std::shared_ptr<Render::Mesh> proceduralMesh) n
 	}
 	m_MeshAsset = std::make_shared<Asset::Mesh>();
 	m_MeshAsset->FilePath = "Procedural_" + std::to_string(m_ID);
-	m_MeshAsset->Type = Asset::Type::Mesh;
+	m_MeshAsset->Type = Asset::AssetType::Mesh;
 	m_MeshAsset->MeshObject = std::move(proceduralMesh);
 	m_MeshAsset->IsReady = true;
 }

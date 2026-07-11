@@ -1,6 +1,7 @@
 #include "Core/Window.h"
 
 #include "Core/Log.h"
+#include "UI/UISystem.h"
 
 namespace Crescent {
 
@@ -11,6 +12,8 @@ static void FrameBufferCallback(GLFWwindow* window, i32 const width, i32 const h
 
 Window::Window(Properties const& properties) {
 	m_Properties = properties;
+	m_Width.store(properties.Width);
+	m_Height.store(properties.Height);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -21,6 +24,18 @@ Window::Window(Properties const& properties) {
 	glfwSetWindowUserPointer(m_Window, this);
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);
 	CalculateAspectRatio();
+}
+
+Window::~Window() {
+	glfwDestroyWindow(m_Window);
+}
+
+void Window::UnbindContext() {
+	glfwMakeContextCurrent(nullptr);
+}
+
+void Window::PollEvents() {
+	glfwPollEvents();
 }
 
 GLFWmonitor* Window::GetActiveMonitor() {
@@ -99,21 +114,44 @@ bool Window::IsFullscreen() const {
 void Window::OnResize(u32 const width, u32 const height) {
 	m_Properties.Width = width;
 	m_Properties.Height = height;
+	m_Width.store(width);
+	m_Height.store(height);
 	m_FrameBufferResized = true;
 	CalculateAspectRatio();
+	if (width > 0 && height > 0) {
+		UI::System::Instance().OnUpdate();
+	}
 }
 
 void Window::CheckViewportResize() {
 	if (m_FrameBufferResized.exchange(false) == true) {
-		glViewport(0, 0, m_Properties.Width, m_Properties.Height);
+		const u32 width = m_Width.load();
+		const u32 height = m_Height.load();
+		if (width > 0 && height > 0) {
+			glViewport(0, 0, width, height);
+		}
 	}
 }
 
-bool Window::ShouldClose() const { return glfwWindowShouldClose(m_Window); }
-GLFWwindow * Window::GetWindow() const { return m_Window; }
-i32 Window::GetWindowWidth() const { return m_Properties.Width; }
-i32 Window::GetWindowHeight() const { return m_Properties.Height; }
-f32 Window::GetAspectRatio() const { return m_LastAspectRatio; }
+bool Window::ShouldClose() const {
+	return glfwWindowShouldClose(m_Window);
+}
+
+GLFWwindow * Window::GetWindow() const {
+	return m_Window;
+}
+
+i32 Window::GetWindowWidth() const {
+	return static_cast<i32>(m_Width.load());
+}
+
+i32 Window::GetWindowHeight() const {
+	return static_cast<i32>(m_Height.load());
+}
+
+f32 Window::GetAspectRatio() const {
+	return m_LastAspectRatio.load();
+}
 
 bool Window::CreateWindowInstance() {
 	GLFWwindow* shareWindow = m_Properties.ShareWindow != nullptr ? m_Properties.ShareWindow->GetWindow() : nullptr;
@@ -140,7 +178,10 @@ void Window::CenterOnPrimaryMonitor() const {
 
 void Window::CalculateAspectRatio() {
 	const i32 height = GetWindowHeight();
-	if (height == 0) { m_LastAspectRatio = 1.0f; }
-	m_LastAspectRatio = static_cast<f32>(GetWindowWidth()) / static_cast<f32>(height);
+	if (height == 0) {
+		m_LastAspectRatio.store(1.0f);
+	} else {
+		m_LastAspectRatio.store(static_cast<f32>(GetWindowWidth()) / static_cast<f32>(height));
+	}
 }
 }

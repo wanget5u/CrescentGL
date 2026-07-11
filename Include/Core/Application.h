@@ -10,22 +10,25 @@ struct Window;
 namespace Scene {
 struct Scene;
 }
+namespace Input {
+struct Context;
+}
 struct Application {
 	Application();
 	~Application();
 	void Run();
 private:
-	void CloseAction();
-	void FullscreenAction() const;
-	void SetupAndBindInputActions();
 	std::unique_ptr<Window> m_MainWindow;
 	std::unique_ptr<Window> m_LoadWindow;
-	std::unique_ptr<Scene::Scene> m_ActiveScene;
 	mutable std::mutex m_ActiveSceneMutex;
+	std::unique_ptr<Scene::Scene> m_ActiveScene;
 	std::atomic<bool> m_Running{true};
 	std::atomic<bool> m_WantsFullscreenToggle{false};
 	std::atomic<bool> m_RenderThreadSafeToToggle{false};
-	f32 timer{0};
+	std::unique_ptr<Input::Context> m_EditorInputContext;
+	std::unique_ptr<Input::Context> m_GameInputContext;
+	void SetupGlobalInputActions();
+	void SetupUIPanels();
 	void RenderThreadLoop();
 };
 }

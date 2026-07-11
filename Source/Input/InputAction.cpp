@@ -30,21 +30,26 @@ namespace Crescent::Input {
 		return binding;
 	}
 
-	Action::SubscriptionID Action::Subscribe(Callback callback) {
+	Action::Event::Event(std::string const &actionName, Action::Phase const phase, f32 const value): ActionName(actionName), Phase(phase), Value(value) {}
+	void Action::BindKeyboardKey(KeyCode const code) { m_Bindings.push_back(Binding::FromKey(code)); }
+	void Action::BindMouseButton(MouseButton const button) { m_Bindings.push_back(Binding::FromMouseButton(button)); }
+	void Action::BindMouseAxis(MouseAxis const axis, f32 const scale) { m_Bindings.push_back(Binding::FromMouseAxis(axis, scale)); }
+
+	u32 Action::Subscribe(Callback callback) {
 	u32 id = m_NextID++;
 	m_Subscribers[id] = std::move(callback);
 	return id;
 }
 
-void Action::Unsubscribe(SubscriptionID const id) {
+void Action::Unsubscribe(u32 const id) {
 	size_t erasedCount = m_Subscribers.erase(id);
 	if (erasedCount == 0) {
 		Log::Warning("[InputAction] Tried to erase non-existing subscription.");
 	}
 }
 
-void Action::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta) {
-	m_IsActive = EvaluateBindings(window, mouseDeltaX, mouseDeltaY, scrollDelta);
+void Action::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta, bool const mouseCaptured, bool const keyboardCaptured) {
+	m_IsActive = EvaluateBindings(window, mouseDeltaX, mouseDeltaY, scrollDelta, mouseCaptured, keyboardCaptured);
 	if (m_Subscribers.empty() == true) {
 		return;
 	}
@@ -71,8 +76,14 @@ void Action::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouse
 	m_WasActive = m_IsActive;
 }
 
-bool Action::EvaluateBindings(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta) {
+bool Action::EvaluateBindings(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta, bool const mouseCaptured, bool const keyboardCaptured) {
 	for (Binding const& binding : m_Bindings) {
+		if (binding.type == Binding::Type::Key && keyboardCaptured == true) {
+			continue;
+		}
+		if ((binding.type == Binding::Type::MouseButton || binding.type == Binding::Type::MouseAxis) && mouseCaptured == true) {
+			continue;
+		}
 		bool matched = false;
 		switch (binding.type) {
 		case Binding::Type::Key:

@@ -4,19 +4,15 @@
 namespace Crescent::Render {
 	struct BatchRenderer;
 }
-
 namespace Crescent::Scene {
 struct VisualInstance3D : Node3D {
 	friend struct Render::BatchRenderer;
-
-	VisualInstance3D();
+	VisualInstance3D() = default;
 	~VisualInstance3D() override = default;
 	void OnTreeEnter() override;
 	void OnTreeExit() override;
-
 	void SetLayerMask(u8 index) noexcept;
 	[[nodiscard]] u8 GetLayerMask() const noexcept;
-
 	template <typename... Args>
 	void SetLayerMasks(Args... indices);
 	void EnableLayer(u8 maskIndex);

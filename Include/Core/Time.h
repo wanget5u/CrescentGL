@@ -13,7 +13,6 @@ struct Time {
 	[[nodiscard]] static f32 GetFixedDeltaTime();
 	[[nodiscard]] static f32 GetTotalTime();
 	[[nodiscard]] static f32 GetSubstepAlpha();
-	[[nodiscard]] static f32 GetFPS();
 private:
 	static f32 s_VariableDeltaTime;
 	static f32 s_LastFrameTime;

@@ -9,31 +9,46 @@ namespace Crescent::Input {
 System::~System() = default;
 
 void GLFWKeyboardKeyCallback(
-	[[maybe_unused]] GLFWwindow* window,
-	[[maybe_unused]] i32 const key,
-	[[maybe_unused]] i32 const scancode,
-	[[maybe_unused]] i32 const action,
-	[[maybe_unused]] i32 const mods) {
-	System::Instance().OnKeyboardKeyCallback(key, action, mods);
+	GLFWwindow* window,
+	i32 const key,
+	i32 const scancode,
+	i32 const action,
+	i32 const mods) {
+	System::Instance().OnKeyboardKeyCallback(window, key, scancode, action, mods);
 }
 void GLFWMouseButtonCallback(
-	[[maybe_unused]] GLFWwindow* window,
-	[[maybe_unused]] i32 const button,
-	[[maybe_unused]] i32 const action,
-	[[maybe_unused]] i32 const mods) {
-	System::Instance().OnMouseButtonCallback(button, action, mods);
+	GLFWwindow* window,
+	i32 const button,
+	i32 const action,
+	i32 const mods) {
+	System::Instance().OnMouseButtonCallback(window, button, action, mods);
 }
 void GLFWMouseScrollCallback(
-	[[maybe_unused]] GLFWwindow* window,
-	[[maybe_unused]] f64 const xOffset,
-	[[maybe_unused]] f64 const yOffset) {
-	System::Instance().OnMouseScrollCallback(xOffset, yOffset);
+	GLFWwindow* window,
+	f64 const xOffset,
+	f64 const yOffset) {
+	System::Instance().OnMouseScrollCallback(window, xOffset, yOffset);
 }
 void GLFWCursorPosCallback(
-	[[maybe_unused]] GLFWwindow* window,
-	[[maybe_unused]] f64 const xPos,
-	[[maybe_unused]] f64 const yPos) {
-	System::Instance().OnCursorCallback(xPos, yPos);
+	GLFWwindow* window,
+	f64 const xPos,
+	f64 const yPos) {
+	System::Instance().OnCursorCallback(window, xPos, yPos);
+}
+void GLFWCharCallback(
+	GLFWwindow* window,
+	u32 const c) {
+	System::Instance().OnCharCallback(window, c);
+}
+void GLFWWindowFocusCallback(
+	GLFWwindow* window,
+	i32 const focused) {
+	System::Instance().OnWindowFocusCallback(window, focused);
+}
+void GLFWCursorEnterCallback(
+	GLFWwindow* window,
+	i32 const entered) {
+	System::Instance().OnCursorEnterCallback(window, entered);
 }
 
 void System::OnCreate(GLFWwindow* window) {
@@ -43,6 +58,13 @@ void System::OnCreate(GLFWwindow* window) {
 	glfwSetMouseButtonCallback(m_Window, GLFWMouseButtonCallback);
 	glfwSetScrollCallback(m_Window, GLFWMouseScrollCallback);
 	glfwSetCursorPosCallback(m_Window, GLFWCursorPosCallback);
+	glfwSetCharCallback(m_Window, GLFWCharCallback);
+	glfwSetWindowFocusCallback(m_Window, GLFWWindowFocusCallback);
+	glfwSetCursorEnterCallback(m_Window, GLFWCursorEnterCallback);
+
+	CreateContext(Context::Type::Global);
+	CreateContext(Context::Type::SceneEditor);
+	CreateContext(Context::Type::Game);
 }
 
 void System::OnUpdate() {
@@ -53,12 +75,29 @@ void System::OnUpdate() {
 	m_MouseDeltaY = static_cast<f32>(cursorY - m_LastCursorY);
 	m_LastCursorX = cursorX;
 	m_LastCursorY = cursorY;
-	std::unordered_map<Context::Type, std::unique_ptr<Context>>::iterator it
-		= m_Contexts.find(m_ActiveContext);
-	if (it != m_Contexts.end()) {
-		it->second->OnUpdate(m_Window, m_MouseDeltaX, m_MouseDeltaY, m_ScrollDelta);
+	for (Context::Type const contextType : m_ActiveContexts) {
+		std::unordered_map<Context::Type, std::unique_ptr<Context>>::iterator it
+			= m_Contexts.find(contextType);
+		if (it != m_Contexts.end()) {
+			it->second->OnUpdate(m_Window, m_MouseDeltaX, m_MouseDeltaY, m_ScrollDelta);
+		}
 	}
 	m_ScrollDelta = 0.0f;
+}
+
+void System::SetContextActive(const Context::Type contextType, const bool active) {
+	std::vector<Context::Type>::iterator it
+		= std::ranges::find(m_ActiveContexts, contextType);
+	if (active == true && it == m_ActiveContexts.end()) {
+		m_ActiveContexts.push_back(contextType);
+	}
+	else if (active == false && it != m_ActiveContexts.end()) {
+		m_ActiveContexts.erase(it);
+	}
+}
+
+bool System::IsContextActive(const Context::Type contextType) const {
+	return std::ranges::find(m_ActiveContexts, contextType) != m_ActiveContexts.end();
 }
 
 Context& System::CreateContext(Context::Type contextType) {
@@ -67,15 +106,14 @@ Context& System::CreateContext(Context::Type contextType) {
 	return *m_Contexts.at(contextType);
 }
 
-void System::SetActiveContext(Context::Type const contextType) { m_ActiveContext = contextType; }
-
-Context* System::GetActiveContext() {
+Context* System::GetContext(const Context::Type contextType) {
 	std::unordered_map<Context::Type, std::unique_ptr<Context>>::iterator it
-		= m_Contexts.find(m_ActiveContext);
-	if (it != m_Contexts.end()) {
-		return it->second.get();
-	}
-	return nullptr;
+		= m_Contexts.find(contextType);
+	return (it != m_Contexts.end()) ? it->second.get() : nullptr;
+}
+
+GLFWwindow* System::GetWindow() const {
+	return m_Window;
 }
 
 bool System::IsKeyPressed(KeyCode keyCode) const {
@@ -105,20 +143,73 @@ void System::GetCursorPos(f64& x, f64& y) const {
 	glfwGetCursorPos(m_Window, &x, &y);
 }
 
-void System::OnKeyboardKeyCallback([[maybe_unused]] i32 const key, [[maybe_unused]] i32 const action, [[maybe_unused]] i32 const mods) {
+void System::RegisterListener(IInputListener* listener) {
+	if (listener == nullptr) return;
+	for (auto* l : m_Listeners) {
+		if (l == listener) return;
+	}
+	m_Listeners.push_back(listener);
+}
+
+void System::UnregisterListener(IInputListener* listener) {
+	for (size_t i = 0; i < m_Listeners.size(); ++i) {
+		if (m_Listeners[i] == listener) {
+			m_Listeners.erase(m_Listeners.begin() + i);
+			break;
+		}
+	}
+}
+
+void System::OnKeyboardKeyCallback(GLFWwindow* window, i32 const key, i32 const scancode, i32 const action, i32 const mods) {
 	m_KeyboardKeyState[key] = (action != GLFW_RELEASE);
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnKeyboardKey(window, key, scancode, action, mods);
+	}
 }
 
-void System::OnMouseButtonCallback([[maybe_unused]] i32 const button, [[maybe_unused]] i32 const action, [[maybe_unused]] i32 const mods) {
+void System::OnMouseButtonCallback(GLFWwindow* window, i32 const button, i32 const action, i32 const mods) {
 	m_MouseButtonState[button] = (action != GLFW_RELEASE);
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnMouseButton(window, button, action, mods);
+	}
 }
 
-void System::OnMouseScrollCallback([[maybe_unused]] f64 const xOffset, [[maybe_unused]] f64 const yOffset) {
+void System::OnMouseScrollCallback(GLFWwindow* window, f64 const xOffset, f64 const yOffset) {
 	m_ScrollDelta += static_cast<f32>(yOffset);
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnMouseScroll(window, xOffset, yOffset);
+	}
 }
 
-void System::OnCursorCallback([[maybe_unused]] f64 const xPos, [[maybe_unused]] f64 const yPos) const {
-	// TODO:
+void System::OnCursorCallback(GLFWwindow* window, f64 const xPos, f64 const yPos) {
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnCursorPos(window, xPos, yPos);
+	}
+}
+
+void System::OnCharCallback(GLFWwindow* window, u32 const c) {
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnChar(window, c);
+	}
+}
+
+void System::OnWindowFocusCallback(GLFWwindow* window, i32 const focused) {
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnWindowFocus(window, focused);
+	}
+}
+
+void System::OnCursorEnterCallback(GLFWwindow* window, i32 const entered) {
+	auto copy = m_Listeners;
+	for (auto* listener : copy) {
+		if (listener) listener->OnCursorEnter(window, entered);
+	}
 }
 
 }

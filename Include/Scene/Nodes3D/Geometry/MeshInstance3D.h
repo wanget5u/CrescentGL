@@ -1,6 +1,6 @@
 #pragma once
 #include "GeometryInstance3D.h"
-#include "Asset/Type/Type.h"
+#include "../../../Asset/AssetType.h"
 
 namespace Crescent::Scene {
 /// Represents a single renderable 3D static mesh instance within the scene tree.

@@ -1,8 +1,9 @@
 #include "Render/BatchRenderer.h"
 
-#include <cstring>
 #include "Core/Time.h"
 #include "glad/glad.h"
+#include "GLFW/glfw3.h"
+#include "Render/RenderStats.h"
 #include "Render/Material/Material.h"
 #include "Render/SceneData.h"
 #include "Scene/Nodes3D/Camera3D.h"
@@ -13,81 +14,20 @@
 
 namespace Crescent::Render {
 
-template <typename T>
-void RenderGroup<T>::Register(T* instance, const bool isBatchLoading) {
-    if (isBatchLoading) {
-        Staged.PushBack(instance);
-    } else {
-        Registered.PushBack(instance);
-    }
+BatchRenderer::BatchRenderer() {
+    glGenQueries(FrameQueryCount, m_GPUTimerQueryIDs);
 }
 
-template <typename T>
-void RenderGroup<T>::Unregister(T* instance, const bool isBatchUnloading) {
-    if (isBatchUnloading) {
-        for (size_t a = 0; a < Registered.GetSize(); ++a) {
-            if (Registered[a] == instance) {
-                Registered[a] = nullptr;
-                break;
-            }
-        }
-    } else {
-        Registered.Remove(instance);
-        Staged.Remove(instance);
+BatchRenderer::~BatchRenderer() {
+    glDeleteQueries(FrameQueryCount, m_GPUTimerQueryIDs);
+    for (u32& m_GPUTimerQueryID : m_GPUTimerQueryIDs) {
+        m_GPUTimerQueryID = 0;
+    }
+    if (m_SceneDataUBO != 0) {
+        glDeleteBuffers(1, &m_SceneDataUBO);
+        m_SceneDataUBO = 0;
     }
 }
-
-template <typename T>
-void RenderGroup<T>::FlushLoad() {
-    if (Staged.IsEmpty() == false) {
-        Registered.Reserve(Registered.GetSize() + Staged.GetSize());
-        for (size_t a = 0; a < Staged.GetSize(); ++a) {
-            Registered.PushBack(Staged[a]);
-        }
-        Staged.Clear();
-    }
-}
-
-template <typename T>
-void RenderGroup<T>::FlushUnload() {
-    size_t writeIndex = 0;
-    for (size_t readIndex = 0; readIndex < Registered.GetSize(); ++readIndex) {
-        if (Registered[readIndex] != nullptr) {
-            Registered[writeIndex] = Registered[readIndex];
-            writeIndex++;
-        }
-    }
-    while (Registered.GetSize() > writeIndex) {
-        Registered.PopBack();
-    }
-}
-
-template <typename T>
-void RenderGroup<T>::Clear() {
-    Registered.Clear();
-    Staged.Clear();
-}
-
-template<typename T>
-RenderGroup<T>* BatchRenderer::GetRenderGroup() {
-    std::type_index typeIndex = typeid(T);
-    std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>>::iterator it
-        = m_RenderGroups.find(typeIndex);
-    if (it == m_RenderGroups.end()) {
-        std::unique_ptr<RenderGroup<T>> renderGroup = std::make_unique<RenderGroup<T>>();
-        RenderGroup<T>* ptr = renderGroup.get();
-        m_RenderGroups[typeIndex] = std::move(renderGroup);
-        return ptr;
-    }
-    return static_cast<RenderGroup<T>*>(it->second.get());
-}
-
-template struct RenderGroup<Scene::MeshInstance3D>;
-template struct RenderGroup<Scene::InstancedVisual3D>;
-template struct RenderGroup<Scene::Light3D>;
-template RenderGroup<Scene::MeshInstance3D>* BatchRenderer::GetRenderGroup<Scene::MeshInstance3D>();
-template RenderGroup<Scene::InstancedVisual3D>* BatchRenderer::GetRenderGroup<Scene::InstancedVisual3D>();
-template RenderGroup<Scene::Light3D>* BatchRenderer::GetRenderGroup<Scene::Light3D>();
 
 void BatchRenderer::InitializeBuffers() {
     glGenBuffers(1, &m_SceneDataUBO);
@@ -98,6 +38,7 @@ void BatchRenderer::InitializeBuffers() {
 }
 
 void BatchRenderer::PrepareFrame(Scene::Camera3D const* camera) {
+    Stats::Instance().Reset();
     GPU::SceneData sceneData{};
     sceneData.View = camera->GetViewMatrix();
     sceneData.Projection = camera->GetProjectionMatrix();
@@ -107,7 +48,7 @@ void BatchRenderer::PrepareFrame(Scene::Camera3D const* camera) {
 
     RenderGroup<Scene::Light3D>* light3DRenderGroup = GetRenderGroup<Scene::Light3D>();
     i32 lightCount{0};
-    for (size_t a = 0; a < light3DRenderGroup->Registered.GetSize() && lightCount < 32; ++a) {
+    for (size_t a = 0; a < light3DRenderGroup->Registered.GetSize() && lightCount < Scene::Light3D::MaxPointLightsPerDrawCall; ++a) {
         Scene::Light3D* light3D = light3DRenderGroup->Registered[a];
         if (light3D->IsOn() && light3D->IsVisible() && light3D->GetLightType() == Scene::LightType::Point) {
             Scene::PointLight3D* pointLight3D = dynamic_cast<Scene::PointLight3D*>(light3D);
@@ -157,6 +98,9 @@ void BatchRenderer::Clear() {
 }
 
 void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
+    m_CurrentQueryIndex = (m_CurrentQueryIndex + 1) % FrameQueryCount;
+    u32 currentQuery = m_GPUTimerQueryIDs[m_CurrentQueryIndex];
+    glBeginQuery(GL_TIME_ELAPSED, currentQuery);
     PrepareFrame(camera);
 
     // MeshInstance3D
@@ -193,6 +137,19 @@ void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
         material->SetMatrix4("u_View", camera->GetViewMatrix());
         material->SetMatrix4("u_Projection", camera->GetProjectionMatrix());
         instancedVisual3D->Draw();
+    }
+    glEndQuery(GL_TIME_ELAPSED);
+    m_QueryIssued[m_CurrentQueryIndex] = true;
+    u32 oldestIndex = (m_CurrentQueryIndex + 1) % FrameQueryCount;
+    if (m_QueryIssued[oldestIndex] == true) {
+        u32 oldestQuery = m_GPUTimerQueryIDs[oldestIndex];
+        GLint available = 0;
+        glGetQueryObjectiv(oldestQuery, GL_QUERY_RESULT_AVAILABLE, &available);
+        if (available != 0) {
+            u64 elapsedNanoseconds = 0;
+            glGetQueryObjectui64v(oldestQuery, GL_QUERY_RESULT, &elapsedNanoseconds);
+            Stats::Instance().GPUFrameTimeMs = static_cast<f32>(elapsedNanoseconds) * 1e-6f;
+        }
     }
 }
 

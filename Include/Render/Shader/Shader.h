@@ -45,5 +45,4 @@ private:
 	static bool LogCompileErrors(u32 shader, Type type);
 	[[nodiscard]] i32 GetUniformLocation(std::string_view name) const;
 };
-
 }

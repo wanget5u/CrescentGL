@@ -1,8 +1,10 @@
 #pragma once
 #include <memory>
+#include <vector>
 
 #include "Input/InputContext.h"
 #include "Input/InputCodes.h"
+#include "Input/InputListener.h"
 
 namespace Crescent::Input {
 struct System {
@@ -12,9 +14,10 @@ struct System {
 	}
 	void OnCreate(GLFWwindow* window);
 	void OnUpdate();
-	Context& CreateContext(Context::Type contextType);
-	void SetActiveContext(Context::Type contextType);
-	Context* GetActiveContext();
+	void SetContextActive(Context::Type contextType, bool active = true);
+	bool IsContextActive(Context::Type contextType) const;
+	Context* GetContext(Context::Type contextType);
+	GLFWwindow* GetWindow() const;
 	bool IsKeyPressed(KeyCode keyCode) const;
 	bool IsKeyHeld(KeyCode keyCode) const;
 	bool IsMousePressed(MouseButton mouseButton) const;
@@ -23,23 +26,29 @@ struct System {
 	f32 GetScrollDelta() const;
 	void SetCursorPos(f64 x, f64 y);
 	void GetCursorPos(f64& x, f64& y) const;
-	void OnKeyboardKeyCallback(i32 key, i32 action, i32 mods);
-	void OnMouseButtonCallback(i32 button, i32 action, i32 mods);
-	void OnMouseScrollCallback(f64 xOffset, f64 yOffset);
-	void OnCursorCallback(f64 xPos, f64 yPos) const;
+	void RegisterListener(IInputListener* listener);
+	void UnregisterListener(IInputListener* listener);
+	void OnKeyboardKeyCallback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods);
+	void OnMouseButtonCallback(GLFWwindow* window, i32 button, i32 action, i32 mods);
+	void OnMouseScrollCallback(GLFWwindow* window, f64 xOffset, f64 yOffset);
+	void OnCursorCallback(GLFWwindow* window, f64 xPos, f64 yPos);
+	void OnCharCallback(GLFWwindow* window, u32 c);
+	void OnWindowFocusCallback(GLFWwindow* window, i32 focused);
+	void OnCursorEnterCallback(GLFWwindow* window, i32 entered);
 private:
 	System() = default;
 	~System();
 	GLFWwindow* m_Window{nullptr};
-	Context::Type m_ActiveContext{};
+	std::vector<Context::Type> m_ActiveContexts{};
 	std::unordered_map<Context::Type, std::unique_ptr<Context>> m_Contexts{};
 	std::unordered_map<i32, bool> m_KeyboardKeyState{};
 	std::unordered_map<i32, bool> m_MouseButtonState{};
+	std::vector<IInputListener*> m_Listeners{};
 	f64 m_LastCursorX{0.0f};
 	f64 m_LastCursorY{0.0f};
 	f32 m_MouseDeltaX{0.0f};
 	f32 m_MouseDeltaY{0.0f};
 	f32 m_ScrollDelta{0.0f};
+	Context& CreateContext(Context::Type contextType);
 };
-
 }

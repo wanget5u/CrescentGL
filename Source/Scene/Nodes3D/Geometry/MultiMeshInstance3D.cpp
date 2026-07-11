@@ -4,7 +4,6 @@
 
 #include "Render/BatchRenderer.h"
 #include "Render/Material/Material.h"
-#include "Scene/Tree.h"
 
 namespace Crescent::Scene {
 

@@ -26,9 +26,19 @@ Action* Context::GetAction(std::string_view const actionName) {
 	return nullptr;
 }
 
+void Context::SetMouseCaptureFilter(std::function<bool()> filter) {
+	m_MouseCaptureFilter = std::move(filter);
+}
+
+void Context::SetKeyboardCaptureFilter(std::function<bool()> filter) {
+	m_KeyboardCaptureFilter = std::move(filter);
+}
+
 void Context::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta) {
+	bool const mouseCaptured = m_MouseCaptureFilter ? m_MouseCaptureFilter() : false;
+	bool const keyboardCaptured = m_KeyboardCaptureFilter ? m_KeyboardCaptureFilter() : false;
 	for (std::pair<const std::string, std::unique_ptr<Action>>& action: m_Actions) {
-		action.second->OnUpdate(window, mouseDeltaX, mouseDeltaY, scrollDelta);
+		action.second->OnUpdate(window, mouseDeltaX, mouseDeltaY, scrollDelta, mouseCaptured, keyboardCaptured);
 	}
 }
 

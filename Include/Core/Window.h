@@ -11,12 +11,11 @@ namespace Crescent {
 /// atomic viewport sizing changes, and contextual resource binding.
 struct Window {
     struct Properties {
-       const char8* Title {""};
-       u32 Width          {0};
-       u32 Height         {0};
-       bool Visible       {false};
+       const char8* Title{""};
+       u32 Width{0};
+       u32 Height{0};
+       bool Visible{false};
        Window* ShareWindow{nullptr};
-
        explicit Properties(
           char8 const* title = "CrescentGL",
           u32 const width = SCREEN_WIDTH,
@@ -31,9 +30,9 @@ struct Window {
           ShareWindow(shareWindow) {}
     };
     explicit Window(Properties const& properties = Properties());
-    ~Window() { glfwDestroyWindow(m_Window); }
-    static void UnbindContext() { glfwMakeContextCurrent(nullptr); }
-    static void PollEvents() { glfwPollEvents(); }
+    ~Window();
+    static void UnbindContext();
+    static void PollEvents();
     static GLFWmonitor* GetActiveMonitor();
     static const GLFWvidmode* GetActiveMonitorVideoMode();
     static i32 GetActiveMonitorWidth();
@@ -55,15 +54,17 @@ struct Window {
     [[nodiscard]] i32 GetWindowHeight() const;
     [[nodiscard]] f32 GetAspectRatio() const;
 private:
-    GLFWwindow* m_Window                  {nullptr};
-    Properties m_Properties               {"", 0, 0, false, nullptr};
+    GLFWwindow* m_Window {nullptr};
+    Properties m_Properties {"", 0, 0, false, nullptr};
+    std::atomic<u32> m_Width {0};
+    std::atomic<u32> m_Height {0};
     std::atomic<bool> m_FrameBufferResized{false};
-    bool m_IsFullscreen  {false};
-	i32 m_WindowedPosX   {0};
-	i32 m_WindowedPosY   {0};
-	i32 m_WindowedWidth  {0};
+    bool m_IsFullscreen {false};
+	i32 m_WindowedPosX {0};
+	i32 m_WindowedPosY {0};
+	i32 m_WindowedWidth {0};
 	i32 m_WindowedHeight {0};
-	f32 m_LastAspectRatio{0.0f};
+	std::atomic<f32> m_LastAspectRatio{0.0f};
     bool CreateWindowInstance();
     void CenterOnPrimaryMonitor() const;
     void CalculateAspectRatio();

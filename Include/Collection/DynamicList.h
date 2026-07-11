@@ -23,6 +23,7 @@ struct DynamicList {
 	~DynamicList() {
 		Clear();
 		FreeStorage(m_Data);
+		m_Data = nullptr;
 		m_Capacity = 0;
 	}
 	DynamicList& operator=(DynamicList const&) = delete;
@@ -190,7 +191,6 @@ struct DynamicList {
 			}
 		}
 		m_Size = 0;
-		m_Capacity = 0;
 	}
 	/// Generating a procedural mesh or loading assets, the amount of vertices
 	/// is known upfront. Calling PushBack/EmplaceBack forces thousands of redundant

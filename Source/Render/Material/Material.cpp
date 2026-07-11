@@ -2,7 +2,6 @@
 
 #include <glad/glad.h>
 
-#include "Asset/Type/Type.h"
 #include "Asset/Registry.h"
 #include "Render/Shader/Shader.h"
 
@@ -14,13 +13,13 @@ Material::Material(std::shared_ptr<Asset::Shader> shaderAsset, Math::Vector4 con
 
 std::shared_ptr<Asset::Shader> Material::GetDefaultShader() {
 	static std::shared_ptr<Asset::Shader> defaultShader =
-		Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::Type::Shader);
+		Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::AssetType::Shader);
 	return defaultShader;
 }
 
 std::shared_ptr<Material> Material::GetDefaultMaterial() {
 	static std::shared_ptr<Material> defaultMaterial = std::make_shared<Material>(
-		Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::Type::Shader),
+		Asset::Registry::Instance().GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::AssetType::Shader),
 		GetDefaultColor()
 	);
 	return defaultMaterial;

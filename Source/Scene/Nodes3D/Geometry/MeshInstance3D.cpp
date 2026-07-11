@@ -12,12 +12,12 @@ MeshInstance3D::MeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset, std::shar
 }
 
 void MeshInstance3D::OnTreeEnter() {
-	Node3D::OnTreeEnter();
+	GeometryInstance3D::OnTreeEnter();
 	m_Tree->GetBatchRenderer()->Register(this);
 }
 
 void MeshInstance3D::OnTreeExit() {
-	Node3D::OnTreeExit();
+	GeometryInstance3D::OnTreeExit();
 	m_Tree->GetBatchRenderer()->Unregister(this);
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 #include "InstancedVisual3D.h"
-#include "Asset/Type/Type.h"
+#include "../../../Asset/AssetType.h"
 
 namespace Crescent::Scene {
 struct MultiMeshInstance3D : InstancedVisual3D {

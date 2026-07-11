@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 
+#include "Render/RenderStats.h"
 #include "Render/Material/Material.h"
 
 namespace Crescent::Render {
@@ -70,9 +71,15 @@ void Mesh::Unbind() const {
 void Mesh::Draw() const {
 	glBindVertexArray(m_VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<i32>(m_IndexCount), GL_UNSIGNED_INT, nullptr);
+	Stats::Instance().DrawCalls++;
+	Stats::Instance().TriangleCount += (m_IndexCount / 3);
+	Stats::Instance().VertexCount += m_VertexCount;
 }
 
 void Mesh::DrawInstanced(const u32 instanceCount) const {
+	if (instanceCount == 0) {
+		return;
+	}
 	Bind();
 	if (m_IndexCount) {
 		glDrawElementsInstanced(
@@ -82,6 +89,8 @@ void Mesh::DrawInstanced(const u32 instanceCount) const {
 			nullptr,
 			instanceCount
 		);
+		Stats::Instance().TriangleCount += (m_IndexCount / 3) * instanceCount;
+		Stats::Instance().VertexCount += m_VertexCount * instanceCount;
 	}
 	else {
 		glDrawArraysInstanced(
@@ -90,8 +99,11 @@ void Mesh::DrawInstanced(const u32 instanceCount) const {
 			static_cast<i32>(m_VertexCount),
 			instanceCount
 		);
+		Stats::Instance().TriangleCount += (m_VertexCount / 3) * instanceCount;
+		Stats::Instance().VertexCount += m_VertexCount * instanceCount;
 	}
 	Unbind();
+	Stats::Instance().DrawCalls++;
 }
 
 void Mesh::UploadData(const DynamicList<Vertex>& vertices, const DynamicList<u32>& indices) {

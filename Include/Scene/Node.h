@@ -7,17 +7,12 @@
 
 namespace Crescent::Scene {
 struct Tree;
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Base class for all objects in the scene hierarchy
-///
 /// The Node class represents a building block of the scene graph. Nodes manage their own lifetimes,
 /// handle hierarchical transformations, propagate engine lifecycle updates down to their children
 struct Node {
 	Node();
 	virtual ~Node() = default;
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Lifecycle Methods
-	///
 	/// Called when the node is initialized or enters a live Scene Tree
 	void OnCreate();
 	/// Processed every frame
@@ -26,9 +21,6 @@ struct Node {
 	void OnPhysicsUpdate(f32 fixedDeltaTime);
 	/// Processed at the end of a frame loop
 	void OnPostUpdate();
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Tree Infrastructure
-	///
 	/// Triggered when this node or its ancestor is attached to an active Scene Tree.
 	/// Propagates the call of this method to all children
 	virtual void OnTreeEnter();
@@ -66,9 +58,6 @@ struct Node {
 	/// This avoids crashing when destroying elements inside execution updates
 	void QueueFree();
 protected:
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Node Members
-	///
 	/// Global auto-incremented counter used to mint distinct node IDs
 	static u64 s_ID;
 	/// Unique runtime numerical footprint for tracking this node instance
@@ -86,7 +75,6 @@ protected:
 	/// Internal binding to the overarching execution Tree context.
 	Tree* m_Tree{nullptr};
 };
-
 template<typename T>
 T * Node::GetFirstAncestorOfType() const {
 	Node* current = GetParent();
@@ -99,7 +87,6 @@ T * Node::GetFirstAncestorOfType() const {
 	}
 	return nullptr;
 }
-
 template<typename T, typename ... Args>
 T* Node::AddChild(std::string_view name, Args &&...args) {
 	std::unique_ptr<T> child = std::make_unique<T>(std::forward<Args>(args)...);

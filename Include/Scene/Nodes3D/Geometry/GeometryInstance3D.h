@@ -5,11 +5,9 @@ namespace Crescent::Render {
 	struct Material;
 	struct Mesh;
 }
-
 namespace Crescent::Asset {
 	struct Mesh;
 }
-
 namespace Crescent::Scene {
 struct GeometryInstance3D : VisualInstance3D {
 	friend struct Render::BatchRenderer;

@@ -1,7 +1,6 @@
 #include "Core/Time.h"
 
 namespace Crescent {
-
 f32 Time::s_VariableDeltaTime = 0.0f;
 f32 Time::s_LastFrameTime     = 0.0f;
 f32 Time::s_TotalTime         = 0.0f;
@@ -25,6 +24,4 @@ f32 Time::GetVariableDeltaTimeMs() { return s_VariableDeltaTime * 1000.0f; }
 f32 Time::GetFixedDeltaTime() { return FIXED_TIMESTEP; }
 f32 Time::GetTotalTime() { return s_TotalTime; }
 f32 Time::GetSubstepAlpha() { return s_Accumulator / FIXED_TIMESTEP; }
-f32 Time::GetFPS() { return 1.0f / s_VariableDeltaTime; }
-
 }

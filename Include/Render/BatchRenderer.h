@@ -3,6 +3,7 @@
 #include <typeindex>
 #include <unordered_map>
 
+#include "RenderGroup.h"
 #include "Collection/DynamicList.h"
 
 namespace Crescent::Scene {
@@ -11,34 +12,13 @@ namespace Crescent::Scene {
 	struct PointLight3D;
 	struct Camera3D;
 }
-
 namespace Crescent::Render {
-struct IRenderGroup {
-	virtual ~IRenderGroup() = default;
-	virtual void FlushLoad() = 0;
-	virtual void FlushUnload() = 0;
-	virtual void Clear() = 0;
-};
-
-template <typename T>
-struct RenderGroup : IRenderGroup {
-	DynamicList<T*> Registered{};
-	DynamicList<T*> Staged{};
-	void Register(T* instance, bool isBatchLoading);
-	void Unregister(T* instance, bool isBatchUnloading);
-	void FlushLoad() override;
-	void FlushUnload() override;
-	void Clear() override;
-};
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///
 struct BatchRenderer {
-	BatchRenderer() = default;
-	~BatchRenderer() = default;
+	explicit BatchRenderer();
+	~BatchRenderer();
 	void InitializeBuffers();
 	void PrepareFrame(Scene::Camera3D const* camera);
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Batch Loading / Unloading
 	///
 	void BeginBatchLoad();
 	void EndBatchLoad();
@@ -48,14 +28,11 @@ struct BatchRenderer {
 	///
 	template <typename T>
 	RenderGroup<T>* GetRenderGroup();
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	/// Registration API (Called by Node3D inside OnTreeEnter() / OnTreeExit())
 	template <typename T>
 	void Register(T* instance);
 	template <typename T>
 	void Unregister(T* instance);
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Render Execution
 	///
 	void RenderScene(Scene::Camera3D const* camera);
 private:
@@ -64,15 +41,32 @@ private:
 	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>> m_RenderGroups{};
 	///
 	u32 m_SceneDataUBO{0};
+	// TODO: IMPLEMENT SSBOs
 	u32 m_DirectionalLightSSBO{0};
 	u32 m_InstanceDataSSBO{0};
-	u32 m_materialDataUBO{0};
+	u32 m_MaterialDataUBO{0};
+	static constexpr u32 FrameQueryCount = 10;
+	bool m_QueryIssued[FrameQueryCount]{false};
+	u32 m_GPUTimerQueryIDs[FrameQueryCount]{};
+	u32 m_CurrentQueryIndex{0};
 };
+template<typename T>
+RenderGroup<T>* BatchRenderer::GetRenderGroup() {
+	std::type_index typeIndex = typeid(T);
+	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>>::iterator it
+		= m_RenderGroups.find(typeIndex);
+	if (it == m_RenderGroups.end()) {
+		std::unique_ptr<RenderGroup<T>> renderGroup = std::make_unique<RenderGroup<T>>();
+		RenderGroup<T>* renderGroupPtr = renderGroup.get();
+		m_RenderGroups[typeIndex] = std::move(renderGroup);
+		return renderGroupPtr;
+	}
+	return static_cast<RenderGroup<T>*>(it->second.get());
+}
 template<typename T>
 void BatchRenderer::Register(T* instance) {
 	GetRenderGroup<T>()->Register(instance, m_IsBatchLoading);
 }
-
 template<typename T>
 void BatchRenderer::Unregister(T* instance) {
 	GetRenderGroup<T>()->Unregister(instance, m_IsBatchLoading);

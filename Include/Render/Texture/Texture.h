@@ -1,6 +1,4 @@
 #pragma once
-
-#include "Asset/Type/Type.h"
 #include "Core/Core.h"
 
 namespace Crescent::Render {

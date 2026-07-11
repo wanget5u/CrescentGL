@@ -11,7 +11,6 @@ namespace Crescent::Asset {
 	struct Shader;
 	struct Texture;
 }
-
 namespace Crescent::Render {
 struct Shader;
 struct Material {

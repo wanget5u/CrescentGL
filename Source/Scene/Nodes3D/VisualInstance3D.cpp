@@ -5,8 +5,6 @@
 
 namespace Crescent::Scene {
 
-VisualInstance3D::VisualInstance3D() {}
-
 void VisualInstance3D::OnTreeEnter() {
 	Node3D::OnTreeEnter();
 }

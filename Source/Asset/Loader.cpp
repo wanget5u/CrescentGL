@@ -32,7 +32,7 @@ Asset::Loader::~Loader() {
 	Shutdown();
 }
 
-void Asset::Loader::LoadAssetAsync(std::string const& filepath, Type type) {
+void Asset::Loader::LoadAssetAsync(std::string const& filepath, AssetType type) {
 	std::scoped_lock lock(m_AssetMutex);
 	m_AssetLoadQueue.Push({filepath, type});
 }
@@ -46,7 +46,7 @@ bool Asset::Loader::PopReadyAssets(DynamicList<ReadyPacket>& outAssets) {
 	return true;
 }
 
-	Asset::LoadRequest Asset::Loader::PopNextRequest() {
+Asset::LoadRequest Asset::Loader::PopNextRequest() {
 	std::scoped_lock lock(m_AssetMutex);
 	if (m_AssetLoadQueue.IsEmpty()) {
 		return {};
@@ -58,7 +58,7 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 	ReadyPacket packet{};
 	packet.FilePath = request.FilePath;
 	packet.Type = request.Type;
-	if (request.Type == Type::Shader) {
+	if (request.Type == AssetType::Shader) {
 		Shader::Data shaderData{};
 		shaderData.VertexSource = Util::ReadFile(request.FilePath + ".vert");
 		shaderData.FragmentSource = Util::ReadFile(request.FilePath + ".frag");
@@ -68,11 +68,12 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 		}
 		packet.Data = std::move(shaderData);
 	}
-	else if (request.Type == Type::Texture) {
+	else if (request.Type == AssetType::Texture) {
 		Texture::Data textureData{};
 		textureData.FilePath = request.FilePath;
+		std::string resolvedPath = Util::ResolveAssetPath(textureData.FilePath);
 		textureData.Pixels = stbi_load(
-			textureData.FilePath.c_str(),
+			resolvedPath.c_str(),
 			&textureData.Width,
 			&textureData.Height,
 			&textureData.Channels,
@@ -80,8 +81,9 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 		);
 		if (textureData.Pixels == nullptr) {
 			std::string altPath = "Assets/Textures/" + textureData.FilePath;
+			std::string resolvedAltPath = Util::ResolveAssetPath(altPath);
 			textureData.Pixels = stbi_load(
-				altPath.c_str(),
+				resolvedAltPath.c_str(),
 				&textureData.Width,
 				&textureData.Height,
 				&textureData.Channels,
@@ -106,7 +108,7 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 }
 
 void Asset::Loader::LoadThreadLoop() {
-	while (m_Running) {
+	while (m_Running == true) {
 		LoadRequest request = PopNextRequest();
 		if (request.FilePath.empty() == false) {
 			Log::Info("Load Thread: Loading '{}'.", request.FilePath);

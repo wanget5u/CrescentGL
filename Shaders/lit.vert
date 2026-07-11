@@ -36,9 +36,9 @@ void main() {
 
     if (u_IsInstanced) {
         int id = gl_InstanceID;
-        int x = (id / 512) % 256;
-        int y = (id / 256) % 4;
-        int z = id % 256;
+        int x = (id / 128) % 128;
+        int y = (id / 16) % 16;
+        int z = id % 128;
 
         float yOffset = sin(u_Time * 2.0 + float(x) * 0.3) * 0.5;
         modelMatrix[3][1] += yOffset;

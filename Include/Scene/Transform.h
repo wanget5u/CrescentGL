@@ -4,9 +4,7 @@
 #include "Math/Vector/Vector3.h"
 
 namespace Crescent::Scene {
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Manages 3D spatial properties (Position, Rotation, Scale) and matrix hierarchies.
-///
 /// The Transform component calculates local and world coordinate systems. Uses dirty flag
 /// architecture, meaning matrix updates and Euler conversions are deferred until they
 /// are explicitly requested (via getters). It also tracks hierarchy versions to accurately
@@ -14,9 +12,6 @@ namespace Crescent::Scene {
 struct Transform {
 	Transform() = default;
 	~Transform() = default;
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Structural Hierarchy
-	///
 	/// Assigns a parent transformation to this transform.
 	/// Set the parent to nullptr to isolate it to local space
 	void SetParent(const Transform* parent) noexcept;
@@ -57,8 +52,6 @@ struct Transform {
 	/// Computes and returns the absolute global transformations in world coordinates
 	[[nodiscard]] Math::Matrix4x4& GetWorldMatrix() const noexcept;
 private:
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Transform Members
 	///
 	const Transform* m_Parent{nullptr};
 	Math::Vector3 m_Position = Math::Vector3::Zero();

@@ -7,23 +7,21 @@
 
 namespace Crescent::Render {
 	struct Shader;
-	struct Texture;
 	struct Mesh;
 }
-
 namespace Crescent::Asset {
-
-enum class Type : u8 {
-	Shader, Texture, Mesh
+/// Here are defined all the Asset DTO's available for the `Loader.h` to load from disk
+enum class AssetType : u8 {
+	Shader,
+	Texture,
+	Mesh
 };
-
 struct Asset {
-	std::string FilePath;
-	Type Type;
+	std::string FilePath{};
+	AssetType Type{};
 	std::atomic<bool> IsReady{false};
 	virtual ~Asset() = default;
 };
-
 struct Shader : Asset {
 	std::shared_ptr<Render::Shader> ShaderObject{nullptr};
 	struct Data {
@@ -31,8 +29,8 @@ struct Shader : Asset {
 		std::string FragmentSource;
 	};
 };
-
 struct Texture : Asset {
+	~Texture() override;
 	u32 TextureID{0};
 	i32 Width{0};
 	i32 Height{0};
@@ -45,7 +43,6 @@ struct Texture : Asset {
 		i32 Channels{0};
 	};
 };
-
 struct Mesh : Asset {
 	std::shared_ptr<Render::Mesh> MeshObject{nullptr};
 	struct Data {
@@ -53,5 +50,4 @@ struct Mesh : Asset {
 		DynamicList<u32> Indices{};
 	};
 };
-
 }

@@ -3,19 +3,13 @@
 #include "Node3D.h"
 
 namespace Crescent::Scene {
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// Node3D that defines a viewing frustum and computes the necessary view and projection matrices for rendering
 struct Camera3D : Node3D {
 	Camera3D() = default;
 	~Camera3D() override = default;
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/// Base Node Components
 	///
 	void OnTreeEnter() override;
 	void OnTreeExit() override;
-	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///
-	///
 	/// Configures the camera's projection properties
 	void SetPerspective(f32 fovDegrees, f32 aspectRatio, f32 nearZ = 0.1f, f32 farZ = 1000.0f) noexcept;
 	[[nodiscard]] const Math::Matrix4x4& GetViewMatrix() const noexcept;

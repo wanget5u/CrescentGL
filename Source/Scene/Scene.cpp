@@ -1,5 +1,7 @@
 #include "Scene/Scene.h"
 #include "Core/Window.h"
+#include "Input/InputAction.h"
+#include "Input/InputSystem.h"
 #include "Scene/Nodes3D/Camera3D.h"
 #include "Scene/Tree.h"
 
@@ -8,9 +10,14 @@ namespace Crescent::Scene {
 Scene::Scene() {
 	m_Tree = std::make_unique<Tree>();
 	m_PreviewCamera = std::make_unique<Camera3D>();
+	SetupInputActions();
 }
 
-Scene::~Scene() = default;
+Scene::~Scene() {
+	for (ActionSubscription const& action : m_InputSubscriptions) {
+		action.ActionPtr->Unsubscribe(action.SubscriptionID);
+	}
+}
 
 Node * Scene::GetRoot() const {
 	return m_Tree->GetRoot();
@@ -21,7 +28,7 @@ void Scene::MoveCamera(Math::Vector3 const &direction, const f32 deltaTime) cons
 	const Math::Vector3 forwardVector = m_PreviewCamera->Transform.GetForward();
 	const Math::Vector3 rightVector = m_PreviewCamera->Transform.GetRight();
 	const Math::Vector3 upVector = m_PreviewCamera->Transform.GetUp();
-	const f32 targetCameraSpeed = IsAccelerating ? cameraSpeed2 : cameraSpeed1;
+	const f32 targetCameraSpeed = IsAccelerating ? CameraSpeed2 : CameraSpeed1;
 	position += forwardVector * direction.z * targetCameraSpeed * deltaTime;
 	position += rightVector * direction.x * targetCameraSpeed * deltaTime;
 	position += upVector * direction.y * targetCameraSpeed * deltaTime;
@@ -62,19 +69,19 @@ void Scene::SetMoveInputLeftward(const bool active) {
 
 void Scene::UpdateCamera(const f32 deltaTime) {
 	Math::Vector3 direction = Math::Vector3::Zero();
-	Math::Vector3 eulerDelta = Math::Vector3::Zero();
+	Math::Vector3 eulerDelta{};
 	{
 		std::scoped_lock lock(m_CameraMutex);
-		if (m_MoveForward) {
+		if (m_MoveForward == true) {
 			direction += Math::Vector3::Back();
 		}
-		if (m_MoveBackward) {
+		if (m_MoveBackward == true) {
 			direction += Math::Vector3::Forward();
 		}
-		if (m_MoveRightward) {
+		if (m_MoveRightward == true) {
 			direction += Math::Vector3::Right();
 		}
-		if (m_MoveLeftward) {
+		if (m_MoveLeftward == true) {
 			direction += Math::Vector3::Left();
 		}
 		eulerDelta = m_PendingEulerDelta;
@@ -86,6 +93,88 @@ void Scene::UpdateCamera(const f32 deltaTime) {
 	if (eulerDelta != Math::Vector3::Zero()) {
 		RotateCamera(eulerDelta);
 	}
+}
+
+void Scene::SetupInputActions() {
+	Input::Context* editorContext = Input::System::Instance().GetContext(Input::Context::Type::SceneEditor);
+	Input::System::Instance().SetContextActive(Input::Context::Type::SceneEditor);
+
+	Input::Action& focusWindowAction = editorContext->AddAction("Focus_Window");
+	focusWindowAction.BindMouseButton(Input::MouseButton::Right);
+	u32 focusActionSubscription = focusWindowAction.Subscribe([](Input::Action::Event const& actionEvent) {
+		GLFWwindow* window = Input::System::Instance().GetWindow();
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			f64 x = 0.0;
+			f64 y = 0.0;
+			Input::System::Instance().GetCursorPos(x, y);
+			Input::System::Instance().SetCursorPos(x, y);
+		}
+		else if (actionEvent.Phase == Input::Action::Phase::Released) {
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			f64 x = 0.0;
+			f64 y = 0.0;
+			Input::System::Instance().GetCursorPos(x, y);
+			Input::System::Instance().SetCursorPos(x, y);
+		}
+	});
+	m_InputSubscriptions.PushBack({&focusWindowAction, focusActionSubscription});
+
+	Input::Action& lookXAction = editorContext->AddAction("Look_X");
+	lookXAction.BindMouseAxis(Input::MouseAxis::X, CameraLookSensitivity);
+	u32 lookXSubscription = lookXAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
+			QueueCameraRotation(Math::Vector3(0.0f, -actionEvent.Value, 0.0f));
+		}
+	});
+	m_InputSubscriptions.PushBack({&lookXAction, lookXSubscription});
+
+	Input::Action& lookYAction = editorContext->AddAction("Look_Y");
+	lookYAction.BindMouseAxis(Input::MouseAxis::Y, CameraLookSensitivity);
+	u32 lookYSubscription = lookYAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		if (Input::System::Instance().IsMousePressed(Input::MouseButton::Right)) {
+			QueueCameraRotation(Math::Vector3(-actionEvent.Value, 0.0f, 0.0f));
+		}
+	});
+	m_InputSubscriptions.PushBack({&lookYAction, lookYSubscription});
+
+	Input::Action& moveForward = editorContext->AddAction("Move_Forward");
+	moveForward.BindKeyboardKey(Input::KeyCode::W);
+	u32 moveForwardSubscription = moveForward.Subscribe([this](Input::Action::Event const& actionEvent) {
+		SetMoveInputForward(actionEvent.Phase != Input::Action::Phase::Released);
+	});
+	m_InputSubscriptions.PushBack({&moveForward, moveForwardSubscription});
+
+	Input::Action& moveBackwardAction = editorContext->AddAction("Move_Backward");
+	moveBackwardAction.BindKeyboardKey(Input::KeyCode::S);
+	u32 moveBackwardSubscription = moveBackwardAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		SetMoveInputBackward(actionEvent.Phase != Input::Action::Phase::Released);
+	});
+	m_InputSubscriptions.PushBack({&moveBackwardAction, moveBackwardSubscription});
+
+	Input::Action& moveRightwardAction = editorContext->AddAction("Move_Rightward");
+	moveRightwardAction.BindKeyboardKey(Input::KeyCode::D);
+	u32 moveRightwardSubscription = moveRightwardAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		SetMoveInputRightward(actionEvent.Phase != Input::Action::Phase::Released);
+	});
+	m_InputSubscriptions.PushBack({&moveRightwardAction, moveRightwardSubscription});
+
+	Input::Action& moveLeftward = editorContext->AddAction("Move_Leftward");
+	moveLeftward.BindKeyboardKey(Input::KeyCode::A);
+	u32 moveLeftwardSubscription = moveLeftward.Subscribe([this](Input::Action::Event const& actionEvent) {
+		SetMoveInputLeftward(actionEvent.Phase != Input::Action::Phase::Released);
+	});
+	m_InputSubscriptions.PushBack({&moveLeftward, moveLeftwardSubscription});
+
+	Input::Action& moveAccelerateAction = editorContext->AddAction("Move_Accelerate");
+	moveAccelerateAction.BindKeyboardKey(Input::KeyCode::LeftShift);
+	u32 moveAccelerateSubscription = moveAccelerateAction.Subscribe([this](Input::Action::Event const& actionEvent) {
+		IsAccelerating = (actionEvent.Phase != Input::Action::Phase::Released);
+	});
+	m_InputSubscriptions.PushBack({&moveAccelerateAction, moveAccelerateSubscription});
+
+	// TODO: add camera zoom with mouse scroll
+	// TODO: add acceleration with shift mouse scroll
 }
 
 }

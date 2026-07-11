@@ -22,7 +22,7 @@ void Registry::OnUpdate() {
 			continue;
 		}
 		std::shared_ptr<Asset>& baseAsset = it->second;
-		if (packet.Type == Type::Shader) {
+		if (packet.Type == AssetType::Shader) {
 			std::shared_ptr<Shader> shaderAsset = std::static_pointer_cast<Shader>(baseAsset);
 			Shader::Data& shaderData = std::get<Shader::Data>(packet.Data);
 			shaderAsset->ShaderObject = std::make_shared<Render::Shader>(
@@ -31,7 +31,7 @@ void Registry::OnUpdate() {
 			shaderAsset->IsReady = true;
 			Log::Info("Registry: Uploaded Shader '{}' to VRAM.", packet.FilePath);
 		}
-		else if (packet.Type == Type::Texture) {
+		else if (packet.Type == AssetType::Texture) {
 			std::shared_ptr<Texture> textureAsset = std::static_pointer_cast<Texture>(baseAsset);
 			Texture::Data& textureData = std::get<Texture::Data>(packet.Data);
 			if (textureData.Pixels == nullptr) {
@@ -69,7 +69,7 @@ void Registry::OnUpdate() {
 			textureAsset->IsReady = true;
 			Log::Info("Registry: Uploaded Texture '{}' to VRAM (ID: {}).", packet.FilePath, textureAsset->TextureID);
 		}
-		else if (packet.Type == Type::Mesh) {
+		else if (packet.Type == AssetType::Mesh) {
 			std::shared_ptr<Mesh> meshAsset = std::static_pointer_cast<Mesh>(baseAsset);
 			Mesh::Data& meshData = std::get<Mesh::Data>(packet.Data);
 			meshAsset->MeshObject = std::make_shared<Render::Mesh>(
@@ -85,6 +85,17 @@ void Registry::OnUpdate() {
 				meshAsset->MeshObject->GetVBO(), meshAsset->MeshObject->GetEBO()
 			);
 		}
+}
+}
+
+void Registry::Clear() {
+	m_Registry.clear();
+}
+
+Texture::~Texture() {
+	if (TextureID != 0) {
+		glDeleteTextures(1, &TextureID);
+		TextureID = 0;
 	}
 }
 
