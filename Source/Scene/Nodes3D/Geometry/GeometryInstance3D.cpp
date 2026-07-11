@@ -2,6 +2,7 @@
 
 #include "../../../../Include/Asset/AssetType.h"
 #include "Render/Mesh.h"
+#include "Render/Material/Material.h"
 
 namespace Crescent::Scene {
 
@@ -26,6 +27,9 @@ void GeometryInstance3D::SetMaterialOverride(std::shared_ptr<Render::Material> m
 }
 
 std::shared_ptr<Render::Material> GeometryInstance3D::GetMaterialOverride() const noexcept {
+	if (m_Material == nullptr) {
+		return Render::Material::GetDefaultMaterial();
+	}
 	return m_Material;
 }
 
@@ -38,7 +42,7 @@ std::shared_ptr<Render::Material> GeometryInstance3D::GetMaterial() const noexce
 }
 
 Render::Mesh * GeometryInstance3D::GetMesh() const noexcept {
-	if (m_MeshAsset->IsReady == true) {
+	if (m_MeshAsset && m_MeshAsset->IsReady && m_MeshAsset->MeshObject) {
 		return m_MeshAsset->MeshObject.get();
 	}
 	return nullptr;

@@ -4,12 +4,15 @@
 #include <glad/glad.h>
 #include "Core/Log.h"
 #include "Util/FileOperations.h"
+#include "Render/GPUDisposalQueue.h"
 
 namespace Crescent::Render {
 
 Shader::Shader(const std::string_view vertexSource, const std::string_view fragmentSource) {
-	std::string parsedVertex = ParseIncludes(vertexSource, std::unordered_set<std::string>{});
-	std::string parsedFragment = ParseIncludes(fragmentSource, std::unordered_set<std::string>{});
+	std::unordered_set<std::string> vertexIncludedFiles{};
+	std::string parsedVertex = ParseIncludes(vertexSource, vertexIncludedFiles);
+	std::unordered_set<std::string> fragmentIncludedFiles{};
+	std::string parsedFragment = ParseIncludes(fragmentSource, fragmentIncludedFiles);
 	const char8* vertexShaderCode = parsedVertex.c_str();
 	const char8* fragmentShaderCode = parsedFragment.c_str();
 	u32 vertexShader{};
@@ -43,18 +46,23 @@ Shader::Shader(const std::string_view vertexSource, const std::string_view fragm
 	glDeleteShader(fragmentShader);
 }
 
-Shader::~Shader() { if (ID != 0) {glDeleteProgram(ID);} }
+Shader::~Shader() {
+	if (ID != 0) {
+		GPUDisposalQueue::SubmitProgramForDeletion(ID);
+		ID = 0;
+	}
+}
 Shader::Shader(Shader &&other) noexcept: ID(other.ID) { other.ID = 0; }
 Shader & Shader::operator=(Shader &&other) noexcept {
 	if (this != &other) {
-		if (ID != 0) { glDeleteProgram(ID); }
+		if (ID != 0) { GPUDisposalQueue::SubmitProgramForDeletion(ID); }
 		ID = other.ID;
 		other.ID = 0;
 	}
 	return *this;
 }
 
-std::string Shader::ParseIncludes(const std::string_view source, std::unordered_set<std::string> includedFiles) {
+std::string Shader::ParseIncludes(const std::string_view source, std::unordered_set<std::string>& includedFiles) {
 	std::stringstream output{};
 	std::string line{};
 	std::stringstream sourceStream((std::string(source)));
@@ -65,7 +73,7 @@ std::string Shader::ParseIncludes(const std::string_view source, std::unordered_
 			output << line << "\n";
 			continue;
 		}
-		// #include "Shaders/SceneData.glsl"
+		// #include "Shaders/RenderData.glsl"
 		size_t start = line.find('"');
 		size_t end = line.find('"', start + 1);
 		if (start == std::string::npos || end == std::string::npos) {
@@ -118,6 +126,55 @@ void Shader::SetMatrix4(std::string_view const name, Math::Matrix4x4 const &matr
 	glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, matrix.Data());
 }
 
+void Shader::TrySetBool(std::string_view const name, bool const value) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniform1i(loc, static_cast<i32>(value));
+	}
+}
+
+void Shader::TrySetInt(std::string_view const name, i32 const value) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniform1i(loc, value);
+	}
+}
+
+void Shader::TrySetFloat(std::string_view const name, f32 const value) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniform1f(loc, value);
+	}
+}
+
+void Shader::TrySetVector2(std::string_view const name, Math::Vector2 const &value) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniform2fv(loc, 1, value.data);
+	}
+}
+
+void Shader::TrySetVector3(std::string_view const name, Math::Vector3 const &value) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniform3fv(loc, 1, value.data);
+	}
+}
+
+void Shader::TrySetVector4(std::string_view const name, Math::Vector4 const &value) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniform4fv(loc, 1, value.data);
+	}
+}
+
+void Shader::TrySetMatrix4(std::string_view const name, Math::Matrix4x4 const &matrix) const {
+	const i32 loc = TryGetUniformLocation(name);
+	if (loc != -1) {
+		glUniformMatrix4fv(loc, 1, GL_FALSE, matrix.Data());
+	}
+}
+
 void Shader::Use() const {
 	glUseProgram(ID);
 }
@@ -143,7 +200,7 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 	return true;
 }
 
-i32 Shader::GetUniformLocation(const std::string_view name) const {
+i32 Shader::TryGetUniformLocation(const std::string_view name) const {
 	std::map<std::string, i32, std::less<>>::iterator it
 		= m_UniformLocationCache.find(name);
 	if (it != m_UniformLocationCache.end()) {
@@ -152,6 +209,26 @@ i32 Shader::GetUniformLocation(const std::string_view name) const {
 	std::string nameKey(name);
 	const i32 location = glGetUniformLocation(ID, nameKey.c_str());
 	m_UniformLocationCache[std::move(nameKey)] = location;
+	return location;
+}
+
+i32 Shader::GetUniformLocation(const std::string_view name) const {
+	const i32 location = TryGetUniformLocation(name);
+	if (location == -1) {
+		std::string nameKey(name);
+		const char* names[] = { nameKey.c_str() };
+		GLuint index = GL_INVALID_INDEX;
+		glGetUniformIndices(ID, 1, names, &index);
+		if (index != GL_INVALID_INDEX) {
+			GLint blockIndex = -1;
+			glGetActiveUniformsiv(ID, 1, &index, GL_UNIFORM_BLOCK_INDEX, &blockIndex);
+			if (blockIndex != -1) {
+				return location;
+			}
+		}
+		Log::Error("Uniform '{}' does not exist or was optimized away in shader ID {}.", name, ID);
+		assert(false && "Mismatched or missing shader uniform parameter.\n");
+	}
 	return location;
 }
 

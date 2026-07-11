@@ -7,6 +7,12 @@ u64 Node::s_ID = 0;
 
 Node::Node() : m_ID(++s_ID) {}
 
+Node::~Node() {
+	if (m_Tree != nullptr) {
+		m_Tree->RemoveFromDeletionQueue(this);
+	}
+}
+
 void Node::OnCreate() {
 	for (size_t a = 0; a < m_Children.GetSize(); ++a) {
 		if (m_Children[a] != nullptr) {
@@ -49,6 +55,9 @@ void Node::OnTreeEnter() {
 }
 
 void Node::OnTreeExit() {
+	if (m_Tree != nullptr) {
+		m_Tree->RemoveFromDeletionQueue(this);
+	}
 	for (size_t a = 0; a < m_Children.GetSize(); ++a) {
 		if (m_Children[a] != nullptr) {
 			m_Children[a]->OnTreeExit();

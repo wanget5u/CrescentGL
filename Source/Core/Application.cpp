@@ -13,6 +13,7 @@
 #include "Input/InputSystem.h"
 #include "Input/InputAction.h"
 #include "Render/RenderStats.h"
+#include "Render/GPUDisposalQueue.h"
 #include "Scene/DemoScene.h"
 #include "UI/UISystem.h"
 #include "UI/DebugPanel.h"
@@ -49,6 +50,9 @@ void Application::Run() {
 		UI::System::Instance().OnUpdate();
 		Input::System::Instance().OnUpdate();
 		if (m_WantsFullscreenToggle == true) {
+			while (m_RenderThreadSafeToToggle == false) {
+				std::this_thread::yield();
+			}
 			m_MainWindow->ToggleFullscreen();
 			Window::PollEvents();
 			m_WantsFullscreenToggle = false;
@@ -78,6 +82,15 @@ void Application::SetupGlobalInputActions() {
 			m_WantsFullscreenToggle = true;
 		}
 	});
+
+	Input::Action& toggleDebugPanel = editorContext->AddAction("Toggle_Debug");
+	toggleDebugPanel.BindKeyboardKey(Input::KeyCode::F1);
+	toggleDebugPanel.Subscribe([](Input::Action::Event const& actionEvent) {
+		if (actionEvent.Phase == Input::Action::Phase::Pressed) {
+			UI::DebugPanel* debugPanel = UI::System::Instance().GetPanel<UI::DebugPanel>();
+			debugPanel->SetVisibility(!debugPanel->IsVisible());
+		}
+	});
 }
 
 void Application::SetupUIPanels() {
@@ -99,6 +112,9 @@ void Application::RenderThreadLoop() {
 		if (m_WantsFullscreenToggle == true) {
 			Window::UnbindContext();
 			m_RenderThreadSafeToToggle = true;
+			while (m_WantsFullscreenToggle == true) {
+				std::this_thread::yield();
+			}
 			m_MainWindow->MakeContextCurrent();
 			m_RenderThreadSafeToToggle = false;
 		}
@@ -122,6 +138,7 @@ void Application::RenderThreadLoop() {
 	}
 	UI::System::Instance().ShutdownRenderer();
 	Asset::Registry::Instance().Clear();
+	Render::GPUDisposalQueue::Flush();
 	Window::UnbindContext();
 }
 

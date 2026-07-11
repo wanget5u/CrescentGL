@@ -16,8 +16,6 @@
 
 namespace Crescent::Scene {
 
-constexpr u32 INSTANCE_COUNT = 16384;
-
 DemoScene::DemoScene() {
     // shaders
     std::shared_ptr<Asset::Shader> shaderAsset =
@@ -25,6 +23,12 @@ DemoScene::DemoScene() {
         .GetOrLoad<Asset::Shader>("Shaders/lit", Asset::AssetType::Shader);
     // materials
     m_Material = std::make_shared<Render::Material>(shaderAsset);
+    // m_Material->SetVector4("u_TintColor", Math::Vector4(0.5f, 0.0f, 1.0f, 1.0f));
+
+    // m_Material->SetVector3("u_ObjectColor", Math::Vector3(0.5f, 0.0f, 1.0f));
+    // m_Material->SetVector3("u_LightColor", Math::Vector3(1.0f, 1.0f, 1.0f));
+    // m_Material->SetVector3("u_LightPosition", Math::Vector3(1.0f, 1.0f, 1.0f));
+
     m_Material->AlbedoTexture =
         Asset::Registry::Instance()
         .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Color.jpg", Asset::AssetType::Texture);
@@ -38,61 +42,41 @@ DemoScene::DemoScene() {
         Asset::Registry::Instance()
         .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Roughness.jpg", Asset::AssetType::Texture);
 
-    m_Material->SetFloat("u_MetallicFactor", 1.0f);
     // meshes
+    m_FloorMesh = std::make_shared<Render::BoxMesh>(3.0f, 0.5f, 3.0f);
     m_BoxMesh = std::make_shared<Render::BoxMesh>(1.0f, 1.0f, 1.0f);
 
     m_Cube = m_Tree->AddChild<MeshInstance3D>("Cube");
     m_Cube->SetMesh(m_BoxMesh);
     m_Cube->SetMaterialOverride(m_Material);
-    m_Cube->Transform.SetScale(5.0f);
-    m_Cube->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
+    m_Cube->Transform.SetScale(3.0f);
+    m_Cube->Transform.SetPosition(Math::Vector3(0.0f, 2.0f, -10.0f));
 
     m_PreviewCamera->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, 30.0f));
 
-    // m_OrbitingCubes = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
-    // m_OrbitingCubes->SetMesh(m_BoxMesh);
-    // m_OrbitingCubes->SetMaterial(m_Material);
-    // DynamicList<Math::Matrix4x4> initialTransforms{};
-    // for (u8 a = 0; a < 8; ++a) {
-    //     initialTransforms.PushBack(Math::Matrix4x4::GetIdentity());
-    // }
-    // m_OrbitingCubes->SetTransforms(initialTransforms);
-    // m_OrbitingCubes->UploadTransformsToGPU();
-
-    for (u8 a = 0; a < 16; ++a) {
+    for (u8 a = 0; a < 32; ++a) {
         PointLight3D* light = m_Tree->AddChild<PointLight3D>("PointLight3D");
-        light->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
-        light->SetRange(100.0f);
+        light->Transform.SetPosition(Math::Vector3(0.0f, 1.0f, -10.0f));
+        light->SetRange(50.0f);
         light->SetEnergy(20.0f);
         light->SetColor(Math::Vector3(1.0f, 0.85f, 0.75f));
         m_PointLights.PushBack(light);
     }
 
-    // m_PointLight = m_Tree->AddChild<PointLight3D>("PointLight3D");
-    // m_PointLight->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, -10.0f));
-    // m_PointLight->SetRange(100.0f);
-    // m_PointLight->SetEnergy(10.0f);
-    // m_PointLight->SetColor(Math::Vector3(1.0f, 0.85f, 0.7f));
-
     m_OrbitingCubes = m_Tree->AddChild<MultiMeshInstance3D>("OrbitingCubes");
-    m_OrbitingCubes->SetMesh(m_BoxMesh);
+    m_OrbitingCubes->SetMesh(m_FloorMesh);
     m_OrbitingCubes->SetMaterial(m_Material);
     // init
-    DynamicList<Math::Matrix4x4> initialTransforms{};
-    initialTransforms.Reserve(INSTANCE_COUNT);
-    for (u32 a = 0; a < INSTANCE_COUNT; ++a) {
-        initialTransforms.PushBack(Math::Matrix4x4::GetIdentity());
-    }
-    m_OrbitingCubes->SetTransforms(std::move(initialTransforms));
 
+    DynamicList<Math::Matrix4x4> initialTransforms{};
     constexpr f32 spacing = 3.0f;
     constexpr f32 centerOffset = (128.0f - 1.0f) / 2.0f;
+    constexpr f32 yOffset = (4.0f - 1.0f) / 2.0f;
     for (u16 x = 0; x < 128; ++x) {
         for (u16 y = 0; y < 1; ++y) {
             for (u16 z = 0; z < 128; ++z) {
                 f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
-                f32 yPos = (static_cast<f32>(y) - ((13.0f - 1.0f) / 2.0f)) * spacing;
+                f32 yPos = (static_cast<f32>(y) - yOffset);
                 f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
                 Math::Matrix4x4 modelMatrix{};
                 modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
@@ -100,18 +84,6 @@ DemoScene::DemoScene() {
             }
         }
     }
-    // for (u16 x = 0; x < 128; ++x) {
-    //     for (u16 y = 0; y < 2; ++y) {
-    //         for (u16 z = 0; z < 128; ++z) {
-    //             f32 xPos = (static_cast<f32>(x) - centerOffset) * spacing;
-    //             f32 yPos = (static_cast<f32>(y) + ((13.0f - 1.0f) / 2.0f)) * spacing;
-    //             f32 zPos = (static_cast<f32>(z) - centerOffset) * spacing - 10.0f;
-    //             Math::Matrix4x4 modelMatrix{};
-    //             modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
-    //             initialTransforms.PushBack(modelMatrix);
-    //         }
-    //     }
-    // }
     m_OrbitingCubes->SetTransforms(std::move(initialTransforms));
     m_OrbitingCubes->UploadTransformsToGPU();
 }
@@ -120,56 +92,31 @@ DemoScene::~DemoScene() {}
 
 void DemoScene::OnUpdate(f32 const deltaTime) {
     m_TotalTime += deltaTime;
-    const f32  numLights = static_cast<f32>(m_PointLights.GetSize());
-    f32 horizontalRadius = 50.0f + ((Math::Sin(m_TotalTime * 1.5f) + 0.5f) * 30.0f);
-    const f32 ringRotationSpeed = 0.2f;
 
+    const f32 numLights = static_cast<f32>(m_PointLights.GetSize());
     for (u8 a = 0; a < m_PointLights.GetSize(); ++a) {
+        constexpr f32 horizontalRadius = 40.0f;
+        constexpr f32 ringRotationSpeed = 0.1f;
+        const f32 factor = a % 2 ? 1.0f : 2.0f;
         f32 angle = (static_cast<f32>(a) / numLights) * 2.0f * 3.14159265f;
         f32 currentAngle = angle + (m_TotalTime * ringRotationSpeed);
+        f32 xPos = Math::Sin(currentAngle) * horizontalRadius * factor;
+        f32 zPos = (Math::Cos(currentAngle) * horizontalRadius * factor) - 10.0f;
 
-        f32 xPos = Math::Sin(currentAngle) * horizontalRadius;
-        f32 yPos = Math::Sin(m_TotalTime * 1.5f + a) * 2.0f;
-        f32 zPos = (Math::Cos(currentAngle) * horizontalRadius) - 10.0f;
+        m_PointLights[a]->Transform.SetPosition(Math::Vector3(xPos, 1.0f, zPos));
 
-        m_PointLights[a]->Transform.SetPosition(Math::Vector3(xPos, yPos, zPos));
-
-        f32 pulseEnergy = 100.0f + (Math::Sin(m_TotalTime * 3.0f + a) * 3.0f);
-        m_PointLights[a]->SetEnergy(pulseEnergy);
-
-        f32 r = (Math::Sin(m_TotalTime * 1.0f + a) * 0.5f) + 0.5f;
-        f32 g = (Math::Sin(m_TotalTime * 0.7f + a * 2.0f) * 0.5f) + 0.5f;
-        f32 b = (Math::Cos(m_TotalTime * 1.2f + a) * 0.5f) + 0.5f;
+        f32 r = 0.15f + (Math::Sin(m_TotalTime * 1.0f + a) * 0.425f) + 0.425f;
+        f32 g = 0.15f + (Math::Sin(m_TotalTime * 0.7f + a * 2.0f) * 0.425f) + 0.425f;
+        f32 b = 0.15f + (Math::Cos(m_TotalTime * 1.2f + a) * 0.425f) + 0.425f;
 
         m_PointLights[a]->SetColor(Math::Vector3(r, g, b));
     }
     m_Material->SetFloat("u_Time", m_TotalTime);
-    m_Cube->Transform.SetRotationEuler(Math::Vector3(
-        Math::DegreesToRadians(m_TotalTime * 30.0f),
-        Math::DegreesToRadians(m_TotalTime * 45.0f),
-        0.0f
-    ));
-    // DynamicList<Math::Matrix4x4> transforms{};
-    // constexpr f32 spacing = 5.0f;
-    // constexpr f32 offset = (8.0f - 1.0f) / 2.0f;
-    // for (u8 x = 0; x < 16; ++x) {
-    //     for (u8 y = 0; y < 16; ++y) {
-    //         for (u8 z = 0; z < 16; ++z) {
-    //             f32 xPos = (static_cast<f32>(x) - offset) * spacing;
-    //             f32 yPos = (static_cast<f32>(y) - offset) * spacing;
-    //             f32 zPos = (static_cast<f32>(z) - offset) * spacing - 10.0f;
-    //             Math::Matrix4x4 modelMatrix{};
-    //             modelMatrix.TranslateWorld(Math::Vector3(xPos, yPos, zPos));
-    //             modelMatrix.RotateLocal(Math::DegreesToRadians(m_TotalTime * 10.0f), Math::Vector3::Forward());
-    //             transforms.PushBack(modelMatrix);
-    //         }
-    //     }
-    // }
-    // m_OrbitingCubes->SetTransforms(transforms);
-    // m_OrbitingCubes->UploadTransformsToGPU();
 }
 
 void DemoScene::OnRender(Window& window) {
+    glDisable(GL_BLEND);
+    glDisable(GL_SCISSOR_TEST);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

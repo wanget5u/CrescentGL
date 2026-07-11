@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 
 #include "Render/RenderStats.h"
-#include "Render/Material/Material.h"
+#include "Render/GPUDisposalQueue.h"
 
 namespace Crescent::Render {
 Mesh::VertexLayout Mesh::VertexLayout::CreatePosNormalUV() {
@@ -49,15 +49,20 @@ Mesh::Mesh(Mesh&& other) noexcept
 	, m_VBO(std::exchange(other.m_VBO, 0))
 	, m_EBO(std::exchange(other.m_EBO, 0))
 	, m_IndexCount(std::exchange(other.m_IndexCount, 0))
-	, m_VertexCount(std::exchange(other.m_VertexCount, 0)) {}
+	, m_VertexCount(std::exchange(other.m_VertexCount, 0))
+	, m_VBOCapacity(std::exchange(other.m_VBOCapacity, 0))
+	, m_EBOCapacity(std::exchange(other.m_EBOCapacity, 0)) {}
 
 Mesh::~Mesh() {
 	if (m_VAO == 0) {
 		return;
 	}
-	glDeleteVertexArrays(1, &m_VAO);
-	glDeleteBuffers(1, &m_VBO);
-	glDeleteBuffers(1, &m_EBO);
+	GPUDisposalQueue::SubmitVertexArrayForDeletion(m_VAO);
+	GPUDisposalQueue::SubmitBufferForDeletion(m_VBO);
+	GPUDisposalQueue::SubmitBufferForDeletion(m_EBO);
+	m_VAO = 0;
+	m_VBO = 0;
+	m_EBO = 0;
 }
 
 void Mesh::Bind() const {
@@ -139,10 +144,21 @@ void Mesh::UploadData(const f32* vertices, u32 vertexDataSize, const u32* indice
 	glBindVertexArray(m_VAO);
 	// VBO
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-	glBufferData(GL_ARRAY_BUFFER, vertexDataSize, vertices, GL_STATIC_DRAW);
+	if (m_VBO != 0 && m_VBOCapacity >= vertexDataSize) {
+		glBufferSubData(GL_ARRAY_BUFFER, 0, vertexDataSize, vertices);
+	} else {
+		glBufferData(GL_ARRAY_BUFFER, vertexDataSize, vertices, GL_DYNAMIC_DRAW);
+		m_VBOCapacity = vertexDataSize;
+	}
 	// EBO
+	const u32 indexDataSize = indexCount * sizeof(u32);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(u32), indices, GL_STATIC_DRAW);
+	if (m_EBO != 0 && m_EBOCapacity >= indexDataSize) {
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indexDataSize, indices);
+	} else {
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexDataSize, indices, GL_DYNAMIC_DRAW);
+		m_EBOCapacity = indexDataSize;
+	}
 	// Attribute Config
 	for (const VertexAttribute& attribute : m_Layout.VertexAttributes) {
 		glVertexAttribPointer(

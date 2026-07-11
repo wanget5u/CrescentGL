@@ -31,10 +31,10 @@ struct System {
 	void OnKeyboardKeyCallback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods);
 	void OnMouseButtonCallback(GLFWwindow* window, i32 button, i32 action, i32 mods);
 	void OnMouseScrollCallback(GLFWwindow* window, f64 xOffset, f64 yOffset);
-	void OnCursorCallback(GLFWwindow* window, f64 xPos, f64 yPos);
-	void OnCharCallback(GLFWwindow* window, u32 c);
-	void OnWindowFocusCallback(GLFWwindow* window, i32 focused);
-	void OnCursorEnterCallback(GLFWwindow* window, i32 entered);
+	void OnCursorCallback(GLFWwindow* window, f64 xPos, f64 yPos) const;
+	void OnCharCallback(GLFWwindow* window, u32 c) const;
+	void OnWindowFocusCallback(GLFWwindow* window, i32 focused) const;
+	void OnCursorEnterCallback(GLFWwindow* window, i32 entered) const;
 private:
 	System() = default;
 	~System();

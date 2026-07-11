@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 #include <variant>
@@ -49,13 +50,12 @@ private:
 	Window* m_LoadWindow{nullptr};
 	std::thread m_LoadThread{};
 	std::atomic<bool> m_Running{false};
-	/// Lock this object whenever manipulating any of
-	/// the data inside this class
 	std::mutex m_AssetMutex{};
+	std::condition_variable m_ConditionVariable{};
 	/// The queue that holds all Asset LoadRequests
 	/// to be later resolved and loaded
 	DynamicQueue<LoadRequest> m_AssetLoadQueue{};
 	/// The list of ready asset packets available to use
-	DynamicList<ReadyPacket> m_ReadyAssetWrite{};
+	DynamicQueue<ReadyPacket> m_ReadyAssetQueue{};
 };
 }

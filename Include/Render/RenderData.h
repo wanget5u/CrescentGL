@@ -19,7 +19,7 @@ struct alignas(16) PointLightData {
 	//------------48-(3x16B)-----------
 };
 // GL_UNIFORM_BUFFER (std140) UBO
-struct alignas(16) SceneData {
+struct alignas(16) RenderData {
 	Math::Matrix4x4 View{};				//   64B | 0
 	Math::Matrix4x4 Projection{};		//   64B | 64
 	Math::Matrix4x4 ViewProjection{};	//   64B | 128

@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "RenderGroup.h"
+#include "RenderPacket.h"
 #include "Collection/DynamicList.h"
 
 namespace Crescent::Scene {
@@ -39,6 +40,7 @@ private:
 	bool m_IsBatchLoading{false};
 	bool m_IsBatchUnloading{false};
 	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>> m_RenderGroups{};
+	DynamicList<RenderPacket> m_RenderPackets{};
 	///
 	u32 m_SceneDataUBO{0};
 	// TODO: IMPLEMENT SSBOs

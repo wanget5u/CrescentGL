@@ -24,6 +24,8 @@ struct System : Input::IInputListener {
 	void OnRenderGUI(f32 deltaTime);			// call on Render Thread
 	[[nodiscard]] bool WantCaptureMouse() const;
 	[[nodiscard]] bool WantCaptureKeyboard() const;
+	template <typename T>
+	[[nodiscard]] T* GetPanel();
 	template <typename T, typename... Args>
 	void RegisterPanel(Args&&... args);
 	/// IInputListener overrides
@@ -48,6 +50,18 @@ private:
 	bool m_PlatformInitialized{false};
 	bool m_RendererInitialized{false};
 };
+
+template<typename T>
+T* System::GetPanel() {
+	static_assert(std::is_base_of_v<Panel, T>, "Panel must derive from UI::Panel");
+	std::scoped_lock lock(m_Mutex);
+	for (std::unique_ptr<Panel>& panel : m_Panels) {
+		if (T* castPanel = dynamic_cast<T*>(panel.get())) {
+			return castPanel;
+		}
+	}
+	return nullptr;
+}
 template<typename T, typename ... Args>
 void System::RegisterPanel(Args &&...args) {
 	static_assert(std::is_base_of_v<Panel, T>, "Panel must derive from UI::Panel");

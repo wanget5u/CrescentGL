@@ -22,8 +22,12 @@ void Asset::Loader::Shutdown() {
 	if (m_Running == false) {
 		return;
 	}
-	m_Running = false;
-	if (m_LoadThread.joinable()) {
+	{
+		std::scoped_lock lock(m_AssetMutex);
+		m_Running = false;
+	}
+	m_ConditionVariable.notify_all();
+	if (m_LoadThread.joinable() == true) {
 		m_LoadThread.join();
 	}
 }
@@ -33,16 +37,21 @@ Asset::Loader::~Loader() {
 }
 
 void Asset::Loader::LoadAssetAsync(std::string const& filepath, AssetType type) {
-	std::scoped_lock lock(m_AssetMutex);
-	m_AssetLoadQueue.Push({filepath, type});
+	{
+		std::scoped_lock lock(m_AssetMutex);
+		m_AssetLoadQueue.Push({filepath, type});
+	}
+	m_ConditionVariable.notify_one();
 }
 
 bool Asset::Loader::PopReadyAssets(DynamicList<ReadyPacket>& outAssets) {
 	std::scoped_lock lock(m_AssetMutex);
-	if (m_ReadyAssetWrite.IsEmpty()) {
+	if (m_ReadyAssetQueue.IsEmpty() == true) {
 		return false;
 	}
-	std::swap(outAssets, m_ReadyAssetWrite);
+	while (m_ReadyAssetQueue.IsEmpty() == false) {
+		outAssets.PushBack(m_ReadyAssetQueue.Pop());
+	}
 	return true;
 }
 
@@ -103,18 +112,28 @@ void Asset::Loader::LoadDataFromRequest(LoadRequest const& request) {
 	// else if (request.Type == Type::Mesh) {
 	//
 	// }
-	std::scoped_lock lock(m_AssetMutex);
-	m_ReadyAssetWrite.PushBack(std::move(packet));
+	{
+		std::scoped_lock lock(m_AssetMutex);
+		m_ReadyAssetQueue.Push(std::move(packet));
+	}
 }
 
 void Asset::Loader::LoadThreadLoop() {
 	while (m_Running == true) {
-		LoadRequest request = PopNextRequest();
+		LoadRequest request{};
+		{
+			std::unique_lock lock(m_AssetMutex);
+			m_ConditionVariable.wait(lock, [this] { return m_AssetLoadQueue.IsEmpty() == false || m_Running == false; });
+			if (m_Running == false && m_AssetLoadQueue.IsEmpty() == true) {
+				break;
+			}
+			if (m_AssetLoadQueue.IsEmpty() == false) {
+				request = m_AssetLoadQueue.Pop();
+			}
+		}
 		if (request.FilePath.empty() == false) {
 			Log::Info("Load Thread: Loading '{}'.", request.FilePath);
 			LoadDataFromRequest(request);
-		} else {
-			std::this_thread::sleep_for(std::chrono::milliseconds(2));
 		}
 	}
 }

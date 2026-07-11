@@ -72,6 +72,8 @@ set(SOURCES
         include/Math/Quaternion/Quaternion.h
         Source/Scene/Nodes3D/Geometry/MeshInstance3D.cpp
         include/Scene/Nodes3D/Geometry/MeshInstance3D.h
+        Source/Render/GPUDisposalQueue.cpp
+        include/Render/GPUDisposalQueue.h
         Source/Render/BatchRenderer.cpp
         include/Render/BatchRenderer.h
         Source/Scene/Nodes3D/Geometry/MultiMeshInstance3D.cpp
@@ -87,7 +89,7 @@ set(SOURCES
         include/Scene/Nodes3D/Light/PointLight3D.h
         Source/Scene/Nodes3D/Geometry/InstancedVisual3D.cpp
         include/Scene/Nodes3D/Geometry/InstancedVisual3D.h
-        Include/Render/SceneData.h
+        Include/Render/RenderData.h
         Include/Render/RenderGroup.h
         Source/UI/UISystem.cpp
         Include/UI/UISystem.h

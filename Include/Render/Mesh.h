@@ -79,6 +79,8 @@ private:
 	u32 					  m_EBO		   {0};
 	u32 					  m_IndexCount {0};
 	u32						  m_VertexCount{0};
+	size_t                    m_VBOCapacity{0};
+	size_t                    m_EBOCapacity{0};
 };
 
 }

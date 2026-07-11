@@ -30,7 +30,7 @@ struct Shader {
 	Shader& operator=(const Shader&) = delete;
 	Shader(Shader&& other) noexcept;
 	Shader& operator=(Shader&& other) noexcept;
-	std::string ParseIncludes(std::string_view source, std::unordered_set<std::string> includedFiles);
+	std::string ParseIncludes(std::string_view source, std::unordered_set<std::string>& includedFiles);
 	void SetBool(std::string_view name, bool value) const;
 	void SetInt(std::string_view name, i32 value) const;
 	void SetFloat(std::string_view name, f32 value) const;
@@ -38,6 +38,14 @@ struct Shader {
 	void SetVector3(std::string_view name, Math::Vector3 const& value) const;
 	void SetVector4(std::string_view name, Math::Vector4 const& value) const;
 	void SetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
+	void TrySetBool(std::string_view name, bool value) const;
+	void TrySetInt(std::string_view name, i32 value) const;
+	void TrySetFloat(std::string_view name, f32 value) const;
+	void TrySetVector2(std::string_view name, Math::Vector2 const& value) const;
+	void TrySetVector3(std::string_view name, Math::Vector3 const& value) const;
+	void TrySetVector4(std::string_view name, Math::Vector4 const& value) const;
+	void TrySetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
+	[[nodiscard]] i32 TryGetUniformLocation(std::string_view name) const;
 private:
 	mutable std::map<std::string, i32, std::less<>> m_UniformLocationCache;
 	friend struct Material;

@@ -9,7 +9,7 @@ struct MultiMeshInstance3D : InstancedVisual3D {
 		std::shared_ptr<Asset::Mesh> meshAsset,
 		std::shared_ptr<Render::Material> material = nullptr
 	);
-	~MultiMeshInstance3D() override = default;
+	~MultiMeshInstance3D() override;
 	void OnTreeEnter() override;
 	void OnTreeExit() override;
 	void SetMesh(std::shared_ptr<Render::Mesh> proceduralMesh) noexcept override;

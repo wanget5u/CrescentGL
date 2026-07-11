@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "Render/BatchRenderer.h"
 
 #include "Core/Time.h"
@@ -5,7 +6,9 @@
 #include "GLFW/glfw3.h"
 #include "Render/RenderStats.h"
 #include "Render/Material/Material.h"
-#include "Render/SceneData.h"
+#include "Render/Shader/Shader.h"
+#include "Render/RenderData.h"
+#include "Render/GPUDisposalQueue.h"
 #include "Scene/Nodes3D/Camera3D.h"
 #include "Scene/Nodes3D/Light/PointLight3D.h"
 #include "Scene/Nodes3D/Geometry/MeshInstance3D.h"
@@ -32,14 +35,15 @@ BatchRenderer::~BatchRenderer() {
 void BatchRenderer::InitializeBuffers() {
     glGenBuffers(1, &m_SceneDataUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, m_SceneDataUBO);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(GPU::SceneData), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(GPU::RenderData), nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_SceneDataUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void BatchRenderer::PrepareFrame(Scene::Camera3D const* camera) {
+    GPUDisposalQueue::Flush();
     Stats::Instance().Reset();
-    GPU::SceneData sceneData{};
+    GPU::RenderData sceneData{};
     sceneData.View = camera->GetViewMatrix();
     sceneData.Projection = camera->GetProjectionMatrix();
     sceneData.ViewProjection = sceneData.Projection * sceneData.View;
@@ -53,7 +57,8 @@ void BatchRenderer::PrepareFrame(Scene::Camera3D const* camera) {
         if (light3D->IsOn() && light3D->IsVisible() && light3D->GetLightType() == Scene::LightType::Point) {
             Scene::PointLight3D* pointLight3D = dynamic_cast<Scene::PointLight3D*>(light3D);
             GPU::PointLightData& pointLightData = sceneData.PointLights[lightCount];
-            pointLightData.Position = pointLight3D->Transform.GetPosition();
+            Math::Matrix4x4 const& worldMat = pointLight3D->Transform.GetWorldMatrix();
+            pointLightData.Position = Math::Vector3(worldMat.column3.x, worldMat.column3.y, worldMat.column3.z);
             pointLightData.Range = pointLight3D->GetRange();
             pointLightData.Color = pointLight3D->GetColor();
             pointLightData.Energy = pointLight3D->GetEnergy();
@@ -65,7 +70,52 @@ void BatchRenderer::PrepareFrame(Scene::Camera3D const* camera) {
     }
     sceneData.PointLightCount = lightCount;
     glBindBuffer(GL_UNIFORM_BUFFER, m_SceneDataUBO);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPU::SceneData), &sceneData);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPU::RenderData), &sceneData);
+
+    m_RenderPackets.Clear();
+    RenderGroup<Scene::MeshInstance3D>* meshInstance3DRenderGroup = GetRenderGroup<Scene::MeshInstance3D>();
+    Math::Vector3 const camPos = camera->Transform.GetPosition();
+    for (size_t a = 0; a < meshInstance3DRenderGroup->Registered.GetSize(); ++a) {
+        Scene::MeshInstance3D* meshInstance3D = meshInstance3DRenderGroup->Registered[a];
+        if (meshInstance3D == nullptr || meshInstance3D->IsVisible() == false) {
+            continue;
+        }
+        std::shared_ptr<Material> materialPtr = meshInstance3D->GetMaterialOverride();
+        if (materialPtr == nullptr) {
+            continue;
+        }
+        Mesh* gpuMesh = meshInstance3D->GetMesh();
+        if (gpuMesh == nullptr) {
+            continue;
+        }
+        RenderPacket packet{};
+        packet.MeshObject = gpuMesh;
+        packet.MaterialObject = materialPtr.get();
+        packet.WorldMatrix = meshInstance3D->Transform.GetWorldMatrix();
+
+        u8 layer = meshInstance3D->GetLayerMask();
+        u16 shaderID = 0;
+        if (materialPtr->ShaderAsset != nullptr && materialPtr->ShaderAsset->ShaderObject != nullptr) {
+            shaderID = static_cast<u16>(materialPtr->ShaderAsset->ShaderObject->ID);
+        } else if (Material::GetDefaultShader() != nullptr && Material::GetDefaultShader()->ShaderObject != nullptr) {
+            shaderID = static_cast<u16>(Material::GetDefaultShader()->ShaderObject->ID);
+        }
+        u16 materialID = static_cast<u16>(materialPtr->ID);
+        u16 meshVAO = static_cast<u16>(gpuMesh->GetVAO());
+        f32 dist = (meshInstance3D->Transform.GetPosition() - camPos).Length();
+        u8 depth = static_cast<u8>(std::clamp(dist * 2.0f, 0.0f, 255.0f));
+
+        packet.SortKey = (static_cast<u64>(layer) << 56) |
+                         (static_cast<u64>(shaderID) << 40) |
+                         (static_cast<u64>(materialID) << 24) |
+                         (static_cast<u64>(meshVAO) << 8) |
+                         static_cast<u64>(depth);
+        m_RenderPackets.PushBack(packet);
+    }
+    if (m_RenderPackets.GetSize() > 1) {
+        std::sort(m_RenderPackets.GetData(), m_RenderPackets.GetData() + m_RenderPackets.GetSize(),
+            [](RenderPacket const& a, RenderPacket const& b) {return a.SortKey < b.SortKey;});
+    }
 }
 
 void BatchRenderer::BeginBatchLoad() {
@@ -95,6 +145,7 @@ void BatchRenderer::Clear() {
         renderGroup.second->Clear();
     }
     m_RenderGroups.clear();
+    m_RenderPackets.Clear();
 }
 
 void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
@@ -103,22 +154,24 @@ void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
     glBeginQuery(GL_TIME_ELAPSED, currentQuery);
     PrepareFrame(camera);
 
-    // MeshInstance3D
-    RenderGroup<Scene::MeshInstance3D>* meshInstance3DRenderGroup = GetRenderGroup<Scene::MeshInstance3D>();
-    for (size_t a = 0; a < meshInstance3DRenderGroup->Registered.GetSize(); ++a) {
-        Scene::MeshInstance3D* meshInstance3D = meshInstance3DRenderGroup->Registered[a];
-        if (meshInstance3D == nullptr || meshInstance3D->IsVisible() == false) {
+    u16 lastShaderID = 0xFFFF;
+    u16 lastMaterialID = 0xFFFF;
+    for (size_t a = 0; a < m_RenderPackets.GetSize(); ++a) {
+        RenderPacket const& packet = m_RenderPackets[a];
+        if (packet.MeshObject == nullptr || packet.MaterialObject == nullptr) {
             continue;
         }
-        std::shared_ptr<Material> material = meshInstance3D->GetMaterialOverride();
-        if (material == nullptr) {
-            continue;
+        u16 shaderID = static_cast<u16>((packet.SortKey >> 40) & 0xFFFF);
+        u16 materialID = static_cast<u16>((packet.SortKey >> 24) & 0xFFFF);
+        if (shaderID != lastShaderID || materialID != lastMaterialID) {
+            packet.MaterialObject->Bind();
+            packet.MaterialObject->TrySetBool("u_IsInstanced", false);
+            lastShaderID = shaderID;
+            lastMaterialID = materialID;
         }
-        material->Bind();
-        material->SetBool("u_IsInstanced", false);
-        material->SetMatrix4("u_View", camera->GetViewMatrix());
-        material->SetMatrix4("u_Projection", camera->GetProjectionMatrix());
-        meshInstance3D->Draw(meshInstance3D->Transform.GetWorldMatrix());
+        packet.MaterialObject->TrySetMatrix4("u_Model", packet.WorldMatrix);
+        packet.MeshObject->Bind();
+        packet.MeshObject->Draw();
     }
 
     // InstancedVisual3D
@@ -132,10 +185,20 @@ void BatchRenderer::RenderScene(Scene::Camera3D const* camera) {
         if (material == nullptr) {
             continue;
         }
-        material->Bind();
-        material->SetBool("u_IsInstanced", true);
-        material->SetMatrix4("u_View", camera->GetViewMatrix());
-        material->SetMatrix4("u_Projection", camera->GetProjectionMatrix());
+        u16 shaderID{0};
+        if (material->ShaderAsset != nullptr && material->ShaderAsset->ShaderObject != nullptr) {
+            shaderID = static_cast<u16>(material->ShaderAsset->ShaderObject->ID);
+        }
+        else if (Material::GetDefaultShader() != nullptr && Material::GetDefaultShader()->ShaderObject != nullptr) {
+            shaderID = static_cast<u16>(Material::GetDefaultShader()->ShaderObject->ID);
+        }
+        u16 materialID = static_cast<u16>(material->ID);
+        if (shaderID != lastShaderID || materialID != lastMaterialID) {
+            material->Bind();
+            lastShaderID = shaderID;
+            lastMaterialID = materialID;
+        }
+        material->TrySetBool("u_IsInstanced", true);
         instancedVisual3D->Draw();
     }
     glEndQuery(GL_TIME_ELAPSED);

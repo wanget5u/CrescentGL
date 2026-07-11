@@ -34,8 +34,8 @@ struct Scene {
 	void SetMoveInputLeftward(bool active);
 	void UpdateCamera(f32 deltaTime);
 protected:
-	constexpr static f32 CameraSpeed1 = 40.0f;
-	constexpr static f32 CameraSpeed2 = 80.0f;
+	constexpr static f32 CameraSpeed1 = 10.0f;
+	constexpr static f32 CameraSpeed2 = 40.0f;
 	constexpr static f32 CameraLookSensitivity = 0.002f;
 	///
 	std::unique_ptr<Tree> m_Tree{nullptr};

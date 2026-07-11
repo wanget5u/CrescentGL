@@ -4,6 +4,7 @@
 
 #include "Render/BatchRenderer.h"
 #include "Render/Material/Material.h"
+#include "Render/GPUDisposalQueue.h"
 
 namespace Crescent::Scene {
 
@@ -12,9 +13,21 @@ MultiMeshInstance3D::MultiMeshInstance3D() {
 	glGenBuffers(1, &m_InstanceVBO);
 }
 
-MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset, std::shared_ptr<Render::Material> material) {
+MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset, std::shared_ptr<Render::Material> material)
+	: MultiMeshInstance3D() {
 	m_MeshAsset = std::move(meshAsset);
 	m_Material = std::move(material);
+}
+
+MultiMeshInstance3D::~MultiMeshInstance3D() {
+	if (m_InstanceVAO != 0) {
+		Render::GPUDisposalQueue::SubmitVertexArrayForDeletion(m_InstanceVAO);
+		m_InstanceVAO = 0;
+	}
+	if (m_InstanceVBO != 0) {
+		Render::GPUDisposalQueue::SubmitBufferForDeletion(m_InstanceVBO);
+		m_InstanceVBO = 0;
+	}
 }
 
 void MultiMeshInstance3D::OnTreeEnter() {
@@ -82,7 +95,7 @@ void MultiMeshInstance3D::UploadTransformsToGPU() {
 
 void MultiMeshInstance3D::DrawInstanced() const {
 	Render::Mesh* gpuMesh = GetMesh();
-	if (m_InstanceCount == 0) {
+	if (gpuMesh == nullptr || m_InstanceCount == 0) {
 		return;
 	}
 	if (m_TransformsDirty == true) {
@@ -118,7 +131,7 @@ void MultiMeshInstance3D::Draw() const {
 
 void MultiMeshInstance3D::CheckAndBuildInstanceVAO() const {
 	Render::Mesh* gpuMesh = GetMesh();
-	if (gpuMesh->GetVBO() == 0) {
+	if (gpuMesh == nullptr || gpuMesh->GetVBO() == 0) {
 		return;
 	}
 	glBindVertexArray(m_InstanceVAO);

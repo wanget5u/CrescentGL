@@ -44,8 +44,17 @@ Render::BatchRenderer* Tree::GetBatchRenderer() const noexcept {
 
 void Tree::QueueForDeletion(Node *node) {
 	node->m_IsQueuedForDeletion = true;
-	if (m_DeletionQueue.Push(node) == false) {
-		Log::Warning("({}) DeletionQueue ring buffer full.", m_Root->m_Name);
+	m_DeletionQueue.PushBack(node);
+}
+
+void Tree::RemoveFromDeletionQueue(Node* node) {
+	if (node == nullptr || m_DeletionQueue.IsEmpty() == true) {
+		return;
+	}
+	for (size_t a = 0; a < m_DeletionQueue.GetSize(); ++a) {
+		if (m_DeletionQueue[a] == node) {
+			m_DeletionQueue[a] = nullptr;
+		}
 	}
 }
 
@@ -53,12 +62,14 @@ void Tree::ProcessDeletionQueue() {
 	if (m_DeletionQueue.IsEmpty() == true) {
 		return;
 	}
-	while (m_DeletionQueue.IsEmpty() == false) {
-		Node* node = m_DeletionQueue.Pop();
+	for (size_t a = 0; a < m_DeletionQueue.GetSize(); ++a) {
+		Node* node = m_DeletionQueue[a];
+		m_DeletionQueue[a] = nullptr;
 		if (node != nullptr && node->m_Parent != nullptr) {
 			node->m_Parent->RemoveChild(node);
 		}
 	}
+	m_DeletionQueue.Clear();
 }
 
 }

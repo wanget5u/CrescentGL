@@ -31,9 +31,9 @@ void BoxMesh::GenerateGeometry() {
 	DynamicList<u32> indices;
 	indices.ResizeUninitialized(36);
 
-	const f32 halfWidth  = m_Size.x;
-	const f32 halfHeight = m_Size.y;
-	const f32 halfDepth  = m_Size.z;
+	const f32 halfWidth  = m_Size.x * 0.5f;
+	const f32 halfHeight = m_Size.y * 0.5f;
+	const f32 halfDepth  = m_Size.z * 0.5f;
 	size_t currentFloatIndex = 0;
 
     WriteVertex(vertices, currentFloatIndex,  halfWidth, -halfHeight, -halfDepth,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f); // 0 (BL)

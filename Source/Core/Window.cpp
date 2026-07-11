@@ -20,6 +20,7 @@ Window::Window(Properties const& properties) {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_FOCUS_ON_SHOW, GLFW_TRUE);
 	glfwWindowHint(GLFW_VISIBLE, m_Properties.Visible ? GLFW_TRUE : GLFW_FALSE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 	CreateWindowInstance();
 	glfwSetWindowUserPointer(m_Window, this);
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);

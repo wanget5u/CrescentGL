@@ -23,6 +23,9 @@ void MeshInstance3D::OnTreeExit() {
 
 void MeshInstance3D::Draw(Math::Matrix4x4 const& worldMatrix) const {
 	Render::Mesh* gpuMesh = GetMesh();
+	if (gpuMesh == nullptr || m_Material == nullptr) {
+		return;
+	}
 	m_Material->SetMatrix4("u_Model", worldMatrix);
 	gpuMesh->Bind();
 	gpuMesh->Draw();

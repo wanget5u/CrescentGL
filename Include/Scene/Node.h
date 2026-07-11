@@ -12,7 +12,7 @@ struct Tree;
 /// handle hierarchical transformations, propagate engine lifecycle updates down to their children
 struct Node {
 	Node();
-	virtual ~Node() = default;
+	virtual ~Node();
 	/// Called when the node is initialized or enters a live Scene Tree
 	void OnCreate();
 	/// Processed every frame

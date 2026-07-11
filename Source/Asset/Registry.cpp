@@ -4,6 +4,7 @@
 
 #include "Render/Mesh.h"
 #include "Render/Shader/Shader.h"
+#include "Render/GPUDisposalQueue.h"
 #include "stb/stb_image.h"
 
 namespace Crescent::Asset {
@@ -36,19 +37,28 @@ void Registry::OnUpdate() {
 			Texture::Data& textureData = std::get<Texture::Data>(packet.Data);
 			if (textureData.Pixels == nullptr) {
 				Log::Error("Registry: Cannot upload null or invalid texture data for '{}'", packet.FilePath);
-				return;
+				continue;
 			}
 			glGenTextures(1, &textureAsset->TextureID);
 			glBindTexture(GL_TEXTURE_2D, textureAsset->TextureID);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			u32 format = GL_RGB;
-			if (textureData.Channels == 1) { format = GL_RED; }
-			else if (textureData.Channels == 2) { format = GL_RG; }
-			else if (textureData.Channels == 3) { format = GL_RGB; }
-			else if (textureData.Channels == 4) { format = GL_RGBA; }
+			if (textureData.Channels == 1) {
+				format = GL_RED;
+			}
+			else if (textureData.Channels == 2) {
+				format = GL_RG;
+			}
+			else if (textureData.Channels == 3) {
+				format = GL_RGB;
+			}
+			else if (textureData.Channels == 4) {
+				format = GL_RGBA;
+			}
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glTexImage2D(
 				GL_TEXTURE_2D,
@@ -72,20 +82,24 @@ void Registry::OnUpdate() {
 		else if (packet.Type == AssetType::Mesh) {
 			std::shared_ptr<Mesh> meshAsset = std::static_pointer_cast<Mesh>(baseAsset);
 			Mesh::Data& meshData = std::get<Mesh::Data>(packet.Data);
-			meshAsset->MeshObject = std::make_shared<Render::Mesh>(
-				reinterpret_cast<const f32*>(meshData.Vertices.GetData()),
-				static_cast<u32>(meshData.Vertices.GetSizeInBytes()),
-				meshData.Indices.GetData(),
-				static_cast<u32>(meshData.Indices.GetSize()),
-				Render::Mesh::VertexLayout::CreatePosNormalUV()
-			);
-			meshAsset->IsReady = true;
-			Log::Info("Registry: Uploaded Mesh '{}' to VRAM (VAO: {}, VBO: {}, EBO: {}).",
-				packet.FilePath, meshAsset->MeshObject->GetVAO(),
-				meshAsset->MeshObject->GetVBO(), meshAsset->MeshObject->GetEBO()
-			);
+			if (meshData.Vertices.GetSize() > 0 && meshData.Indices.GetSize() > 0) {
+				meshAsset->MeshObject = std::make_shared<Render::Mesh>(
+					reinterpret_cast<const f32*>(meshData.Vertices.GetData()),
+					static_cast<u32>(meshData.Vertices.GetSizeInBytes()),
+					meshData.Indices.GetData(),
+					static_cast<u32>(meshData.Indices.GetSize()),
+					Render::Mesh::VertexLayout::CreatePosNormalUV()
+				);
+				meshAsset->IsReady = true;
+				Log::Info("Registry: Uploaded Mesh '{}' to VRAM (VAO: {}, VBO: {}, EBO: {}).",
+					packet.FilePath, meshAsset->MeshObject->GetVAO(),
+					meshAsset->MeshObject->GetVBO(), meshAsset->MeshObject->GetEBO()
+				);
+			} else {
+				Log::Error("Registry: Mesh data empty for '{}'", packet.FilePath);
+			}
 		}
-}
+	}
 }
 
 void Registry::Clear() {
@@ -94,7 +108,7 @@ void Registry::Clear() {
 
 Texture::~Texture() {
 	if (TextureID != 0) {
-		glDeleteTextures(1, &TextureID);
+		Render::GPUDisposalQueue::SubmitTextureForDeletion(TextureID);
 		TextureID = 0;
 	}
 }

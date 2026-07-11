@@ -20,10 +20,10 @@ struct DemoScene : Scene {
 private:
 	std::shared_ptr<Render::Material> m_Material{nullptr};
 	std::shared_ptr<Render::Mesh> m_BoxMesh{nullptr};
+	std::shared_ptr<Render::Mesh> m_FloorMesh{nullptr};
 	MeshInstance3D* m_Cube{nullptr};
 	MultiMeshInstance3D* m_OrbitingCubes{nullptr};
 	DynamicList<PointLight3D*> m_PointLights{};
-	// PointLight3D* m_PointLight{nullptr};
 	f32 m_TotalTime{0.0f};
 	f32 m_LastAspectRatio{0.0f};
 };

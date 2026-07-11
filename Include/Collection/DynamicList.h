@@ -52,7 +52,7 @@ struct DynamicList {
 			if (&value >= m_Data && &value < m_Data + m_Size) {
 				const size_t index = &value - m_Data;
 				Reserve(GetNewCapacity());
-				new (&m_Data[m_Size]) T(std::move(m_Data[index]));
+				new (&m_Data[m_Size]) T(m_Data[index]);
 				m_Size++;
 				return;
 			}
@@ -225,6 +225,11 @@ struct DynamicList {
 				std::memcpy(m_Data + m_Size, data, count * sizeof(T));
 			}
 		}
+		else {
+			for (size_t a = 0; a < count; ++a) {
+				new (&m_Data[m_Size + a]) T(data[a]);
+			}
+		}
 		m_Size += count;
 	}
 	[[nodiscard]] 	    size_t GetSize()	        const noexcept { return m_Size; }
@@ -232,6 +237,7 @@ struct DynamicList {
 	[[nodiscard]] 	    size_t GetCapacity()        const noexcept { return m_Capacity; }
 	[[nodiscard]]       size_t GetCapacityInBytes() const noexcept { return m_Capacity * sizeof(T); }
 	[[nodiscard]] const     T* GetData()	        const noexcept { return m_Data; }
+	[[nodiscard]]           T* GetData()	              noexcept { return m_Data; }
 	[[nodiscard]]		  bool IsEmpty()            const noexcept { return m_Size == 0; }
 	[[nodiscard]] const		T* begin()				const noexcept { return m_Data; }
 	[[nodiscard]]			T* begin()				      noexcept { return m_Data; }

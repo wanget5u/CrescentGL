@@ -2,7 +2,7 @@
 #include <memory>
 
 #include "Core/Core.h"
-#include "Collection/DynamicQueue.h"
+#include "Collection/DynamicList.h"
 #include "Scene/Node.h"
 
 namespace Crescent::Render {
@@ -30,6 +30,8 @@ struct Tree {
 	///
 	void QueueForDeletion(Node* node);
 	///
+	void RemoveFromDeletionQueue(Node* node);
+	///
 	void ProcessDeletionQueue();
 private:
 	///
@@ -37,10 +39,10 @@ private:
 	///
 	std::unique_ptr<Render::BatchRenderer> m_BatchRenderer{nullptr};
 	///
-	DynamicQueue<Node*, 2048> m_DeletionQueue{};
+	DynamicList<Node*> m_DeletionQueue{};
 };
 template<typename T, typename ... Args>
-T * Tree::AddChild(std::string_view name, Args &&...args) {
+T* Tree::AddChild(std::string_view name, Args &&...args) {
 	return m_Root->AddChild<T>(name, std::forward<Args>(args)...);
 }
 }
