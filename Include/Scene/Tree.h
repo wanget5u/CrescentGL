@@ -5,10 +5,11 @@
 #include "Collection/DynamicList.h"
 #include "Scene/Node.h"
 
-namespace Crescent::Render {
-struct BatchRenderer;
+namespace Crescent {
+	struct BatchRenderer;
 }
-namespace Crescent::Scene {
+
+namespace Crescent {
 struct Camera3D;
 ///
 struct Tree {
@@ -26,7 +27,7 @@ struct Tree {
 	template <typename T, typename... Args>
 	T* AddChild(std::string_view name, Args&&... args);
 	///
-	[[nodiscard]] Render::BatchRenderer* GetBatchRenderer() const noexcept;
+	[[nodiscard]] BatchRenderer* GetBatchRenderer() const noexcept;
 	///
 	void QueueForDeletion(Node* node);
 	///
@@ -37,7 +38,7 @@ private:
 	///
 	std::unique_ptr<Node> m_Root{nullptr};
 	///
-	std::unique_ptr<Render::BatchRenderer> m_BatchRenderer{nullptr};
+	std::unique_ptr<BatchRenderer> m_BatchRenderer{nullptr};
 	///
 	DynamicList<Node*> m_DeletionQueue{};
 };

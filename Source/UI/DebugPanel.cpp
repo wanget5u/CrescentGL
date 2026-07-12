@@ -13,7 +13,7 @@ DebugPanel::DebugPanel(const std::string_view name) : Panel(name) {}
 void DebugPanel::OnUpdate(const f32 deltaTime) {
 	m_Timer += deltaTime;
 	m_FrameCount++;
-	Render::Stats& stats = Render::Stats::Instance();
+	RenderStats& stats = RenderStats::Instance();
 	m_AccumulatedCpuTimeMs += stats.CPUFrameTimeMs;
 	m_AccumulatedGpuTimeMs += stats.GPUFrameTimeMs;
 	if (m_Timer >= MetricsUpdateRate) {
@@ -58,6 +58,7 @@ void DebugPanel::OnRender() {
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12.0f * resolutionScale, verticalPadding));
 
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
 	if (ImGui::Begin(m_Name.c_str(), &m_IsVisible, windowFlags) == true) {
 		BeginScaledFont();
 		char8 fpsBuf[32], cpuBuf[32], gpuBuf[32], drawBuf[32], trisBuf[32], vertBuf[32];
@@ -100,6 +101,7 @@ void DebugPanel::OnRender() {
 		EndScaledFont();
 	}
 	ImGui::End();
+	ImGui::PopStyleColor();
 	ImGui::PopStyleVar(3);
 }
 

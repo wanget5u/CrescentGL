@@ -10,9 +10,8 @@ set(SOURCES
         Source/glad.c
         Source/Core/Application.cpp
         Source/Core/Window.cpp
-        Source/Core/Log.cpp
         Source/Core/Time.cpp
-        Source/Asset/Loader.cpp
+        Source/Asset/AssetLoader.cpp
         Source/Render/Mesh.cpp
         Source/Render/Primitives/BoxMesh.cpp
         Source/Scene/DemoScene.cpp
@@ -22,7 +21,7 @@ set(SOURCES
         Source/Render/Shader/Shader.cpp
         Source/Render/Material/Material.cpp
         Source/Util/FileOperations.cpp
-        include/Asset/Loader.h
+        Include/Asset/AssetLoader.h
         include/Core/Application.h
         include/Core/Core.h
         include/Core/Log.h
@@ -57,8 +56,6 @@ set(SOURCES
         Include/Asset/AssetType.h
         Source/Render/Texture/Texture.cpp
         include/Render/Texture/Texture.h
-        Source/Asset/Registry.cpp
-        include/Asset/Registry.h
         Source/Scene/Nodes3D/Camera3D.cpp
         include/Scene/Nodes3D/Camera3D.h
         Source/Scene/Tree.cpp
@@ -106,6 +103,8 @@ set(SOURCES
         Source/UI/UIObserver.cpp
         Include/UI/UIObserver.h
         Include/Render/RenderStats.h
+        Source/Win32Utils.cpp
+        Include/Win32Utils.h
 )
 
 add_library(imgui STATIC

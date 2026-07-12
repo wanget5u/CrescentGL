@@ -1,8 +1,8 @@
 #pragma once
 #include "Math/Matrix/Matrix4x4.h"
-#include "Node3D.h"
+#include "Scene/Nodes3D/Node3D.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 /// Node3D that defines a viewing frustum and computes the necessary view and projection matrices for rendering
 struct Camera3D : Node3D {
 	Camera3D() = default;
@@ -21,8 +21,10 @@ private:
 	f32 m_NearZ{0.1f};
 	f32 m_FarZ{1000.0f};
 	///
-	mutable Math::Matrix4x4 m_ViewMatrix{};
+	mutable Math::Matrix4x4 m_ViewMatrix = Math::Matrix4x4::GetIdentity();
+	mutable u32 m_CachedTransformVersion{0};
+	mutable bool m_ViewMatrixDirty{true};
 	///
-	Math::Matrix4x4 m_ProjectionMatrix{};
+	Math::Matrix4x4 m_ProjectionMatrix = Math::Matrix4x4::GetIdentity();
 };
 }

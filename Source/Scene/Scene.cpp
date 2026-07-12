@@ -1,7 +1,7 @@
 #include "Scene/Scene.h"
 
 #include "Asset/AssetType.h"
-#include "Asset/Registry.h"
+#include "Asset/AssetLoader.h"
 #include "Core/Window.h"
 #include "Input/InputAction.h"
 #include "Input/InputSystem.h"
@@ -10,7 +10,7 @@
 #include "Scene/Nodes3D/Geometry/GeometryInstance3D.h"
 #include "Scene/Tree.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 Scene::Scene() {
 	m_Tree = std::make_unique<Tree>();
@@ -49,50 +49,42 @@ void Scene::RotateCamera(Math::Vector3 const &eulerDelta) const {
 }
 
 void Scene::QueueCameraRotation(Math::Vector3 const& eulerDelta) {
-	std::scoped_lock lock(m_CameraMutex);
 	m_PendingEulerDelta += eulerDelta;
 }
 
 void Scene::SetMoveInputForward(const bool active) {
-	std::scoped_lock lock(m_CameraMutex);
 	m_MoveForward = active;
 }
 
 void Scene::SetMoveInputBackward(const bool active) {
-	std::scoped_lock lock(m_CameraMutex);
 	m_MoveBackward = active;
 }
 
 void Scene::SetMoveInputRightward(const bool active) {
-	std::scoped_lock lock(m_CameraMutex);
 	m_MoveRightward = active;
 }
 
 void Scene::SetMoveInputLeftward(const bool active) {
-	std::scoped_lock lock(m_CameraMutex);
 	m_MoveLeftward = active;
 }
 
 void Scene::UpdateCamera(const f32 deltaTime) {
 	Math::Vector3 direction = Math::Vector3::Zero();
 	Math::Vector3 eulerDelta{};
-	{
-		std::scoped_lock lock(m_CameraMutex);
-		if (m_MoveForward == true) {
-			direction += Math::Vector3::Back();
-		}
-		if (m_MoveBackward == true) {
-			direction += Math::Vector3::Forward();
-		}
-		if (m_MoveRightward == true) {
-			direction += Math::Vector3::Right();
-		}
-		if (m_MoveLeftward == true) {
-			direction += Math::Vector3::Left();
-		}
-		eulerDelta = m_PendingEulerDelta;
-		m_PendingEulerDelta = Math::Vector3::Zero();
+	if (m_MoveForward == true) {
+		direction += Math::Vector3::Back();
 	}
+	if (m_MoveBackward == true) {
+		direction += Math::Vector3::Forward();
+	}
+	if (m_MoveRightward == true) {
+		direction += Math::Vector3::Right();
+	}
+	if (m_MoveLeftward == true) {
+		direction += Math::Vector3::Left();
+	}
+	eulerDelta = m_PendingEulerDelta;
+	m_PendingEulerDelta = Math::Vector3::Zero();
 	if (direction != Math::Vector3::Zero()) {
 		MoveCamera(direction, deltaTime);
 	}
@@ -101,7 +93,7 @@ void Scene::UpdateCamera(const f32 deltaTime) {
 	}
 }
 
-void Scene::SetSceneMaterial(std::shared_ptr<Render::Material> material) {
+void Scene::SetSceneMaterial(std::shared_ptr<Material> material) {
 	m_Material = material;
 	if (m_Tree != nullptr && m_Tree->GetRoot() != nullptr) {
 		m_Tree->GetRoot()->ForEachDescendant([material](Node* node) {
@@ -228,15 +220,15 @@ void Scene::SetupInputActions() {
 }
 
 void Scene::SetupDefaultMaterials() {
-	std::shared_ptr<Asset::Shader> shaderAsset = Asset::Registry::Instance()
-		.GetOrLoad<Asset::Shader>("Shaders/wire", Asset::AssetType::Shader);
-	m_WireframeMaterial = std::make_shared<Render::Material>(shaderAsset);
-	shaderAsset = Asset::Registry::Instance()
-		.GetOrLoad<Asset::Shader>("Shaders/unlit", Asset::AssetType::Shader);
-	m_UnlitMaterial = std::make_shared<Render::Material>(shaderAsset);
-	shaderAsset = Asset::Registry::Instance()
-		.GetOrLoad<Asset::Shader>("Shaders/lit", Asset::AssetType::Shader);
-	m_LitMaterial = std::make_shared<Render::Material>(shaderAsset);
+	std::shared_ptr<ShaderAsset> shaderAsset = AssetLoader::Instance()
+		.GetOrLoad<ShaderAsset>("Shaders/wire", AssetType::Shader);
+	m_WireframeMaterial = std::make_shared<Material>(shaderAsset);
+	shaderAsset = AssetLoader::Instance()
+		.GetOrLoad<ShaderAsset>("Shaders/unlit", AssetType::Shader);
+	m_UnlitMaterial = std::make_shared<Material>(shaderAsset);
+	shaderAsset = AssetLoader::Instance()
+		.GetOrLoad<ShaderAsset>("Shaders/lit", AssetType::Shader);
+	m_LitMaterial = std::make_shared<Material>(shaderAsset);
 	m_Material = m_LitMaterial;
 }
 

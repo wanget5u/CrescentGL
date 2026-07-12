@@ -27,7 +27,7 @@ struct System {
 	void SetCursorPos(f64 x, f64 y);
 	void GetCursorPos(f64& x, f64& y) const;
 	void RegisterListener(IInputListener* listener);
-	void UnregisterListener(IInputListener* listener);
+	void UnregisterListener(const IInputListener* listener);
 	void OnKeyboardKeyCallback(GLFWwindow* window, i32 key, i32 scancode, i32 action, i32 mods);
 	void OnMouseButtonCallback(GLFWwindow* window, i32 button, i32 action, i32 mods);
 	void OnMouseScrollCallback(GLFWwindow* window, f64 xOffset, f64 yOffset);
@@ -36,8 +36,6 @@ struct System {
 	void OnWindowFocusCallback(GLFWwindow* window, i32 focused) const;
 	void OnCursorEnterCallback(GLFWwindow* window, i32 entered) const;
 private:
-	System() = default;
-	~System();
 	GLFWwindow* m_Window{nullptr};
 	std::vector<Context::Type> m_ActiveContexts{};
 	std::unordered_map<Context::Type, std::unique_ptr<Context>> m_Contexts{};
@@ -49,6 +47,8 @@ private:
 	f32 m_MouseDeltaX{0.0f};
 	f32 m_MouseDeltaY{0.0f};
 	f32 m_ScrollDelta{0.0f};
+	System() = default;
+	~System() = default;
 	Context& CreateContext(Context::Type contextType);
 };
 }

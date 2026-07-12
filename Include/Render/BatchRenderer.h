@@ -7,19 +7,19 @@
 #include "RenderPacket.h"
 #include "Collection/DynamicList.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 	struct MeshInstance3D;
 	struct MultiMeshInstance3D;
 	struct PointLight3D;
 	struct Camera3D;
 }
-namespace Crescent::Render {
-///
+
+namespace Crescent {
 struct BatchRenderer {
 	explicit BatchRenderer();
 	~BatchRenderer();
 	void InitializeBuffers();
-	void PrepareFrame(Scene::Camera3D const* camera);
+	void PrepareFrame(Camera3D const* camera);
 	///
 	void BeginBatchLoad();
 	void EndBatchLoad();
@@ -35,12 +35,13 @@ struct BatchRenderer {
 	template <typename T>
 	void Unregister(T* instance);
 	///
-	void RenderScene(Scene::Camera3D const* camera);
+	void RenderScene(Camera3D const* camera);
 private:
 	bool m_IsBatchLoading{false};
 	bool m_IsBatchUnloading{false};
 	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>> m_RenderGroups{};
-	DynamicList<RenderPacket> m_RenderPackets{};
+	DynamicList<RenderPacket> m_OpaquePackets{};
+	DynamicList<RenderPacket> m_TransparentPackets{};
 	///
 	u32 m_SceneDataUBO{0};
 	// TODO: IMPLEMENT SSBOs
@@ -55,8 +56,7 @@ private:
 template<typename T>
 RenderGroup<T>* BatchRenderer::GetRenderGroup() {
 	std::type_index typeIndex = typeid(T);
-	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>>::iterator it
-		= m_RenderGroups.find(typeIndex);
+	auto it = m_RenderGroups.find(typeIndex);
 	if (it == m_RenderGroups.end()) {
 		std::unique_ptr<RenderGroup<T>> renderGroup = std::make_unique<RenderGroup<T>>();
 		RenderGroup<T>* renderGroupPtr = renderGroup.get();

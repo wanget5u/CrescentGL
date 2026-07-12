@@ -3,9 +3,9 @@
 
 #include "Core/Log.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 Tree::Tree() {
-	m_BatchRenderer = std::make_unique<Render::BatchRenderer>();
+	m_BatchRenderer = std::make_unique<BatchRenderer>();
 	m_BatchRenderer->InitializeBuffers();
 	m_Root = std::make_unique<Node>();
 	m_Root->m_Tree = this;
@@ -38,7 +38,7 @@ Node * Tree::GetRoot() const {
 	return m_Root.get();
 }
 
-Render::BatchRenderer* Tree::GetBatchRenderer() const noexcept {
+BatchRenderer* Tree::GetBatchRenderer() const noexcept {
 	return m_BatchRenderer.get();
 }
 

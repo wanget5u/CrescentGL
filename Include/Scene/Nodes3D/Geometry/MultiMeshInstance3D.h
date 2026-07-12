@@ -1,18 +1,18 @@
 #pragma once
-#include "InstancedVisual3D.h"
-#include "../../../Asset/AssetType.h"
+#include "Scene/Nodes3D/Geometry/InstancedVisual3D.h"
+#include "Asset/AssetType.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 struct MultiMeshInstance3D : InstancedVisual3D {
 	MultiMeshInstance3D();
 	explicit MultiMeshInstance3D(
-		std::shared_ptr<Asset::Mesh> meshAsset,
-		std::shared_ptr<Render::Material> material = nullptr
+		std::shared_ptr<MeshAsset> meshAsset,
+		std::shared_ptr<Material> material = nullptr
 	);
 	~MultiMeshInstance3D() override;
 	void OnTreeEnter() override;
 	void OnTreeExit() override;
-	void SetMesh(std::shared_ptr<Render::Mesh> proceduralMesh) noexcept override;
+	void SetMesh(std::shared_ptr<Mesh> proceduralMesh) noexcept override;
 	/// Hardware Instancing & Transform Array Management.
 	/// Replaces all instance transforms and uploads them to the GPU InstanceVBO
 	void SetTransforms(DynamicList<Math::Matrix4x4> const& transforms);

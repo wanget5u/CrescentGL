@@ -5,7 +5,7 @@
 #include "Render/RenderStats.h"
 #include "Render/GPUDisposalQueue.h"
 
-namespace Crescent::Render {
+namespace Crescent {
 Mesh::VertexLayout Mesh::VertexLayout::CreatePosNormalUV() {
 	VertexLayout layout{};
 	layout.Stride = 8 * sizeof(f32);
@@ -76,9 +76,9 @@ void Mesh::Unbind() const {
 void Mesh::Draw() const {
 	glBindVertexArray(m_VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<i32>(m_IndexCount), GL_UNSIGNED_INT, nullptr);
-	Stats::Instance().DrawCalls++;
-	Stats::Instance().TriangleCount += (m_IndexCount / 3);
-	Stats::Instance().VertexCount += m_VertexCount;
+	RenderStats::Instance().DrawCalls++;
+	RenderStats::Instance().TriangleCount += (m_IndexCount / 3);
+	RenderStats::Instance().VertexCount += m_VertexCount;
 }
 
 void Mesh::DrawInstanced(const u32 instanceCount) const {
@@ -94,8 +94,8 @@ void Mesh::DrawInstanced(const u32 instanceCount) const {
 			nullptr,
 			instanceCount
 		);
-		Stats::Instance().TriangleCount += (m_IndexCount / 3) * instanceCount;
-		Stats::Instance().VertexCount += m_VertexCount * instanceCount;
+		RenderStats::Instance().TriangleCount += (m_IndexCount / 3) * instanceCount;
+		RenderStats::Instance().VertexCount += m_VertexCount * instanceCount;
 	}
 	else {
 		glDrawArraysInstanced(
@@ -104,11 +104,11 @@ void Mesh::DrawInstanced(const u32 instanceCount) const {
 			static_cast<i32>(m_VertexCount),
 			instanceCount
 		);
-		Stats::Instance().TriangleCount += (m_VertexCount / 3) * instanceCount;
-		Stats::Instance().VertexCount += m_VertexCount * instanceCount;
+		RenderStats::Instance().TriangleCount += (m_VertexCount / 3) * instanceCount;
+		RenderStats::Instance().VertexCount += m_VertexCount * instanceCount;
 	}
 	Unbind();
-	Stats::Instance().DrawCalls++;
+	RenderStats::Instance().DrawCalls++;
 }
 
 void Mesh::UploadData(const DynamicList<Vertex>& vertices, const DynamicList<u32>& indices) {

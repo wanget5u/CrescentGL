@@ -1,15 +1,12 @@
 #pragma once
 #include "Scene/Nodes3D/VisualInstance3D.h"
 
-namespace Crescent::Render {
-	struct BatchRenderer;
-}
-namespace Crescent::Scene {
+namespace Crescent {
 enum class LightType {
 	Point, Directional, Spot
 };
 struct Light3D : VisualInstance3D {
-	friend struct Render::BatchRenderer;
+	friend struct BatchRenderer;
 	constexpr static i32 MaxPointLightsPerDrawCall = 32;
 	Light3D() = default;
 	~Light3D() override = default;

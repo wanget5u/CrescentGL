@@ -1,7 +1,7 @@
-#include "../../Include/Scene/Transform.h"
-#include "../../Include/Scene/Nodes3D/Node3D.h"
+#include "Scene/Transform.h"
+#include "Scene/Nodes3D/Node3D.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 void Transform::SetParent(const Transform* parent) noexcept {
 	if (m_Parent != parent) {
@@ -92,7 +92,8 @@ Math::Matrix4x4& Transform::GetLocalMatrix() const noexcept {
 
 Math::Matrix4x4& Transform::GetWorldMatrix() const noexcept {
 	if (m_Parent != nullptr) {
-		u32 currentParentVersion = m_Parent->GetVersion();
+		(void)m_Parent->GetWorldMatrix();
+		u32 const currentParentVersion = m_Parent->GetVersion();
 		if (m_CachedParentVersion != currentParentVersion) {
 			m_WorldMatrixDirty = true;
 			m_CachedParentVersion = currentParentVersion;
@@ -105,6 +106,7 @@ Math::Matrix4x4& Transform::GetWorldMatrix() const noexcept {
 			m_WorldMatrix = GetLocalMatrix();
 		}
 		m_WorldMatrixDirty = false;
+		++m_Version;
 	}
 	return m_WorldMatrix;
 }

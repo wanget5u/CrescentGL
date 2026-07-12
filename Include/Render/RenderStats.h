@@ -1,15 +1,15 @@
 #pragma once
 #include "Core/Core.h"
 
-namespace Crescent::Render {
-struct Stats {
+namespace Crescent {
+struct RenderStats {
 	f32 CPUFrameTimeMs{0.0f};
 	u32 DrawCalls{0};
 	u32 TriangleCount{0};
 	u32 VertexCount{0};
 	f32 GPUFrameTimeMs{0.0f};
-	static Stats& Instance() {
-		static Stats s_Instance;
+	static RenderStats& Instance() {
+		static RenderStats s_Instance;
 		return s_Instance;
 	}
 	void Reset() noexcept {

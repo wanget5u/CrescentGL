@@ -1,7 +1,7 @@
 #pragma once
 #include "Collection/DynamicList.h"
 
-namespace Crescent::Render {
+namespace Crescent {
 struct IRenderGroup {
 	virtual ~IRenderGroup() = default;
 	virtual void FlushLoad() = 0;
@@ -16,7 +16,8 @@ struct RenderGroup : IRenderGroup {
 void Register(T* instance, const bool isBatchLoading) {
 	if (isBatchLoading) {
 		Staged.PushBack(instance);
-	} else {
+	}
+	else {
 		Registered.PushBack(instance);
 	}
 }
@@ -28,7 +29,8 @@ void Unregister(T* instance, const bool isBatchUnloading) {
 				break;
 			}
 		}
-	} else {
+	}
+	else {
 		Registered.Remove(instance);
 		Staged.Remove(instance);
 	}

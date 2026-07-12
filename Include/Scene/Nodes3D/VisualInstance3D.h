@@ -1,12 +1,9 @@
 #pragma once
-#include "Node3D.h"
+#include "Scene/Nodes3D/Node3D.h"
 
-namespace Crescent::Render {
-	struct BatchRenderer;
-}
-namespace Crescent::Scene {
+namespace Crescent {
 struct VisualInstance3D : Node3D {
-	friend struct Render::BatchRenderer;
+	friend struct BatchRenderer;
 	VisualInstance3D() = default;
 	~VisualInstance3D() override = default;
 	void OnTreeEnter() override;

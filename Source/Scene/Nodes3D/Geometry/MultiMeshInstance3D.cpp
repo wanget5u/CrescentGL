@@ -1,4 +1,4 @@
-#include "../../../../Include/Scene/Nodes3D/Geometry/MultiMeshInstance3D.h"
+#include "Scene/Nodes3D/Geometry/MultiMeshInstance3D.h"
 
 #include <glad/glad.h>
 
@@ -6,14 +6,14 @@
 #include "Render/Material/Material.h"
 #include "Render/GPUDisposalQueue.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 MultiMeshInstance3D::MultiMeshInstance3D() {
 	glGenVertexArrays(1, &m_InstanceVAO);
 	glGenBuffers(1, &m_InstanceVBO);
 }
 
-MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset, std::shared_ptr<Render::Material> material)
+MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<MeshAsset> meshAsset, std::shared_ptr<Material> material)
 	: MultiMeshInstance3D() {
 	m_MeshAsset = std::move(meshAsset);
 	m_Material = std::move(material);
@@ -21,11 +21,11 @@ MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset,
 
 MultiMeshInstance3D::~MultiMeshInstance3D() {
 	if (m_InstanceVAO != 0) {
-		Render::GPUDisposalQueue::SubmitVertexArrayForDeletion(m_InstanceVAO);
+		GPUDisposalQueue::SubmitVertexArrayForDeletion(m_InstanceVAO);
 		m_InstanceVAO = 0;
 	}
 	if (m_InstanceVBO != 0) {
-		Render::GPUDisposalQueue::SubmitBufferForDeletion(m_InstanceVBO);
+		GPUDisposalQueue::SubmitBufferForDeletion(m_InstanceVBO);
 		m_InstanceVBO = 0;
 	}
 }
@@ -38,7 +38,7 @@ void MultiMeshInstance3D::OnTreeExit() {
 	InstancedVisual3D::OnTreeExit();
 }
 
-void MultiMeshInstance3D::SetMesh(std::shared_ptr<Render::Mesh> proceduralMesh) noexcept {
+void MultiMeshInstance3D::SetMesh(std::shared_ptr<Mesh> proceduralMesh) noexcept {
 	GeometryInstance3D::SetMesh(std::move(proceduralMesh));
 	m_InstanceVAODirty = true;
 }
@@ -94,7 +94,7 @@ void MultiMeshInstance3D::UploadTransformsToGPU() {
 }
 
 void MultiMeshInstance3D::DrawInstanced() const {
-	Render::Mesh* gpuMesh = GetMesh();
+	Mesh* gpuMesh = GetMesh();
 	if (gpuMesh == nullptr || m_InstanceCount == 0) {
 		return;
 	}
@@ -130,14 +130,14 @@ void MultiMeshInstance3D::Draw() const {
 }
 
 void MultiMeshInstance3D::CheckAndBuildInstanceVAO() const {
-	Render::Mesh* gpuMesh = GetMesh();
+	Mesh* gpuMesh = GetMesh();
 	if (gpuMesh == nullptr || gpuMesh->GetVBO() == 0) {
 		return;
 	}
 	glBindVertexArray(m_InstanceVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, gpuMesh->GetVBO());
-	Render::Mesh::VertexLayout const& layout = gpuMesh->GetLayout();
-	for (Render::Mesh::VertexAttribute const& attribute : layout.VertexAttributes) {
+	Mesh::VertexLayout const& layout = gpuMesh->GetLayout();
+	for (Mesh::VertexAttribute const& attribute : layout.VertexAttributes) {
 		glEnableVertexAttribArray(attribute.Location);
 		glVertexAttribPointer(
 			attribute.Location,

@@ -6,8 +6,6 @@
 
 namespace Crescent::Input {
 
-System::~System() = default;
-
 void GLFWKeyboardKeyCallback(
 	GLFWwindow* window,
 	i32 const key,
@@ -155,7 +153,7 @@ void System::RegisterListener(IInputListener* listener) {
 	m_Listeners.push_back(listener);
 }
 
-void System::UnregisterListener(IInputListener* listener) {
+void System::UnregisterListener(const IInputListener* listener) {
 	for (size_t a = 0; a < m_Listeners.size(); ++a) {
 		if (m_Listeners[a] == listener) {
 			m_Listeners.erase(m_Listeners.begin() + a);

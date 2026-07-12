@@ -5,8 +5,11 @@
 #include "Collection/DynamicList.h"
 #include "Core/Core.h"
 
-namespace Crescent::Scene {
-struct Tree;
+namespace Crescent {
+	struct Tree;
+}
+
+namespace Crescent {
 /// Base class for all objects in the scene hierarchy
 /// The Node class represents a building block of the scene graph. Nodes manage their own lifetimes,
 /// handle hierarchical transformations, propagate engine lifecycle updates down to their children

@@ -1,15 +1,13 @@
 #include "Core/Application.h"
 
 #include <chrono>
-#include <thread>
 
 #include "Core/Log.h"
 #include "Core/Random.h"
 #include "Core/Time.h"
 #include "Core/Window.h"
 #include "Scene/Scene.h"
-#include "Asset/Loader.h"
-#include "Asset/Registry.h"
+#include "Asset/AssetLoader.h"
 #include "Input/InputSystem.h"
 #include "Input/InputAction.h"
 #include "Render/RenderStats.h"
@@ -20,17 +18,17 @@
 
 namespace Crescent {
 
+static Application* s_Instance = nullptr;
+
 Application::Application() {
+	s_Instance = this;
 	if (glfwInit() == false) {
 		Log::Error("Failed to initialize GLFW.");
 		return;
 	}
 	m_MainWindow = std::make_unique<Window>(Window::Properties("CrescentGL", SCREEN_WIDTH, SCREEN_HEIGHT));
-	m_LoadWindow = std::make_unique<Window>(Window::Properties("CrescentGL-AssetLoader", 1, 1, false, m_MainWindow.get()));
-	Window::UnbindContext();
 	m_MainWindow->ShowWindow();
 	Random::Initialize();
-	Asset::Loader::Instance().OnCreate(m_LoadWindow.get());
 	UI::System::Instance().OnCreatePlatform(m_MainWindow->GetWindow());
 	Input::System::Instance().OnCreate(m_MainWindow->GetWindow());
 	SetupGlobalInputActions();
@@ -38,30 +36,71 @@ Application::Application() {
 }
 
 Application::~Application() {
-	Asset::Loader::Instance().Shutdown();
+	m_ActiveScene.reset();
+	UI::System::Instance().ShutdownRenderer();
+	AssetLoader::Instance().Shutdown();
+	GPUDisposalQueue::Flush();
 	UI::System::Instance().ShutdownPlatform();
 	glfwTerminate();
+	s_Instance = nullptr;
+}
+
+Application& Application::Instance() {
+	return *s_Instance;
 }
 
 void Application::Run() {
-	std::thread renderThread(&Application::RenderThreadLoop, this);
+	m_MainWindow->MakeContextCurrent();
+	UI::System::Instance().OnCreateRenderer();
+	SetupUIPanels();
+	m_ActiveScene = std::make_unique<DemoScene>();
+
+	f64 cpuStartTime{};
 	while (m_Running == true && m_MainWindow->ShouldClose() == false) {
+		cpuStartTime = glfwGetTime();
 		Window::PollEvents();
-		UI::System::Instance().OnUpdate();
-		Input::System::Instance().OnUpdate();
 		if (m_WantsFullscreenToggle == true) {
-			while (m_RenderThreadSafeToToggle == false) {
-				std::this_thread::yield();
-			}
 			m_MainWindow->ToggleFullscreen();
-			Window::PollEvents();
 			m_WantsFullscreenToggle = false;
 		}
+		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
+		while (Time::AccumulatorHasSubstep()) {
+			Time::ConsumeSubstep();
+		}
+		m_MainWindow->CheckViewportResize();
+		Input::System::Instance().OnUpdate();
+		UI::System::Instance().OnUpdate(Time::GetVariableDeltaTime());
+		m_ActiveScene->UpdateCamera(Time::GetVariableDeltaTime());
+		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
+		m_ActiveScene->OnRender(*m_MainWindow);
+		UI::System::Instance().OnRenderGUI(Time::GetVariableDeltaTime());
+		RenderStats::Instance().CPUFrameTimeMs = static_cast<f32>((glfwGetTime() - cpuStartTime) * 1000.0f);
+		m_MainWindow->SwapBuffers();
 	}
 	m_Running = false;
-	if (renderThread.joinable()) {
-		renderThread.join();
+}
+
+void Application::OnRender() const {
+	if (m_Running == false || m_MainWindow == nullptr || m_ActiveScene == nullptr) {
+		return;
 	}
+	if (m_MainWindow->GetWindowWidth() <= 0 || m_MainWindow->GetWindowHeight() <= 0) {
+		return;
+	}
+	m_MainWindow->MakeContextCurrent();
+	m_MainWindow->CheckViewportResize();
+	Time::OnUpdate(static_cast<f32>(glfwGetTime()));
+	while (Time::AccumulatorHasSubstep()) {
+		Time::ConsumeSubstep();
+	}
+	const f32 deltaTime = Time::GetVariableDeltaTime();
+	Input::System::Instance().OnUpdate();
+	UI::System::Instance().OnUpdate(deltaTime);
+	m_ActiveScene->UpdateCamera(deltaTime);
+	m_ActiveScene->OnUpdate(deltaTime);
+	m_ActiveScene->OnRender(*m_MainWindow);
+	UI::System::Instance().OnRenderGUI(deltaTime);
+	m_MainWindow->SwapBuffers();
 }
 
 void Application::SetupGlobalInputActions() {
@@ -93,53 +132,9 @@ void Application::SetupGlobalInputActions() {
 	});
 }
 
-void Application::SetupUIPanels() {
+void Application::SetupUIPanels() const {
 	UI::System::Instance().RegisterPanel<UI::DebugPanel>("Debug");
 	// TODO: SceneHierarchy, SceneTab, Toolbar
-}
-
-void Application::RenderThreadLoop() {
-	m_MainWindow->MakeContextCurrent();
-	UI::System::Instance().OnCreateRenderer();
-	SetupUIPanels();
-	{
-		std::scoped_lock lock(m_ActiveSceneMutex);
-		m_ActiveScene = std::make_unique<Scene::DemoScene>();
-	}
-	f64 cpuStartTime{};
-	while (m_Running == true) {
-		cpuStartTime = glfwGetTime();
-		if (m_WantsFullscreenToggle == true) {
-			Window::UnbindContext();
-			m_RenderThreadSafeToToggle = true;
-			while (m_WantsFullscreenToggle == true) {
-				std::this_thread::yield();
-			}
-			m_MainWindow->MakeContextCurrent();
-			m_RenderThreadSafeToToggle = false;
-		}
-		Time::OnUpdate(static_cast<f32>(glfwGetTime()));
-		while (Time::AccumulatorHasSubstep()) {
-			Time::ConsumeSubstep();
-		}
-		m_MainWindow->CheckViewportResize();
-		Asset::Registry::Instance().OnUpdate();
-		m_ActiveScene->UpdateCamera(Time::GetVariableDeltaTime());
-		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
-		m_ActiveScene->OnRender(*m_MainWindow);
-		UI::System::Instance().OnRenderGUI(Time::GetVariableDeltaTime());
-		Render::Stats::Instance().CPUFrameTimeMs = static_cast<f32>((glfwGetTime() - cpuStartTime) * 1000.0f);
-		m_MainWindow->SwapBuffers();
-	}
-	Asset::Loader::Instance().Shutdown();
-	{
-		std::scoped_lock lock(m_ActiveSceneMutex);
-		m_ActiveScene.reset();
-	}
-	UI::System::Instance().ShutdownRenderer();
-	Asset::Registry::Instance().Clear();
-	Render::GPUDisposalQueue::Flush();
-	Window::UnbindContext();
 }
 
 }

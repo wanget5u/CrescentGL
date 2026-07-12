@@ -1,6 +1,13 @@
 #include "Core/Window.h"
 
+#ifdef _WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+#endif
+
+#include "Win32Utils.h"
 #include "Core/Log.h"
+#include "Core/Application.h"
 #include "UI/UISystem.h"
 
 namespace Crescent {
@@ -8,6 +15,13 @@ namespace Crescent {
 static void FrameBufferCallback(GLFWwindow* window, i32 const width, i32 const height) {
 	Window* windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
 	windowInstance->OnResize(width, height);
+}
+
+static void WindowRefreshCallback(GLFWwindow* window) {
+	Window* windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
+	if (windowInstance != nullptr) {
+		windowInstance->OnRefresh();
+	}
 }
 
 Window::Window(Properties const& properties) {
@@ -24,10 +38,17 @@ Window::Window(Properties const& properties) {
 	CreateWindowInstance();
 	glfwSetWindowUserPointer(m_Window, this);
 	glfwSetFramebufferSizeCallback(m_Window, FrameBufferCallback);
+	glfwSetWindowRefreshCallback(m_Window, WindowRefreshCallback);
+#ifdef _WIN32
+	Win32::SubclassGLFWWindow(m_Window);
+#endif
 	CalculateAspectRatio();
 }
 
 Window::~Window() {
+#ifdef _WIN32
+	Win32::UnsubclassGLFWWindow(m_Window);
+#endif
 	glfwDestroyWindow(m_Window);
 }
 
@@ -120,7 +141,14 @@ void Window::OnResize(u32 const width, u32 const height) {
 	m_FrameBufferResized = true;
 	CalculateAspectRatio();
 	if (width > 0 && height > 0) {
-		UI::System::Instance().OnUpdate();
+		CheckViewportResize();
+		Application::Instance().OnRender();
+	}
+}
+
+void Window::OnRefresh() {
+	if (GetWindowWidth() > 0 && GetWindowHeight() > 0) {
+		Application::Instance().OnRender();
 	}
 }
 
@@ -155,8 +183,7 @@ f32 Window::GetAspectRatio() const {
 }
 
 bool Window::CreateWindowInstance() {
-	GLFWwindow* shareWindow = m_Properties.ShareWindow != nullptr ? m_Properties.ShareWindow->GetWindow() : nullptr;
-	m_Window = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title, nullptr, shareWindow);
+	m_Window = glfwCreateWindow(m_Properties.Width, m_Properties.Height, m_Properties.Title, nullptr, nullptr);
 	if (m_Window == nullptr) {
 		Log::Error("Failed to initialize GLFW window.");
 		return false;

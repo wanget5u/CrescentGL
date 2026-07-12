@@ -4,8 +4,11 @@
 #include "Math/Vector/Vector2.h"
 #include "Math/Vector/Vector3.h"
 
-namespace Crescent::Render {
-struct Material;
+namespace Crescent {
+	struct Material;
+}
+
+namespace Crescent {
 struct Mesh {
 	struct Vertex {
 		Math::Vector3 Position{};
@@ -73,14 +76,14 @@ protected:
 	explicit Mesh(VertexLayout&& layout);
 	virtual void GenerateGeometry() {}
 private:
-	VertexLayout              m_Layout     {};
-	u32 					  m_VAO		   {0};
-	u32 					  m_VBO		   {0};
-	u32 					  m_EBO		   {0};
-	u32 					  m_IndexCount {0};
-	u32						  m_VertexCount{0};
-	size_t                    m_VBOCapacity{0};
-	size_t                    m_EBOCapacity{0};
+	VertexLayout m_Layout     {};
+	u32 		 m_VAO		  {0};
+	u32 		 m_VBO		  {0};
+	u32 		 m_EBO		  {0};
+	u32 		 m_IndexCount {0};
+	u32			 m_VertexCount{0};
+	size_t       m_VBOCapacity{0};
+	size_t       m_EBOCapacity{0};
 };
 
 }

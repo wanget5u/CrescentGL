@@ -1,6 +1,6 @@
 #include "Render/Primitives/BoxMesh.h"
 
-namespace Crescent::Render {
+namespace Crescent {
 
 BoxMesh::BoxMesh(f32 const width, f32 const height, f32 const depth)
 	: Mesh(VertexLayout::CreatePosNormalUV())

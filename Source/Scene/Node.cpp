@@ -1,7 +1,7 @@
-#include "../../Include/Scene/Node.h"
-#include "../../Include/Scene/Tree.h"
+#include "Scene/Node.h"
+#include "Scene/Tree.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 u64 Node::s_ID = 0;
 

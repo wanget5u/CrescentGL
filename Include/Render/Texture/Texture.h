@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Core.h"
 
-namespace Crescent::Render {
+namespace Crescent {
 struct Texture {
 	u32 TextureID{0};
 	i32 Width{0};

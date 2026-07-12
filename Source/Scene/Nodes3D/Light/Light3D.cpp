@@ -1,9 +1,9 @@
-#include "../../../../Include/Scene/Nodes3D/Light/Light3D.h"
+#include "Scene/Nodes3D/Light/Light3D.h"
 
 #include "Render/BatchRenderer.h"
 #include "Scene/Tree.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 void Light3D::OnTreeEnter() {
 	VisualInstance3D::OnTreeEnter();

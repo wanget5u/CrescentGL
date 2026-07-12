@@ -1,17 +1,14 @@
 #pragma once
-#include "../Node.h"
-#include "../Transform.h"
+#include "Scene/Node.h"
+#include "Scene/Transform.h"
 
-namespace Crescent::Render {
-	struct BatchRenderer;
-}
-namespace Crescent::Scene {
+namespace Crescent {
 /// Base class for all 3D objects in the scene graph
 /// Node3D extends the base Node class by introducing a 3D Transform component.
 /// Any object such as meshes, lights, cameras, or audio emitters should
 /// derive from Node3D to participate in space transformations
 struct Node3D : Node {
-	friend struct Render::BatchRenderer;
+	friend struct BatchRenderer;
 	/// The local spatial data (position, rotation, scale) of this node
 	Transform Transform{};
 	Node3D() = default;

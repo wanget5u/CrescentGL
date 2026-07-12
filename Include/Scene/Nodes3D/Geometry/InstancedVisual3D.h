@@ -1,7 +1,7 @@
 #pragma once
-#include "GeometryInstance3D.h"
+#include "Scene/Nodes3D/Geometry/GeometryInstance3D.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 struct InstancedVisual3D : GeometryInstance3D {
 	InstancedVisual3D() = default;
 	~InstancedVisual3D() override = default;

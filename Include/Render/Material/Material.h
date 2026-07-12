@@ -9,16 +9,16 @@
 #include "Math/Vector/Vector3.h"
 #include "Math/Vector/Vector2.h"
 
-namespace Crescent::Asset {
-	struct Shader;
-	struct Texture;
+namespace Crescent {
+	struct ShaderAsset;
+	struct TextureAsset;
 }
-namespace Crescent::Render {
-struct Shader;
+
+namespace Crescent {
 struct Material {
 	friend struct BatchRenderer;
-	explicit Material(std::shared_ptr<Asset::Shader> shaderAsset = nullptr, Math::Vector4 const& baseColor = GetDefaultColor());
-	static std::shared_ptr<Asset::Shader> GetDefaultShader();
+	explicit Material(std::shared_ptr<ShaderAsset> shaderAsset = nullptr, Math::Vector4 const& baseColor = GetDefaultColor());
+	static std::shared_ptr<ShaderAsset> GetDefaultShader();
 	static std::shared_ptr<Material> GetDefaultMaterial();
 	static Math::Vector4 GetDefaultColor() noexcept;
 	void Bind() const;
@@ -36,14 +36,14 @@ struct Material {
 	void TrySetVector3(std::string_view name, Math::Vector3 const& vector) const;
 	void TrySetVector4(std::string_view name, Math::Vector4 const& vector) const;
 	void TrySetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
-	Math::Vector4					TintColor		  {GetDefaultColor()};
-	f32								MetallicFactor    {1.0f};
-	f32								RoughnessFactor   {1.0f};
-	std::shared_ptr<Asset::Shader>  ShaderAsset       {nullptr};
-	std::shared_ptr<Asset::Texture> AlbedoTexture     {nullptr};
-	std::shared_ptr<Asset::Texture> MetallicTexture   {nullptr};
-	std::shared_ptr<Asset::Texture> RoughnessTexture  {nullptr};
-	std::shared_ptr<Asset::Texture> NormalTexture     {nullptr};
+	Math::Vector4				  TintColor		    {GetDefaultColor()};
+	f32							  MetallicFactor    {1.0f};
+	f32							  RoughnessFactor   {1.0f};
+	std::shared_ptr<ShaderAsset>  Shader            {nullptr};
+	std::shared_ptr<TextureAsset> AlbedoTexture     {nullptr};
+	std::shared_ptr<TextureAsset> MetallicTexture   {nullptr};
+	std::shared_ptr<TextureAsset> RoughnessTexture  {nullptr};
+	std::shared_ptr<TextureAsset> NormalTexture     {nullptr};
 private:
 	static u32 s_IDCounter;
 	u32 ID{0};
@@ -55,12 +55,12 @@ private:
 	mutable std::unordered_map<std::string, Math::Vector4> m_Vector4s{};
 	mutable std::unordered_map<std::string, Math::Matrix4x4> m_Matrix4x4s{};
 	[[nodiscard]] static u32 Create1x1Texture(u8 red, u8 green, u8 blue, u8 alpha = 255);
-	[[nodiscard]] std::shared_ptr<Asset::Shader> GetActiveShader() const noexcept;
 	static u32 GetWhiteFallbackTexture() noexcept;
 	static u32 GetNormalFallbackTexture() noexcept;
-	void BindAlbedoTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept;
-	void BindMetallicTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept;
-	void BindRoughnessTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept;
-	void BindNormalTexture(std::shared_ptr<Asset::Shader> const& activeShader) const noexcept;
+	[[nodiscard]] std::shared_ptr<ShaderAsset> GetActiveShader() const noexcept;
+	void BindAlbedoTexture(std::shared_ptr<ShaderAsset> const& activeShader) const noexcept;
+	void BindMetallicTexture(std::shared_ptr<ShaderAsset> const& activeShader) const noexcept;
+	void BindRoughnessTexture(std::shared_ptr<ShaderAsset> const& activeShader) const noexcept;
+	void BindNormalTexture(std::shared_ptr<ShaderAsset> const& activeShader) const noexcept;
 };
 }

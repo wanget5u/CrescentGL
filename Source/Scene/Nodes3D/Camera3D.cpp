@@ -1,6 +1,6 @@
-#include "../../../Include/Scene/Nodes3D/Camera3D.h"
+#include "Scene/Nodes3D/Camera3D.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 void Camera3D::OnTreeEnter() {
 	Node3D::OnTreeEnter();
@@ -23,10 +23,18 @@ void Camera3D::SetPerspective(const f32 fovDegrees, const f32 aspectRatio, const
 }
 
 const Math::Matrix4x4& Camera3D::GetViewMatrix() const noexcept {
-	Math::Vector3 const& cameraPosition = Transform.GetPosition();
-	Math::Vector3 const& forwardVector = Transform.GetForward();
-	Math::Vector3 const& upVector = Transform.GetUp();
-	m_ViewMatrix = Math::Matrix4x4::GetLookAt(cameraPosition, cameraPosition + forwardVector, upVector);
+	u32 const currentTransformVersion = Transform.GetVersion();
+	if (m_CachedTransformVersion != currentTransformVersion) {
+		m_ViewMatrixDirty = true;
+		m_CachedTransformVersion = currentTransformVersion;
+	}
+	if (m_ViewMatrixDirty == true) {
+		Math::Vector3 const& cameraPosition = Transform.GetPosition();
+		Math::Vector3 const& forwardVector = Transform.GetForward();
+		Math::Vector3 const& upVector = Transform.GetUp();
+		m_ViewMatrix = Math::Matrix4x4::GetLookAt(cameraPosition, cameraPosition + forwardVector, upVector);
+		m_ViewMatrixDirty = false;
+	}
 	return m_ViewMatrix;
 }
 

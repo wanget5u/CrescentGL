@@ -2,7 +2,7 @@
 #include "Render/Mesh.h"
 #include "Math/Vector/Vector3.h"
 
-namespace Crescent::Render {
+namespace Crescent {
 struct BoxMesh : Mesh {
 	explicit BoxMesh(f32 width = 1.0f, f32 height = 1.0f, f32 depth = 1.0f);
 	explicit BoxMesh(Math::Vector3 const& size);
@@ -12,7 +12,6 @@ struct BoxMesh : Mesh {
 	[[nodiscard]] Math::Vector3 GetSize() const noexcept { return m_Size; }
 protected:
 	void GenerateGeometry() override;
-private:
 	Math::Vector3 m_Size{1.0f, 1.0f, 1.0f};
 };
 }

@@ -6,10 +6,11 @@
 
 #include "Core/Core.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 	struct Scene;
 	struct Node;
 }
+
 namespace Crescent::UI {
 enum class EventType {
 	NodeSelected,
@@ -19,7 +20,7 @@ enum class EventType {
 };
 struct Event {
 	EventType Type;
-	std::variant<std::monostate, Scene::Node*, Scene::Scene*, bool, i32> Data{std::monostate{}};
+	std::variant<std::monostate, Node*, Scene*, bool, i32> Data{std::monostate{}};
 
 };
 using EventCallback = std::function<void(Event const&)>;

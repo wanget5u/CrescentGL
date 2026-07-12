@@ -1,12 +1,12 @@
-#include "../../../../Include/Scene/Nodes3D/Geometry/MeshInstance3D.h"
+#include "Scene/Nodes3D/Geometry/MeshInstance3D.h"
 
 #include "Render/BatchRenderer.h"
 #include "Render/Material/Material.h"
 #include "Scene/Tree.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
-MeshInstance3D::MeshInstance3D(std::shared_ptr<Asset::Mesh> meshAsset, std::shared_ptr<Render::Material> material) {
+MeshInstance3D::MeshInstance3D(std::shared_ptr<MeshAsset> meshAsset, std::shared_ptr<Material> material) {
 	m_MeshAsset = std::move(meshAsset);
 	m_Material = std::move(material);
 }
@@ -22,7 +22,7 @@ void MeshInstance3D::OnTreeExit() {
 }
 
 void MeshInstance3D::Draw(Math::Matrix4x4 const& worldMatrix) const {
-	Render::Mesh* gpuMesh = GetMesh();
+	Mesh* gpuMesh = GetMesh();
 	if (gpuMesh == nullptr || m_Material == nullptr) {
 		return;
 	}

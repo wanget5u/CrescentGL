@@ -1,9 +1,9 @@
-#include "../../../../include/Scene/Nodes3D/Geometry/InstancedVisual3D.h"
+#include "Scene/Nodes3D/Geometry/InstancedVisual3D.h"
 
 #include "Render/BatchRenderer.h"
 #include "Scene/Tree.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 void InstancedVisual3D::OnTreeEnter() {
 	GeometryInstance3D::OnTreeEnter();

@@ -6,7 +6,7 @@
 #include "Util/FileOperations.h"
 #include "Render/GPUDisposalQueue.h"
 
-namespace Crescent::Render {
+namespace Crescent {
 
 Shader::Shader(const std::string_view vertexSource, const std::string_view fragmentSource, const std::string_view geometrySource) {
 	std::unordered_set<std::string> vertexIncludedFiles{};
@@ -231,8 +231,7 @@ bool Shader::LogCompileErrors(u32 const shader, Type const type) {
 }
 
 i32 Shader::TryGetUniformLocation(const std::string_view name) const {
-	std::map<std::string, i32, std::less<>>::iterator it
-		= m_UniformLocationCache.find(name);
+	auto const it = m_UniformLocationCache.find(name);
 	if (it != m_UniformLocationCache.end()) {
 		return it->second;
 	}

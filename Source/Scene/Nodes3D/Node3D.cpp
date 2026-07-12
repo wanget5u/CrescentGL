@@ -1,6 +1,6 @@
-#include "../../../Include/Scene/Nodes3D/Node3D.h"
+#include "Scene/Nodes3D/Node3D.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 void Node3D::OnTreeEnter() {
 	Node::OnTreeEnter();

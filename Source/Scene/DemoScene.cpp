@@ -2,8 +2,7 @@
 
 #include <glad/glad.h>
 
-#include "Asset/Loader.h"
-#include "Asset/Registry.h"
+#include "Asset/AssetLoader.h"
 #include "Core/Time.h"
 #include "Math/Math.h"
 #include "Render/Primitives/BoxMesh.h"
@@ -14,21 +13,17 @@
 #include "Core/Window.h"
 #include "Render/BatchRenderer.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 DemoScene::DemoScene() {
-    std::shared_ptr<Asset::Texture> albedoTexture =
-        Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Color.jpg", Asset::AssetType::Texture);
-    std::shared_ptr<Asset::Texture> metallicTexture =
-        Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Metalness.jpg", Asset::AssetType::Texture);
-    std::shared_ptr<Asset::Texture> normalTexture =
-        Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_NormalGL.jpg", Asset::AssetType::Texture);
-    std::shared_ptr<Asset::Texture> roughnessTexture =
-        Asset::Registry::Instance()
-        .GetOrLoad<Asset::Texture>("MetalPlates006_2K-JPG_Roughness.jpg", Asset::AssetType::Texture);
+    std::shared_ptr<TextureAsset> albedoTexture =
+        AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_Color.jpg", AssetType::Texture);
+    std::shared_ptr<TextureAsset> metallicTexture =
+        AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_Metalness.jpg", AssetType::Texture);
+    std::shared_ptr<TextureAsset> normalTexture =
+        AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_NormalGL.jpg", AssetType::Texture);
+    std::shared_ptr<TextureAsset> roughnessTexture =
+        AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_Roughness.jpg", AssetType::Texture);
 
     if (m_LitMaterial != nullptr) {
         m_LitMaterial->AlbedoTexture = albedoTexture;
@@ -50,8 +45,8 @@ DemoScene::DemoScene() {
     }
 
     // meshes
-    m_FloorMesh = std::make_shared<Render::BoxMesh>(3.0f, 0.5f, 3.0f);
-    m_BoxMesh = std::make_shared<Render::BoxMesh>(1.0f, 1.0f, 1.0f);
+    m_FloorMesh = std::make_shared<BoxMesh>(3.0f, 0.5f, 3.0f);
+    m_BoxMesh = std::make_shared<BoxMesh>(1.0f, 1.0f, 1.0f);
 
     m_Cube = m_Tree->AddChild<MeshInstance3D>("Cube");
     m_Cube->SetMesh(m_BoxMesh);

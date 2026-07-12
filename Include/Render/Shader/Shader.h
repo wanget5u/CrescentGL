@@ -1,5 +1,5 @@
 #pragma once
-#include <map>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "Core/Core.h"
@@ -8,8 +8,21 @@
 #include "../../Math/Vector/Vector4.h"
 #include "Math/Matrix/Matrix4x4.h"
 
-namespace Crescent::Render {
+namespace Crescent {
+struct StringHash {
+	using is_transparent = void;
+	size_t operator()(const char* text) const noexcept {
+		return std::hash<std::string_view>{}(text);
+	}
+	size_t operator()(const std::string_view text) const noexcept {
+		return std::hash<std::string_view>{}(text);
+	}
+	size_t operator()(const std::string& text) const noexcept {
+		return std::hash<std::string>{}(text);
+	}
+};
 struct Shader {
+	friend struct Material;
 	enum class Type {
 		Vertex,
 		Fragment,
@@ -49,8 +62,7 @@ struct Shader {
 	void TrySetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
 	[[nodiscard]] i32 TryGetUniformLocation(std::string_view name) const;
 private:
-	mutable std::map<std::string, i32, std::less<>> m_UniformLocationCache;
-	friend struct Material;
+	mutable std::unordered_map<std::string, i32, StringHash, std::equal_to<>> m_UniformLocationCache;
 	void Use() const;
 	static bool LogCompileErrors(u32 shader, Type type);
 	[[nodiscard]] i32 GetUniformLocation(std::string_view name) const;

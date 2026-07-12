@@ -15,19 +15,16 @@ struct Window {
        u32 Width{0};
        u32 Height{0};
        bool Visible{false};
-       Window* ShareWindow{nullptr};
        explicit Properties(
           char8 const* title = "CrescentGL",
           u32 const width = SCREEN_WIDTH,
           u32 const height = SCREEN_HEIGHT,
-          bool const visible = true,
-          Window* shareWindow = nullptr)
+          bool const visible = true)
           :
           Title(title),
           Width(width),
           Height(height),
-          Visible(visible),
-          ShareWindow(shareWindow) {}
+          Visible(visible) {}
     };
     explicit Window(Properties const& properties = Properties());
     ~Window();
@@ -47,6 +44,7 @@ struct Window {
     void ToggleFullscreen();
     [[nodiscard]] bool IsFullscreen() const;
     void OnResize(u32 width, u32 height);
+    void OnRefresh();
     void CheckViewportResize();
     [[nodiscard]] bool ShouldClose() const;
     [[nodiscard]] GLFWwindow* GetWindow() const;
@@ -55,7 +53,7 @@ struct Window {
     [[nodiscard]] f32 GetAspectRatio() const;
 private:
     GLFWwindow* m_Window {nullptr};
-    Properties m_Properties {"", 0, 0, false, nullptr};
+    Properties m_Properties {"", 0, 0, false};
     std::atomic<u32> m_Width {0};
     std::atomic<u32> m_Height {0};
     std::atomic<bool> m_FrameBufferResized{false};

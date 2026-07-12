@@ -3,7 +3,7 @@
 #include "Math/Quaternion/Quaternion.h"
 #include "Math/Vector/Vector3.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 /// Manages 3D spatial properties (Position, Rotation, Scale) and matrix hierarchies.
 /// The Transform component calculates local and world coordinate systems. Uses dirty flag
 /// architecture, meaning matrix updates and Euler conversions are deferred until they
@@ -66,8 +66,8 @@ private:
 	/// Cached world transformation matrix combining local properties with parental structures
 	mutable Math::Matrix4x4  m_WorldMatrix = Math::Matrix4x4::GetIdentity();
 	mutable bool m_WorldMatrixDirty{true};
-	/// Tracker incremented whenever spatial values are updated. Used by children to detect hierarchy modifications
-	u32 m_Version{1};
+	/// Tracker incremented whenever spatial values or world transformations are updated. Used by children to detect hierarchy modifications
+	mutable u32 m_Version{1};
 	/// Version snapshot of the parent node recorded during the last world space validation loop
 	mutable u32 m_CachedParentVersion{0};
 	/// Propagates data invalidation flags throughout this instance when any transformation changes

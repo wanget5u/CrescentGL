@@ -3,8 +3,6 @@
 
 #include "UI/UISystem.h"
 
-#include <thread>
-
 #include "Input/InputSystem.h"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -28,7 +26,6 @@ void System::OnCreatePlatform(GLFWwindow *window) {
 	ImGui_ImplGlfw_InitForOpenGL(window, false);
 	Input::System::Instance().RegisterListener(this);
 	m_PlatformInitialized = true;
-	m_FramePrepared = false;
 }
 
 void System::OnCreateRenderer() {
@@ -44,7 +41,6 @@ void System::ShutdownRenderer() {
 	if (m_RendererInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	for (size_t a = 0; a < m_Panels.GetSize(); ++a) {
 		m_Panels[a]->OnDetach();
 	}
@@ -59,7 +55,6 @@ void System::ShutdownPlatform() {
 		return;
 	}
 	Input::System::Instance().UnregisterListener(this);
-	std::scoped_lock lock(m_Mutex);
 	ImGui::SetCurrentContext(m_ImGuiContext);
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext(m_ImGuiContext);
@@ -67,15 +62,11 @@ void System::ShutdownPlatform() {
 	m_PlatformInitialized = false;
 }
 
-void System::OnUpdate() {
-	if (m_PlatformInitialized == false) {
+void System::OnUpdate(f32 const deltaTime) {
+	if (m_PlatformInitialized == false || m_RendererInitialized == false) {
 		return;
 	}
-	if (m_FramePrepared.load() == true) {
-		return;
-	}
-	std::scoped_lock lock(m_Mutex);
-	PlatformNewFrame();
+	BeginFrame(deltaTime);
 }
 
 void System::OnRenderGUI(f32 const deltaTime) {
@@ -83,31 +74,12 @@ void System::OnRenderGUI(f32 const deltaTime) {
 		return;
 	}
 	if (m_ImGuiContext->IO.DisplaySize.x <= 0.0f || m_ImGuiContext->IO.DisplaySize.y <= 0.0f) {
+		ImGui::SetCurrentContext(m_ImGuiContext);
+		ImGui::EndFrame();
 		return;
 	}
-	// Wait up to 2ms for the main thread to prepare the platform frame during normal play.
-	// When the window is grabbed, it freezes glfwPollEvents() on the main thread,
-	// break out after 2ms so the render thread keeps animating without freezing
-	std::chrono::time_point waitStartTime = std::chrono::steady_clock::now();
-	while (m_FramePrepared.load() == false && m_PlatformInitialized == true) {
-		if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - waitStartTime).count() >= 2) {
-			break;
-		}
-		std::this_thread::yield();
-	}
-	std::lock_guard lock(m_Mutex);
-	BeginFrame(deltaTime);
-	m_FramePrepared = false;
 	OnRenderGUIInternal(deltaTime);
 	EndFrame();
-}
-
-void System::PlatformNewFrame() {
-	ImGui::SetCurrentContext(m_ImGuiContext);
-	ImGui_ImplGlfw_NewFrame();
-	if (m_ImGuiContext->IO.DisplaySize.x > 0.0f && m_ImGuiContext->IO.DisplaySize.y > 0.0f) {
-		m_FramePrepared = true;
-	}
 }
 
 void System::BeginFrame(f32 const deltaTime) const {
@@ -119,7 +91,10 @@ void System::BeginFrame(f32 const deltaTime) const {
 		else {
 			m_ImGuiContext->IO.DeltaTime = 1.0f / 60.0f;
 		}
+	} else if (deltaTime > 0.0f) {
+		m_ImGuiContext->IO.DeltaTime = deltaTime;
 	}
+	ImGui_ImplGlfw_NewFrame();
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui::NewFrame();
 }
@@ -149,7 +124,6 @@ bool System::WantCaptureMouse() const {
 	if (m_PlatformInitialized == false) {
 		return false;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui::SetCurrentContext(m_ImGuiContext);
 	return ImGui::GetIO().WantCaptureMouse;
 }
@@ -158,7 +132,6 @@ bool System::WantCaptureKeyboard() const {
 	if (m_PlatformInitialized == false) {
 		return false;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui::SetCurrentContext(m_ImGuiContext);
 	return ImGui::GetIO().WantCaptureKeyboard;
 }
@@ -167,7 +140,6 @@ void System::OnKeyboardKey(GLFWwindow* window, i32 const key, i32 const scancode
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 }
 
@@ -175,7 +147,6 @@ void System::OnMouseButton(GLFWwindow* window, i32 const button, i32 const actio
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 }
 
@@ -183,7 +154,6 @@ void System::OnMouseScroll(GLFWwindow* window, f64 const xOffset, f64 const yOff
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_ScrollCallback(window, xOffset, yOffset);
 }
 
@@ -191,7 +161,6 @@ void System::OnCursorPos(GLFWwindow* window, f64 const xPos, f64 const yPos) {
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_CursorPosCallback(window, xPos, yPos);
 }
 
@@ -199,7 +168,6 @@ void System::OnChar(GLFWwindow* window, u32 const c) {
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_CharCallback(window, c);
 }
 
@@ -207,7 +175,6 @@ void System::OnWindowFocus(GLFWwindow* window, i32 const focused) {
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_WindowFocusCallback(window, focused);
 }
 
@@ -215,7 +182,6 @@ void System::OnCursorEnter(GLFWwindow* window, i32 const entered) {
 	if (m_PlatformInitialized == false) {
 		return;
 	}
-	std::scoped_lock lock(m_Mutex);
 	ImGui_ImplGlfw_CursorEnterCallback(window, entered);
 }
 

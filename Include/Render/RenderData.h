@@ -3,7 +3,7 @@
 #include "Math/Matrix/Matrix4x4.h"
 #include "Math/Vector/Vector3.h"
 
-namespace Crescent::Render::GPU {
+namespace Crescent::GPU {
 // GL_UNIFORM_BUFFER (std140) UBO
 struct alignas(16) PointLightData {
 	Math::Vector3 Position; // 12B | 0

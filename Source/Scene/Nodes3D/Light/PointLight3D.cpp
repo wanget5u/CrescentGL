@@ -1,8 +1,8 @@
-#include "../../../../Include/Scene/Nodes3D/Light/PointLight3D.h"
+#include "Scene/Nodes3D/Light/PointLight3D.h"
 
 #include "Scene/Tree.h"
 
-namespace Crescent::Scene {
+namespace Crescent {
 
 void PointLight3D::OnTreeEnter() {
 	Light3D::OnTreeEnter();

@@ -1,7 +1,6 @@
 #pragma once
 #include <atomic>
 #include <memory>
-#include <mutex>
 
 #include "Core/Core.h"
 #include "Collection/DynamicList.h"
@@ -9,15 +8,14 @@
 #include "Math/Vector/Vector3.h"
 
 namespace Crescent {
-namespace Render {
-struct Material;
+	struct Material;
+	struct Window;
+	struct Node;
+	struct Tree;
+	struct Camera3D;
 }
-struct Window;
-}
-namespace Crescent::Scene {
-struct Node;
-struct Tree;
-struct Camera3D;
+
+namespace Crescent {
 struct Scene {
 	std::atomic<bool> IsAccelerating{false};
 	Scene();
@@ -36,7 +34,7 @@ struct Scene {
 	void SetMoveInputRightward(bool active);
 	void SetMoveInputLeftward(bool active);
 	void UpdateCamera(f32 deltaTime);
-	void SetSceneMaterial(std::shared_ptr<Render::Material> material);
+	void SetSceneMaterial(std::shared_ptr<Material> material);
 protected:
 	constexpr static f32 CameraSpeed1 = 10.0f;
 	constexpr static f32 CameraSpeed2 = 40.0f;
@@ -45,8 +43,6 @@ protected:
 	std::unique_ptr<Tree> m_Tree{nullptr};
 	///
 	std::unique_ptr<Camera3D> m_PreviewCamera{nullptr};
-	///
-	mutable std::mutex m_CameraMutex;
 	Math::Vector3 m_PendingEulerDelta = Math::Vector3::Zero();
 	bool m_MoveForward{false};
 	bool m_MoveBackward{false};
@@ -59,9 +55,9 @@ protected:
 		u32 SubscriptionID{0};
 	};
 	DynamicList<ActionSubscription> m_InputSubscriptions{};
-	std::shared_ptr<Render::Material> m_Material{};
-	std::shared_ptr<Render::Material> m_WireframeMaterial{};
-	std::shared_ptr<Render::Material> m_UnlitMaterial{};
-	std::shared_ptr<Render::Material> m_LitMaterial{};
+	std::shared_ptr<Material> m_Material{};
+	std::shared_ptr<Material> m_WireframeMaterial{};
+	std::shared_ptr<Material> m_UnlitMaterial{};
+	std::shared_ptr<Material> m_LitMaterial{};
 };
 }
