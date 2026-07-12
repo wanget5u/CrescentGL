@@ -17,6 +17,8 @@ struct Application {
 	static Application& Instance();
 	void Run();
 	void OnRender() const;
+	Scene* GetActiveScene() const;
+	Window* GetActiveWindow() const;
 private:
 	std::unique_ptr<Window> m_MainWindow;
 	std::unique_ptr<Scene> m_ActiveScene;

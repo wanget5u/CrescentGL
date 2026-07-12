@@ -8,6 +8,10 @@
 struct GLFWwindow;
 struct ImGuiContext;
 
+namespace Crescent {
+	struct Scene;
+}
+
 namespace Crescent::UI {
 struct System : Input::IInputListener {
 	static System& Instance() {
@@ -18,8 +22,8 @@ struct System : Input::IInputListener {
 	void OnCreateRenderer();
 	void ShutdownRenderer();
 	void ShutdownPlatform();
-	void OnUpdate(f32 deltaTime = 0.0f);
-	void OnRenderGUI(f32 deltaTime = 0.0f);
+	void OnUpdate(f32 deltaTime);
+	void OnRenderGUI(f32 deltaTime);
 	[[nodiscard]] bool WantCaptureMouse() const;
 	[[nodiscard]] bool WantCaptureKeyboard() const;
 	template <typename T>
@@ -39,7 +43,7 @@ private:
 	~System() override;
 	void BeginFrame(f32 deltaTime) const;
 	void EndFrame() const;
-	void OnRenderGUIInternal(f32 deltaTime);
+	void UpdateActivePanels(f32 deltaTime);
 	DynamicList<std::unique_ptr<Panel>> m_Panels{};
 	ImGuiContext* m_ImGuiContext{nullptr};
 	bool m_PlatformInitialized{false};

@@ -145,4 +145,25 @@ bool EnableANSI() {
 }
 
 }
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4996)
+#include <cstdio>
+#include <cstdarg>
+
+extern "C" {
+    int __cdecl __mingw_vsnprintf(char* buffer, size_t count, const char* format, va_list argptr) {
+        return _vsnprintf(buffer, count, format, argptr);
+    }
+    int __cdecl __mingw_vsprintf(char* buffer, const char* format, va_list argptr) {
+        return vsprintf(buffer, format, argptr);
+    }
+    int __cdecl __mingw_vsscanf(const char* buffer, const char* format, va_list argptr) {
+        return vsscanf(buffer, format, argptr);
+    }
+}
+#pragma warning(pop)
+#endif
+
 #endif

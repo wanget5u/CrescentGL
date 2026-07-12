@@ -54,7 +54,6 @@ void Application::Run() {
 	UI::System::Instance().OnCreateRenderer();
 	SetupUIPanels();
 	m_ActiveScene = std::make_unique<DemoScene>();
-
 	f64 cpuStartTime{};
 	while (m_Running == true && m_MainWindow->ShouldClose() == false) {
 		cpuStartTime = glfwGetTime();
@@ -101,6 +100,14 @@ void Application::OnRender() const {
 	m_ActiveScene->OnRender(*m_MainWindow);
 	UI::System::Instance().OnRenderGUI(deltaTime);
 	m_MainWindow->SwapBuffers();
+}
+
+Scene* Application::GetActiveScene() const {
+	return m_ActiveScene.get();
+}
+
+Window * Application::GetActiveWindow() const {
+	return m_MainWindow.get();
 }
 
 void Application::SetupGlobalInputActions() {

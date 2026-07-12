@@ -14,7 +14,7 @@ namespace Crescent {
 
 namespace Crescent {
 struct DemoScene : Scene {
-	DemoScene();
+	explicit DemoScene(std::string name = "Demo Scene");
 	~DemoScene() override;
 	void OnUpdate(f32 deltaTime) override;
 	void OnRender(Window& window) override;

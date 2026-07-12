@@ -40,6 +40,7 @@ struct Action {
 	u32 Subscribe(Callback callback);
 	void Unsubscribe(u32 id);
 	void OnUpdate(GLFWwindow* window, f32 mouseDeltaX, f32 mouseDeltaY, f32 scrollDelta, bool mouseCaptured = false, bool keyboardCaptured = false);
+	[[nodiscard]] bool IsActive() const;
 private:
 	std::string m_Name{};
 	std::vector<Binding> m_Bindings{};

@@ -8,6 +8,7 @@
 #include "imgui_internal.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "Scene/Scene.h"
 
 namespace Crescent::UI {
 
@@ -78,7 +79,7 @@ void System::OnRenderGUI(f32 const deltaTime) {
 		ImGui::EndFrame();
 		return;
 	}
-	OnRenderGUIInternal(deltaTime);
+	UpdateActivePanels(deltaTime);
 	EndFrame();
 }
 
@@ -111,7 +112,7 @@ void System::EndFrame() const {
 	}
 }
 
-void System::OnRenderGUIInternal(const f32 deltaTime) {
+void System::UpdateActivePanels(const f32 deltaTime) {
 	for (size_t a = 0; a < m_Panels.GetSize(); ++a) {
 		m_Panels[a]->OnUpdate(deltaTime);
 		if (m_Panels[a]->IsVisible() == true) {

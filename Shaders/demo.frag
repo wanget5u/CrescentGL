@@ -8,7 +8,6 @@ uniform vec4 u_TintColor;
 
 uniform vec3 u_ObjectColor;
 uniform vec3 u_LightColor;
-
 uniform vec3 u_LightPosition;
 
 in vec2 v_TextureCoordinate;

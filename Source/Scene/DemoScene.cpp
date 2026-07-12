@@ -15,7 +15,7 @@
 
 namespace Crescent {
 
-DemoScene::DemoScene() {
+DemoScene::DemoScene(const std::string name) : Scene(name) {
     std::shared_ptr<TextureAsset> albedoTexture =
         AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_Color.jpg", AssetType::Texture);
     std::shared_ptr<TextureAsset> metallicTexture =
@@ -24,6 +24,10 @@ DemoScene::DemoScene() {
         AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_NormalGL.jpg", AssetType::Texture);
     std::shared_ptr<TextureAsset> roughnessTexture =
         AssetLoader::Instance().GetOrLoad<TextureAsset>("MetalPlates006_2K-JPG_Roughness.jpg", AssetType::Texture);
+
+    // m_UnlitMaterial->SetVector3("u_ObjectColor", Math::Vector3(1.0f, 0.5f, 0.5f));
+    // m_UnlitMaterial->SetVector3("u_LightColor", Math::Vector3(1.0f, 1.0f, 1.0f));
+    // m_UnlitMaterial->SetVector3("u_LightPosition", Math::Vector3(1.0f, 1.0f, 1.0f));
 
     if (m_LitMaterial != nullptr) {
         m_LitMaterial->AlbedoTexture = albedoTexture;
@@ -54,7 +58,7 @@ DemoScene::DemoScene() {
     m_Cube->Transform.SetScale(3.0f);
     m_Cube->Transform.SetPosition(Math::Vector3(0.0f, 2.0f, -10.0f));
 
-    m_PreviewCamera->Transform.SetPosition(Math::Vector3(0.0f, 0.0f, 30.0f));
+    m_PreviewCamera->Transform.SetPosition(Math::Vector3(0.0f, 5.0f, 30.0f));
 
     for (u8 a = 0; a < 32; ++a) {
         PointLight3D* light = m_Tree->AddChild<PointLight3D>("PointLight3D");

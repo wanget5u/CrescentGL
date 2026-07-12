@@ -48,6 +48,10 @@ void Action::Unsubscribe(u32 const id) {
 	}
 }
 
+bool Action::IsActive() const {
+	return m_IsActive;
+}
+
 void Action::OnUpdate(GLFWwindow* window, f32 const mouseDeltaX, f32 const mouseDeltaY, f32 const scrollDelta, bool const mouseCaptured, bool const keyboardCaptured) {
 	m_IsActive = EvaluateBindings(window, mouseDeltaX, mouseDeltaY, scrollDelta, mouseCaptured, keyboardCaptured);
 	if (m_Subscribers.empty() == true) {
