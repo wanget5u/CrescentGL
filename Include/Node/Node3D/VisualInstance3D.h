@@ -1,5 +1,5 @@
 #pragma once
-#include "Scene/Nodes3D/Node3D.h"
+#include "Node/Node3D/Node3D.h"
 
 namespace Crescent {
 struct VisualInstance3D : Node3D {

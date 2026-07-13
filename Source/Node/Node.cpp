@@ -1,5 +1,5 @@
-#include "Scene/Node.h"
-#include "Scene/Tree.h"
+#include "../../Include/Node/Node.h"
+#include "../../Include/Node/Tree.h"
 
 namespace Crescent {
 

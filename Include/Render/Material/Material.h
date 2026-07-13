@@ -17,6 +17,7 @@ namespace Crescent {
 namespace Crescent {
 struct Material {
 	friend struct BatchRenderer;
+	inline static u32 s_MaterialUBO{0};
 	explicit Material(std::shared_ptr<ShaderAsset> shaderAsset = nullptr, Math::Vector4 const& baseColor = GetDefaultColor());
 	static std::shared_ptr<ShaderAsset> GetDefaultShader();
 	static std::shared_ptr<Material> GetDefaultMaterial();

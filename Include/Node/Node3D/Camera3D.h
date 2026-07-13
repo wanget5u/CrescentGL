@@ -1,6 +1,5 @@
 #pragma once
-#include "Math/Matrix/Matrix4x4.h"
-#include "Scene/Nodes3D/Node3D.h"
+#include "Node/Node3D/Node3D.h"
 
 namespace Crescent {
 /// Node3D that defines a viewing frustum and computes the necessary view and projection matrices for rendering

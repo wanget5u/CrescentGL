@@ -1,19 +1,17 @@
 #include "Scene/Scene.h"
 
-#include "Asset/AssetType.h"
 #include "Asset/AssetLoader.h"
 #include "Core/Application.h"
 #include "Core/Window.h"
-#include "Input/InputAction.h"
 #include "Input/InputSystem.h"
+#include "Node/Tree.h"
+#include "Node/Node3D/Camera3D.h"
+#include "Node/Node3D/Geometry/GeometryInstance3D.h"
 #include "Render/Material/Material.h"
-#include "Scene/Nodes3D/Camera3D.h"
-#include "Scene/Nodes3D/Geometry/GeometryInstance3D.h"
-#include "Scene/Tree.h"
 
 namespace Crescent {
 
-Scene::Scene(const std::string name) : m_Name(name) {
+Scene::Scene(const std::string& name) : m_Name(name) {
 	m_Tree = std::make_unique<Tree>();
 	m_PreviewCamera = std::make_unique<Camera3D>();
 	SetupInputActions();

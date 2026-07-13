@@ -16,10 +16,11 @@ namespace Crescent {
 
 namespace Crescent {
 struct Scene {
-	explicit Scene(std::string name);
+	explicit Scene(const std::string &name);
 	virtual ~Scene();
 	virtual void OnUpdate(f32 deltaTime) = 0;
 	virtual void OnRender(Window& window) = 0;
+	virtual void OnRenderGUI() = 0;
 	[[nodiscard]] Node* GetRoot() const;
 	void MoveCamera(Math::Vector3 const& direction, f32 deltaTime) const;
 	void UpdateCamera(f32 deltaTime) const;

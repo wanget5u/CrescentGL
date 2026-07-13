@@ -34,9 +34,9 @@ layout(std140, binding = 0) uniform SceneRenderData {
 	vec3  v3_CameraPosition;
 	float f32_Time;
 	uint  u32_PointLightCount;
+	uint  u32_DirectionalLightCount;
 	float f32_Padding0;
 	float f32_Padding1;
-	float f32_Padding2;
 };
 // SSBO
 layout(std430, binding = 1) readonly buffer PointLightBuffer {

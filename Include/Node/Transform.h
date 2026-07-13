@@ -42,11 +42,16 @@ struct Transform {
 	[[nodiscard]] const Math::Quaternion& GetRotation() const noexcept;
 	/// Updates the local orientation via a Quaternion
 	void SetRotation(Math::Quaternion const& newRotation);
-	/// Retrieves the local orientation converted into Euler angles
+	/// Retrieves the local orientation converted into Euler angles (in Radians)
 	[[nodiscard]] const Math::Vector3& GetRotationEuler() const noexcept;
-	/// Updates the local orientation via Euler Angles.
+	/// Updates the local orientation via Euler Angles (in Radians).
 	/// They get automatically converted to Quaternion internally
 	void SetRotationEuler(Math::Vector3 const& newRotation);
+	/// Retrieves the local orientation converted into Euler angles (in Degrees)
+	[[nodiscard]] Math::Vector3 GetRotationEulerDegrees() const noexcept;
+	/// Updates the local orientation via Euler Angles (in Degrees).
+	/// They get automatically converted to radians and then Quaternion internally
+	void SetRotationEulerDegrees(Math::Vector3 const& newRotationDegrees);
 	/// Computes and returns the local transformations combined into a single matrix
 	[[nodiscard]] Math::Matrix4x4& GetLocalMatrix() const noexcept;
 	/// Computes and returns the absolute global transformations in world coordinates

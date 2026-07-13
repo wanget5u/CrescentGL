@@ -1,9 +1,11 @@
 #pragma once
-#include "Scene/Nodes3D/Light/Light3D.h"
+#include "Node/Node3D/Light/Light3D.h"
 
 namespace Crescent {
 struct PointLight3D : Light3D {
 	friend struct BatchRenderer;
+	inline static u32 s_PointLightSSBO{0};
+	inline static size_t s_PointLightSSBOCapacity{0};
 	PointLight3D() = default;
 	~PointLight3D() override = default;
 	void OnTreeEnter() override;

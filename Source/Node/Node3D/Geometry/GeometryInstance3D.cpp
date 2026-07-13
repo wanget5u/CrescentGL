@@ -1,9 +1,8 @@
-#include "Scene/Nodes3D/Geometry/GeometryInstance3D.h"
+#include "Node/Node3D/Geometry/GeometryInstance3D.h"
 
 #include "Asset/AssetType.h"
 #include "Render/Mesh.h"
 #include "Render/Material/Material.h"
-#include "Render/Primitives/BoxMesh.h"
 
 namespace Crescent {
 

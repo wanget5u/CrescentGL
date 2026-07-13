@@ -1,6 +1,6 @@
 #pragma once
-#include "Scene/Nodes3D/Geometry/GeometryInstance3D.h"
 #include "Asset/AssetType.h"
+#include "Node/Node3D/Geometry/GeometryInstance3D.h"
 
 namespace Crescent {
 /// Represents a single renderable 3D static mesh instance within the scene tree.

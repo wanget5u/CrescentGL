@@ -2,16 +2,15 @@
 
 #include <glad/glad.h>
 
+#include "imgui.h"
 #include "Asset/AssetLoader.h"
-#include "Core/Time.h"
-#include "Math/Math.h"
-#include "Render/Primitives/BoxMesh.h"
-#include "Scene/Nodes3D/Camera3D.h"
-#include "Scene/Nodes3D/Geometry/MeshInstance3D.h"
-#include "Scene/Nodes3D/Geometry/MultiMeshInstance3D.h"
-#include "Scene/Tree.h"
 #include "Core/Window.h"
+#include "Node/Tree.h"
+#include "Node/Node3D/Camera3D.h"
+#include "Node/Node3D/Geometry/MeshInstance3D.h"
+#include "Node/Node3D/Light/DirectionalLight3D.h"
 #include "Render/BatchRenderer.h"
+#include "Render/Primitives/BoxMesh.h"
 
 namespace Crescent {
 
@@ -68,6 +67,11 @@ DemoScene::DemoScene(std::string const& name) : Scene(name) {
         light->SetColor(Math::Vector3(1.0f, 0.85f, 0.75f));
         m_PointLights.PushBack(light);
     }
+
+    m_DirectionalLight = m_Tree->AddChild<DirectionalLight3D>("DirectionalLight3D");
+    m_DirectionalLight->SetEnergy(1.5f);
+    m_DirectionalLight->SetColor(Math::Vector3(1.0f, 0.95f, 0.85f));
+    m_DirectionalLight->Transform.SetRotationEulerDegrees(Math::Vector3(-45.0f, -45.0f, 0.0f));
 
     MeshInstance3D* floor = m_Tree->AddChild<MeshInstance3D>("Floor");
     floor->SetMesh(m_BoxMesh);
@@ -149,6 +153,44 @@ void DemoScene::OnRender(Window& window) {
         m_PreviewCamera->SetPerspective(70.0f, m_LastAspectRatio, 0.1f, 1000.0f);
     }
     m_Tree->GetBatchRenderer()->RenderScene(m_PreviewCamera.get());
+}
+
+void DemoScene::OnRenderGUI() {
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 windowPosition = ImVec2(viewport->WorkPos.x, viewport->WorkPos.y + viewport->WorkSize.y / 2.0f);
+    ImVec2 windowPivot = ImVec2(0.0f, 1.0f);
+    ImGui::SetNextWindowPos(windowPosition, ImGuiCond_Always, windowPivot);
+    ImGui::SetNextWindowSize(ImVec2(450, 0));
+    ImGui::SetNextWindowBgAlpha(0.9f);
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove |
+                             ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_AlwaysAutoResize |
+                             ImGuiWindowFlags_NoSavedSettings;
+
+    if (ImGui::Begin("Light Controls", nullptr, flags)) {
+        ImGui::Text("Directional Light");
+        ImGui::Separator();
+        f32 energy = m_DirectionalLight->GetEnergy();
+        if (ImGui::SliderFloat("Energy", &energy, 0.0f, 10.0f, "%.2f")) {
+            m_DirectionalLight->SetEnergy(energy);
+        }
+        Math::Vector3 color = m_DirectionalLight->GetColor();
+        f32 colorArray[3] = { color.x, color.y, color.z };
+        if (ImGui::ColorEdit3("Color", colorArray)) {
+            m_DirectionalLight->SetColor(Math::Vector3(colorArray[0], colorArray[1], colorArray[2]));
+        }
+        static Math::Vector3 s_InspectorEulerDegrees = m_DirectionalLight->Transform.GetRotationEulerDegrees();
+        if (ImGui::IsItemActive() == false && ImGui::IsItemEdited()  == false) {
+            s_InspectorEulerDegrees = m_DirectionalLight->Transform.GetRotationEulerDegrees();
+        }
+        f32 rotArr[3] = { s_InspectorEulerDegrees.x, s_InspectorEulerDegrees.y, s_InspectorEulerDegrees.z };
+        if (ImGui::SliderFloat3("Rotation", rotArr, -180.0f, 180.0f, "%.1f")) {
+            s_InspectorEulerDegrees = Math::Vector3(rotArr[0], rotArr[1], rotArr[2]);
+            m_DirectionalLight->Transform.SetRotationEulerDegrees(s_InspectorEulerDegrees);
+        }
+
+    }
+    ImGui::End();
 }
 
 }

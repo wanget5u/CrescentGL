@@ -1,7 +1,7 @@
-#include "Scene/Nodes3D/Light/Light3D.h"
+#include "Node/Node3D/Light/Light3D.h"
 
+#include "Node/Tree.h"
 #include "Render/BatchRenderer.h"
-#include "Scene/Tree.h"
 
 namespace Crescent {
 

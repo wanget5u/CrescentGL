@@ -14,9 +14,9 @@ struct alignas(16) SceneRenderData {
 	f32 Time{};							//    4B | 204
 	//------------------208-(13x16B)------------------
 	u32 PointLightCount{};				//    4B | 208
-	f32 Padding0{};						//    4B | 212
-	f32 Padding1{};						//    4B | 216
-	f32 Padding2{};						//    4B | 220
+	u32 DirectionalLightCount{};		//    4B | 212
+	f32 Padding0{};						//    4B | 216
+	f32 Padding1{};						//    4B | 220
 	//------------------224-(14x16B)------------------
 };
 struct alignas(16) DirectionalLightRenderData {

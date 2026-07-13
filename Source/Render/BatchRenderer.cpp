@@ -4,16 +4,14 @@
 
 #include "Core/Time.h"
 #include "glad/glad.h"
-#include "Render/GPUDisposalQueue.h"
+#include "Node/Node3D/Camera3D.h"
+#include "Node/Node3D/Geometry/MeshInstance3D.h"
+#include "Node/Node3D/Geometry/MultiMeshInstance3D.h"
+#include "Node/Node3D/Light/PointLight3D.h"
+#include "Node/Node3D/Light/DirectionalLight3D.h"
 #include "Render/RenderStats.h"
 #include "Render/SceneRenderData.h"
 #include "Render/Material/Material.h"
-#include "Render/Shader/Shader.h"
-#include "Scene/Nodes3D/Camera3D.h"
-#include "Scene/Nodes3D/Geometry/InstancedVisual3D.h"
-#include "Scene/Nodes3D/Geometry/MeshInstance3D.h"
-#include "Scene/Nodes3D/Geometry/MultiMeshInstance3D.h"
-#include "Scene/Nodes3D/Light/PointLight3D.h"
 
 namespace Crescent {
 
@@ -26,54 +24,69 @@ BatchRenderer::~BatchRenderer() {
     for (u32& m_GPUTimerQueryID : m_GPUTimerQueryIDs) {
         m_GPUTimerQueryID = 0;
     }
-    if (m_SceneUBO != 0) {
-        glDeleteBuffers(1, &m_SceneUBO);
-        m_SceneUBO = 0;
+    // UBO (binding 0) - Default SceneRenderData
+    if (s_SceneUBO != 0) {
+        glDeleteBuffers(1, &s_SceneUBO);
+        s_SceneUBO = 0;
     }
-    if (m_PointLightSSBO != 0) {
-        glDeleteBuffers(1, &m_PointLightSSBO);
-        m_PointLightSSBO = 0;
+    // SSBO (binding 1) - PointLight3D
+    if (PointLight3D::s_PointLightSSBO != 0) {
+        glDeleteBuffers(1, &PointLight3D::s_PointLightSSBO);
+        PointLight3D::s_PointLightSSBO = 0;
+        PointLight3D::s_PointLightSSBOCapacity = 0;
     }
-    if (m_InstanceSSBO != 0) {
-        glDeleteBuffers(1, &m_InstanceSSBO);
-        m_InstanceSSBO = 0;
+    // SSBO (binding 2 - DirectionalLight3D
+    if (DirectionalLight3D::s_DirectionalLightSSBO != 0) {
+        glDeleteBuffers(1, &DirectionalLight3D::s_DirectionalLightSSBO);
+        DirectionalLight3D::s_DirectionalLightSSBO = 0;
+        DirectionalLight3D::s_DirectionalLightSSBOCapacity = 0;
     }
-    if (m_MaterialUBO != 0) {
-        glDeleteBuffers(1, &m_MaterialUBO);
-        m_MaterialUBO = 0;
+    // SSBO (binding 3) - MultiMesh3D
+    if (InstancedVisual3D::s_InstancedVisualSSBO != 0) {
+        glDeleteBuffers(1, &InstancedVisual3D::s_InstancedVisualSSBO);
+        InstancedVisual3D::s_InstancedVisualSSBO = 0;
+        InstancedVisual3D::s_InstancedVisualSSBOCapacity = 0;
+    }
+    // UBO (binding 4) - Material
+    if (Material::s_MaterialUBO != 0) {
+        glDeleteBuffers(1, &Material::s_MaterialUBO);
+        Material::s_MaterialUBO = 0;
     }
 }
 
 void BatchRenderer::InitializeBuffers() {
-    // UBO (binding 0)
-    glGenBuffers(1, &m_SceneUBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, m_SceneUBO);
+    // UBO (binding 0) - Default SceneRenderData
+    glGenBuffers(1, &s_SceneUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, s_SceneUBO);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(GPU::SceneRenderData), nullptr, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_SceneUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, s_SceneUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    // SSBO (binding 1) - Point Lights
-    glGenBuffers(1, &m_PointLightSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_PointLightSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GPU::PointLightRenderData) * 1024, nullptr, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_PointLightSSBO);
+    // SSBO (binding 1) - PointLight3D
+    PointLight3D::s_PointLightSSBOCapacity = sizeof(GPU::PointLightRenderData) * 1024;
+    glGenBuffers(1, &PointLight3D::s_PointLightSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, PointLight3D::s_PointLightSSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, PointLight3D::s_PointLightSSBOCapacity, nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, PointLight3D::s_PointLightSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
-    // SSBO (binding 2) - Directional Lights
-    // TODO:
-
-    // SSBO (binding 3) - Instances
-    glGenBuffers(1, &m_InstanceSSBO);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_InstanceSSBO);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GPU::InstanceRenderData) * 1024, nullptr, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_InstanceSSBO);
+    // SSBO (binding 2) - DirectionalLight3D
+    DirectionalLight3D::s_DirectionalLightSSBOCapacity = sizeof(GPU::DirectionalLightRenderData) * 16;
+    glGenBuffers(1, &DirectionalLight3D::s_DirectionalLightSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, DirectionalLight3D::s_DirectionalLightSSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, DirectionalLight3D::s_DirectionalLightSSBOCapacity, nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, DirectionalLight3D::s_DirectionalLightSSBO);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-
+    // SSBO (binding 3) - MultiMesh3D
+    InstancedVisual3D::s_InstancedVisualSSBOCapacity = sizeof(GPU::InstanceRenderData) * 512;
+    glGenBuffers(1, &InstancedVisual3D::s_InstancedVisualSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, InstancedVisual3D::s_InstancedVisualSSBO);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, InstancedVisual3D::s_InstancedVisualSSBOCapacity, nullptr, GL_DYNAMIC_DRAW);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, InstancedVisual3D::s_InstancedVisualSSBO);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     // UBO (binding 4) - Material
-    glGenBuffers(1, &m_MaterialUBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, m_MaterialUBO);
+    glGenBuffers(1, &Material::s_MaterialUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, Material::s_MaterialUBO);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(GPU::MaterialRenderData), nullptr, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 4, m_MaterialUBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 4, Material::s_MaterialUBO);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
@@ -109,17 +122,14 @@ void BatchRenderer::EndBatchUnload() {
 }
 
 void BatchRenderer::RenderScene(Camera3D const* camera) {
+    u16 lastShaderID{0};
+    u16 lastMaterialID{0};
     StartGPUQuery();
     // Get all the necessary GPU::SceneRenderData
     PrepareFrame(camera);
-
-    u16 lastShaderID = 0xFFFF;
-    u16 lastMaterialID = 0xFFFF;
-
-    // Opaque meshes
+    // Handles Opaque meshes
     RenderPackets(m_OpaquePackets, lastShaderID, lastMaterialID);
-
-    // Back-to-front transparent meshes
+    // Handle Back-to-front transparent meshes
     if (m_TransparentPackets.GetSize() > 0) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -131,10 +141,6 @@ void BatchRenderer::RenderScene(Camera3D const* camera) {
     RenderInstancedGroups(lastShaderID, lastMaterialID);
     EndGPUQuery();
 }
-
-// =============================================================================
-// Pipeline Steps: Frame Preparation & Resolvers
-// =============================================================================
 
 void BatchRenderer::PrepareFrame(Camera3D const* camera) {
     GPUDisposalQueue::Flush();
@@ -149,25 +155,48 @@ void BatchRenderer::PrepareFrame(Camera3D const* camera) {
     renderData.CameraPosition = camera->Transform.GetPosition();
     renderData.Time = Time::GetTotalTime();
 
-    // PointLight3D resolution & SSBO upload
+    // Light resolution & SSBO upload
     DynamicList<GPU::PointLightRenderData> pointLights{};
     pointLights.Reserve(1024);
-    ResolveLight3DRenderGroup(pointLights);
+    DynamicList<GPU::DirectionalLightRenderData> directionalLights{};
+    directionalLights.Reserve(16);
+    ResolveLight3DRenderGroup(pointLights, directionalLights);
     renderData.PointLightCount = static_cast<u32>(pointLights.GetSize());
+    renderData.DirectionalLightCount = static_cast<u32>(directionalLights.GetSize());
 
-    glBindBuffer(GL_UNIFORM_BUFFER, m_SceneUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, s_SceneUBO);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPU::SceneRenderData), &renderData);
 
-    if (pointLights.IsEmpty() == false) {
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_PointLightSSBO);
-        glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, pointLights.GetSize() * sizeof(GPU::PointLightRenderData), pointLights.GetData());
+    if (pointLights.IsEmpty() == false && PointLight3D::s_PointLightSSBO != 0) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, PointLight3D::s_PointLightSSBO);
+        const size_t requiredBytes = pointLights.GetSizeInBytes();
+        if (PointLight3D::s_PointLightSSBOCapacity < requiredBytes) {
+            glBufferData(GL_SHADER_STORAGE_BUFFER, requiredBytes, pointLights.GetData(), GL_DYNAMIC_DRAW);
+            PointLight3D::s_PointLightSSBOCapacity = requiredBytes;
+        }
+        else {
+            glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, requiredBytes, pointLights.GetData());
+        }
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+    }
+    if (directionalLights.IsEmpty() == false && DirectionalLight3D::s_DirectionalLightSSBO != 0) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, DirectionalLight3D::s_DirectionalLightSSBO);
+        const size_t requiredBytes = directionalLights.GetSizeInBytes();
+        if (DirectionalLight3D::s_DirectionalLightSSBOCapacity < requiredBytes) {
+            glBufferData(GL_SHADER_STORAGE_BUFFER, requiredBytes, directionalLights.GetData(), GL_DYNAMIC_DRAW);
+            DirectionalLight3D::s_DirectionalLightSSBOCapacity = requiredBytes;
+        }
+        else {
+            glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, requiredBytes, directionalLights.GetData());
+        }
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
     }
     ResolveMeshInstance3DRenderGroup(camera->Transform.GetPosition());
     // Sorting render packets for optimal draw calls and ensuring correct depth order
     SortPackets();
 }
 
-void BatchRenderer::ResolveLight3DRenderGroup(DynamicList<GPU::PointLightRenderData>& pointLights) {
+void BatchRenderer::ResolveLight3DRenderGroup(DynamicList<GPU::PointLightRenderData>& pointLights, DynamicList<GPU::DirectionalLightRenderData>& directionalLights) {
     RenderGroup<Light3D>* light3DRenderGroup = GetRenderGroup<Light3D>();
     for (size_t a = 0; a < light3DRenderGroup->Registered.GetSize(); ++a) {
         Light3D* light3D = light3DRenderGroup->Registered[a];
@@ -187,6 +216,16 @@ void BatchRenderer::ResolveLight3DRenderGroup(DynamicList<GPU::PointLightRenderD
             pointLightData.Linear = pointLight3D->GetLinear();
             pointLightData.Quadratic = pointLight3D->GetQuadratic();
             pointLights.PushBack(pointLightData);
+        }
+        else if (light3D->GetLightType() == LightType::Directional) {
+            DirectionalLight3D* directionalLight3D = dynamic_cast<DirectionalLight3D*>(light3D);
+            GPU::DirectionalLightRenderData directionalLightData = GPU::DirectionalLightRenderData();
+
+            directionalLightData.Direction = directionalLight3D->Transform.GetForward();
+            directionalLightData.Energy = directionalLight3D->GetEnergy();
+            directionalLightData.Color = directionalLight3D->GetColor();
+            directionalLightData.CascadeCount = 0;
+            directionalLights.PushBack(directionalLightData);
         }
     }
 }
@@ -324,12 +363,37 @@ void BatchRenderer::RenderInstancedGroups(u16& lastShaderID, u16& lastMaterialID
             activeShader->ShaderObject != nullptr) {
             activeShader->ShaderObject->TrySetBool("b_IsInstanced", true);
         }
+        if (auto* multiMesh = dynamic_cast<MultiMeshInstance3D*>(instancedVisual3D)) {
+            auto const& transforms = multiMesh->GetTransforms();
+            if (transforms.IsEmpty() == false && InstancedVisual3D::s_InstancedVisualSSBO != 0) {
+                DynamicList<GPU::InstanceRenderData> gpuInstances{};
+                gpuInstances.Reserve(transforms.GetSize());
+                for (size_t a = 0; a < transforms.GetSize(); ++a) {
+                    GPU::InstanceRenderData instance{};
+                    instance.WorldMatrix = transforms[a];
+                    instance.NormalMatrix = Math::Matrix4x4::Transpose(Math::Matrix4x4::Inverse(transforms[a]));
+                    instance.ObjectID = static_cast<u32>(a);
+                    gpuInstances.PushBack(instance);
+                }
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, InstancedVisual3D::s_InstancedVisualSSBO);
+                const size_t requiredBytes = gpuInstances.GetSizeInBytes();
+                if (InstancedVisual3D::s_InstancedVisualSSBOCapacity < requiredBytes) {
+                    glBufferData(GL_SHADER_STORAGE_BUFFER, requiredBytes, gpuInstances.GetData(), GL_DYNAMIC_DRAW);
+                    InstancedVisual3D::s_InstancedVisualSSBOCapacity = requiredBytes;
+                }
+                else {
+                    glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, requiredBytes, gpuInstances.GetData());
+                }
+                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, InstancedVisual3D::s_InstancedVisualSSBO);
+                glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+            }
+        }
         instancedVisual3D->Draw();
     }
 }
 
 void BatchRenderer::UploadMaterialData(Material const* material) const {
-    if (material == nullptr || m_MaterialUBO == 0) {
+    if (material == nullptr || Material::s_MaterialUBO == 0) {
         return;
     }
     GPU::MaterialRenderData matData{};
@@ -340,7 +404,7 @@ void BatchRenderer::UploadMaterialData(Material const* material) const {
     matData.PreserveUVCoordinates = material->PreserveUVCoordinates ? 1 : 0;
     matData.UVScale = material->UVScale;
     matData.UVOffset = material->UVOffset;
-    glBindBuffer(GL_UNIFORM_BUFFER, m_MaterialUBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, Material::s_MaterialUBO);
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(GPU::MaterialRenderData), &matData);
 }
 

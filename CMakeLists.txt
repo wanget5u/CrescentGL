@@ -56,36 +56,36 @@ set(SOURCES
         Include/Asset/AssetType.h
         Source/Render/Texture/Texture.cpp
         include/Render/Texture/Texture.h
-        Source/Scene/Nodes3D/Camera3D.cpp
-        include/Scene/Nodes3D/Camera3D.h
-        Source/Scene/Tree.cpp
-        include/Scene/Tree.h
-        Source/Scene/Node.cpp
-        include/Scene/Node.h
-        Source/Scene/Nodes3D/Node3D.cpp
-        include/Scene/Nodes3D/Node3D.h
-        Source/Scene/Transform.cpp
-        include/Scene/Transform.h
+        Source/Node/Node3D/Camera3D.cpp
+        Include/Node/Node3D/Camera3D.h
+        Source/Node/Tree.cpp
+        Include/Node/Tree.h
+        Source/Node/Node.cpp
+        Include/Node/Node.h
+        Source/Node/Node3D/Node3D.cpp
+        Include/Node/Node3D/Node3D.h
+        Source/Node/Transform.cpp
+        Include/Node/Transform.h
         include/Math/Quaternion/Quaternion.h
-        Source/Scene/Nodes3D/Geometry/MeshInstance3D.cpp
-        include/Scene/Nodes3D/Geometry/MeshInstance3D.h
+        Source/Node/Node3D/Geometry/MeshInstance3D.cpp
+        Include/Node/Node3D/Geometry/MeshInstance3D.h
         Source/Render/GPUDisposalQueue.cpp
         include/Render/GPUDisposalQueue.h
         Source/Render/BatchRenderer.cpp
         include/Render/BatchRenderer.h
-        Source/Scene/Nodes3D/Geometry/MultiMeshInstance3D.cpp
-        include/Scene/Nodes3D/Geometry/MultiMeshInstance3D.h
+        Source/Node/Node3D/Geometry/MultiMeshInstance3D.cpp
+        Include/Node/Node3D/Geometry/MultiMeshInstance3D.h
         Source/Scene/Scene.cpp
-        Source/Scene/Nodes3D/VisualInstance3D.cpp
-        include/Scene/Nodes3D/VisualInstance3D.h
-        Source/Scene/Nodes3D/Geometry/GeometryInstance3D.cpp
-        include/Scene/Nodes3D/Geometry/GeometryInstance3D.h
-        Source/Scene/Nodes3D/Light/Light3D.cpp
-        include/Scene/Nodes3D/Light/Light3D.h
-        Source/Scene/Nodes3D/Light/PointLight3D.cpp
-        include/Scene/Nodes3D/Light/PointLight3D.h
-        Source/Scene/Nodes3D/Geometry/InstancedVisual3D.cpp
-        include/Scene/Nodes3D/Geometry/InstancedVisual3D.h
+        Source/Node/Node3D/VisualInstance3D.cpp
+        Include/Node/Node3D/VisualInstance3D.h
+        Source/Node/Node3D/Geometry/GeometryInstance3D.cpp
+        Include/Node/Node3D/Geometry/GeometryInstance3D.h
+        Source/Node/Node3D/Light/Light3D.cpp
+        Include/Node/Node3D/Light/Light3D.h
+        Source/Node/Node3D/Light/PointLight3D.cpp
+        Include/Node/Node3D/Light/PointLight3D.h
+        Source/Node/Node3D/Geometry/InstancedVisual3D.cpp
+        Include/Node/Node3D/Geometry/InstancedVisual3D.h
         Include/Render/SceneRenderData.h
         Include/Render/RenderGroup.h
         Source/UI/UISystem.cpp
@@ -105,6 +105,8 @@ set(SOURCES
         Include/Render/RenderStats.h
         Source/Win32Utils.cpp
         Include/Win32Utils.h
+        Source/Node/Node3D/Light/DirectionalLight3D.cpp
+        Include/Node/Node3D/Light/DirectionalLight3D.h
 )
 
 add_library(imgui STATIC

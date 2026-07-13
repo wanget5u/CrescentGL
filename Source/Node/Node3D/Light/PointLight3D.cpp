@@ -1,6 +1,6 @@
-#include "Scene/Nodes3D/Light/PointLight3D.h"
+#include "Node/Node3D/Light/PointLight3D.h"
 
-#include "Scene/Tree.h"
+#include "Node/Tree.h"
 
 namespace Crescent {
 

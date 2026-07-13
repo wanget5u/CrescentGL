@@ -2,9 +2,10 @@
 
 #include <sstream>
 #include <glad/glad.h>
+
 #include "Core/Log.h"
-#include "Util/FileOperations.h"
 #include "Render/GPUDisposalQueue.h"
+#include "Util/FileOperations.h"
 
 namespace Crescent {
 

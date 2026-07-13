@@ -1,5 +1,4 @@
-#include "Scene/Transform.h"
-#include "Scene/Nodes3D/Node3D.h"
+#include "Node/Transform.h"
 
 namespace Crescent {
 
@@ -76,6 +75,23 @@ void Transform::SetRotationEuler(Math::Vector3 const &newRotation) {
 	m_Rotation = Math::Quaternion::FromEulerAngles(newRotation);
 	m_EulerDirty = false;
 	MarkDirty();
+}
+
+Math::Vector3 Transform::GetRotationEulerDegrees() const noexcept {
+	Math::Vector3 const radians = GetRotationEuler();
+	return Math::Vector3(
+		Math::RadiansToDegrees(radians.x),
+		Math::RadiansToDegrees(radians.y),
+		Math::RadiansToDegrees(radians.z)
+	);
+}
+
+void Transform::SetRotationEulerDegrees(Math::Vector3 const &newRotationDegrees) {
+	SetRotationEuler(Math::Vector3(
+		Math::DegreesToRadians(newRotationDegrees.x),
+		Math::DegreesToRadians(newRotationDegrees.y),
+		Math::DegreesToRadians(newRotationDegrees.z)
+	));
 }
 
 Math::Matrix4x4& Transform::GetLocalMatrix() const noexcept {

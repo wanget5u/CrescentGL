@@ -72,6 +72,7 @@ void Application::Run() {
 		m_ActiveScene->UpdateCamera(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnUpdate(Time::GetVariableDeltaTime());
 		m_ActiveScene->OnRender(*m_MainWindow);
+		m_ActiveScene->OnRenderGUI();
 		UI::System::Instance().OnRenderGUI(Time::GetVariableDeltaTime());
 		RenderStats::Instance().CPUFrameTimeMs = static_cast<f32>((glfwGetTime() - cpuStartTime) * 1000.0f);
 		m_MainWindow->SwapBuffers();
@@ -98,6 +99,7 @@ void Application::OnRender() const {
 	m_ActiveScene->UpdateCamera(deltaTime);
 	m_ActiveScene->OnUpdate(deltaTime);
 	m_ActiveScene->OnRender(*m_MainWindow);
+	m_ActiveScene->OnRenderGUI();
 	UI::System::Instance().OnRenderGUI(deltaTime);
 	m_MainWindow->SwapBuffers();
 }

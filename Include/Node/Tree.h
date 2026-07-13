@@ -3,7 +3,7 @@
 
 #include "Core/Core.h"
 #include "Collection/DynamicList.h"
-#include "Scene/Node.h"
+#include "Node.h"
 
 namespace Crescent {
 	struct BatchRenderer;

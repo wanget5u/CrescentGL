@@ -1,4 +1,6 @@
-#include "Scene/Nodes3D/Node3D.h"
+#include "Node/Node3D/Node3D.h"
+
+#include "Node/Node.h"
 
 namespace Crescent {
 

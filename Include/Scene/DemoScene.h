@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Nodes3D/Light/PointLight3D.h"
+#include "Node/Node3D/Light/DirectionalLight3D.h"
+#include "Node/Node3D/Light/PointLight3D.h"
 #include "Render/Material/Material.h"
 #include "Scene/Scene.h"
 
@@ -18,12 +19,14 @@ struct DemoScene : Scene {
 	~DemoScene() override;
 	void OnUpdate(f32 deltaTime) override;
 	void OnRender(Window& window) override;
+	void OnRenderGUI() override;
 private:
 	std::shared_ptr<Mesh> m_BoxMesh{nullptr};
 	std::shared_ptr<Mesh> m_FloorMesh{nullptr};
 	MeshInstance3D* m_Cube{nullptr};
 	MultiMeshInstance3D* m_OrbitingCubes{nullptr};
 	DynamicList<PointLight3D*> m_PointLights{};
+	DirectionalLight3D* m_DirectionalLight{};
 	f32 m_TotalTime{0.0f};
 	f32 m_LastAspectRatio{0.0f};
 };

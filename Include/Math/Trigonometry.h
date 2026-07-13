@@ -10,6 +10,11 @@ constexpr Number DegreesToRadians(Number degrees) {
 	return degrees * (static_cast<Number>(PI) / static_cast<Number>(180));
 }
 
+template <typename Number> [[nodiscard]]
+constexpr Number RadiansToDegrees(Number radians) {
+	return radians * (static_cast<Number>(180) / static_cast<Number>(PI));
+}
+
 template <typename Number>
 constexpr void NormalizeAngle(Number& radians) {
 	const Number pi = static_cast<Number>(PI);

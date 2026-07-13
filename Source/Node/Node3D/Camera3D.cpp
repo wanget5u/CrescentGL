@@ -1,4 +1,4 @@
-#include "Scene/Nodes3D/Camera3D.h"
+#include "Node/Node3D/Camera3D.h"
 
 namespace Crescent {
 

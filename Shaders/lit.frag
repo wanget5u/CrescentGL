@@ -94,6 +94,19 @@ bool CalculatePointLightRadiance(PointLightRenderData light, vec3 worldPos, out 
     return true;
 }
 
+// Computes directional light radiance
+bool CalculateDirectionalLightRadiance(DirectionalLightRenderData light, out vec3 L, out float nDotL, vec3 normal, out vec3 radiance) {
+    L = normalize(-light.v3_Direction);
+    nDotL = max(dot(normal, L), 0.0);
+
+    if (nDotL <= 0.0) {
+        return false;
+    }
+
+    radiance = light.v3_Color * light.f32_Energy;
+    return true;
+}
+
 void main() {
     vec3  albedo    =     texture(tex_AlbedoMap,        v2_TextureCoordinate).rgb * v4_TintColor.rgb;
     float metallic  =     texture(tex_MetallicMap,      v2_TextureCoordinate).r   * f32_MetallicFactor;
@@ -120,6 +133,27 @@ void main() {
         vec3 radiance;
 
         if (CalculatePointLightRadiance(light, v3_WorldPosition, L, nDotL, normal, radiance) == false) {
+            continue;
+        }
+
+        // Cook-Torrance Specular & Diffuse
+        vec3 F;
+        vec3 specular = EvaluateCookTorranceSpecular(normal, viewDirection, L, a2, F0, nDotV, nDotL, F);
+
+        vec3 kS = F;
+        vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
+
+        Lo += (kD * albedo / PI + specular) * radiance * nDotL;
+    }
+
+    // Accumulate direct lighting from all directional lights in the scene
+    for (uint a = 0; a < u32_DirectionalLightCount; ++a) {
+        DirectionalLightRenderData light = u_DirectionalLights[a];
+        vec3 L;
+        float nDotL;
+        vec3 radiance;
+
+        if (CalculateDirectionalLightRadiance(light, L, nDotL, normal, radiance) == false) {
             continue;
         }
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "Scene/Node.h"
-#include "Scene/Transform.h"
+#include "Node/Node.h"
+#include "Node/Transform.h"
 
 namespace Crescent {
 /// Base class for all 3D objects in the scene graph

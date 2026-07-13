@@ -1,7 +1,7 @@
-#include "Scene/Nodes3D/Geometry/InstancedVisual3D.h"
+#include "Node/Node3D/Geometry/InstancedVisual3D.h"
 
+#include "Node/Tree.h"
 #include "Render/BatchRenderer.h"
-#include "Scene/Tree.h"
 
 namespace Crescent {
 
