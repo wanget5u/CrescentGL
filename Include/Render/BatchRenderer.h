@@ -14,6 +14,10 @@ namespace Crescent {
 	struct Camera3D;
 }
 
+namespace Crescent::GPU {
+	struct RenderData;
+}
+
 namespace Crescent {
 struct BatchRenderer {
 	explicit BatchRenderer();
@@ -52,6 +56,10 @@ private:
 	bool m_QueryIssued[FrameQueryCount]{false};
 	u32 m_GPUTimerQueryIDs[FrameQueryCount]{};
 	u32 m_CurrentQueryIndex{0};
+	void StartGPUQuery();
+	void EndGPUQuery();
+	void ResolveLight3DRenderGroup(GPU::RenderData& renderData, u16& lightCount);
+	void ResolveMeshInstance3DRenderGroup(Math::Vector3 const& cameraPosition);
 };
 template<typename T>
 RenderGroup<T>* BatchRenderer::GetRenderGroup() {
