@@ -70,7 +70,7 @@ DemoScene::DemoScene(std::string const& name) : Scene(name) {
 
     m_DirectionalLight = m_Tree->AddChild<DirectionalLight3D>("DirectionalLight3D");
     m_DirectionalLight->SetEnergy(1.5f);
-    m_DirectionalLight->SetColor(Math::Vector3(1.0f, 0.95f, 0.85f));
+    m_DirectionalLight->SetColor(Math::Vector3(1.0f, 0.85f, 0.65f));
     m_DirectionalLight->Transform.SetRotationEulerDegrees(Math::Vector3(-45.0f, -45.0f, 0.0f));
 
     MeshInstance3D* floor = m_Tree->AddChild<MeshInstance3D>("Floor");
@@ -156,7 +156,7 @@ void DemoScene::OnRender(Window& window) {
 }
 
 void DemoScene::OnRenderGUI() {
-    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImVec2 windowPosition = ImVec2(viewport->WorkPos.x, viewport->WorkPos.y + viewport->WorkSize.y / 2.0f);
     ImVec2 windowPivot = ImVec2(0.0f, 1.0f);
     ImGui::SetNextWindowPos(windowPosition, ImGuiCond_Always, windowPivot);
@@ -170,25 +170,24 @@ void DemoScene::OnRenderGUI() {
     if (ImGui::Begin("Light Controls", nullptr, flags)) {
         ImGui::Text("Directional Light");
         ImGui::Separator();
-        f32 energy = m_DirectionalLight->GetEnergy();
-        if (ImGui::SliderFloat("Energy", &energy, 0.0f, 10.0f, "%.2f")) {
-            m_DirectionalLight->SetEnergy(energy);
+        f32 lightEnergy = m_DirectionalLight->GetEnergy();
+        if (ImGui::SliderFloat("Energy", &lightEnergy, 0.0f, 10.0f, "%.2f") == true) {
+            m_DirectionalLight->SetEnergy(lightEnergy);
         }
         Math::Vector3 color = m_DirectionalLight->GetColor();
         f32 colorArray[3] = { color.x, color.y, color.z };
-        if (ImGui::ColorEdit3("Color", colorArray)) {
+        if (ImGui::ColorEdit3("Color", colorArray) == true) {
             m_DirectionalLight->SetColor(Math::Vector3(colorArray[0], colorArray[1], colorArray[2]));
         }
-        static Math::Vector3 s_InspectorEulerDegrees = m_DirectionalLight->Transform.GetRotationEulerDegrees();
+        Math::Vector3 s_InspectorEulerDegrees = m_DirectionalLight->Transform.GetRotationEulerDegrees();
         if (ImGui::IsItemActive() == false && ImGui::IsItemEdited()  == false) {
             s_InspectorEulerDegrees = m_DirectionalLight->Transform.GetRotationEulerDegrees();
         }
-        f32 rotArr[3] = { s_InspectorEulerDegrees.x, s_InspectorEulerDegrees.y, s_InspectorEulerDegrees.z };
-        if (ImGui::SliderFloat3("Rotation", rotArr, -180.0f, 180.0f, "%.1f")) {
-            s_InspectorEulerDegrees = Math::Vector3(rotArr[0], rotArr[1], rotArr[2]);
+        f32 rotationArray[3] = { s_InspectorEulerDegrees.x, s_InspectorEulerDegrees.y, s_InspectorEulerDegrees.z };
+        if (ImGui::SliderFloat3("Rotation", rotationArray, -180.0f, 180.0f, "%.1f") == true) {
+            s_InspectorEulerDegrees = Math::Vector3(rotationArray[0], rotationArray[1], rotationArray[2]);
             m_DirectionalLight->Transform.SetRotationEulerDegrees(s_InspectorEulerDegrees);
         }
-
     }
     ImGui::End();
 }
