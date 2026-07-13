@@ -45,33 +45,37 @@ void Material::Bind() const {
 		return;
 	}
 	activeShader->ShaderObject->Use();
-	activeShader->ShaderObject->TrySetVector4("u_TintColor", TintColor);
-	activeShader->ShaderObject->TrySetFloat("u_MetallicFactor", MetallicFactor);
-	activeShader->ShaderObject->TrySetFloat("u_RoughnessFactor", RoughnessFactor);
+	activeShader->ShaderObject->TrySetVector4("v4_TintColor", TintColor);
+	activeShader->ShaderObject->TrySetFloat("f32_MetallicFactor", MetallicFactor);
+	activeShader->ShaderObject->TrySetFloat("f32_RoughnessFactor", RoughnessFactor);
+	activeShader->ShaderObject->TrySetBool("b_PreserveUVCoordinates", PreserveUVCoordinates);
+	activeShader->ShaderObject->TrySetInt("u32_PreserveUVCoordinates", PreserveUVCoordinates ? 1 : 0);
+	activeShader->ShaderObject->TrySetVector2("v2_UVScale", UVScale);
+	activeShader->ShaderObject->TrySetVector2("v2_UVOffset", UVOffset);
 	BindAlbedoTexture(activeShader);
 	BindMetallicTexture(activeShader);
 	BindRoughnessTexture(activeShader);
 	BindNormalTexture(activeShader);
 	for (auto const& [name, value] : m_Bools) {
-		activeShader->ShaderObject->SetBool(name, value);
+		activeShader->ShaderObject->TrySetBool(name, value);
 	}
 	for (auto const& [name, value] : m_Ints) {
-		activeShader->ShaderObject->SetInt(name, value);
+		activeShader->ShaderObject->TrySetInt(name, value);
 	}
 	for (auto const& [name, value] : m_Floats) {
-		activeShader->ShaderObject->SetFloat(name, value);
+		activeShader->ShaderObject->TrySetFloat(name, value);
 	}
 	for (auto const& [name, value] : m_Vector2s) {
-		activeShader->ShaderObject->SetVector2(name, value);
+		activeShader->ShaderObject->TrySetVector2(name, value);
 	}
 	for (auto const& [name, value] : m_Vector3s) {
-		activeShader->ShaderObject->SetVector3(name, value);
+		activeShader->ShaderObject->TrySetVector3(name, value);
 	}
 	for (auto const& [name, value] : m_Vector4s) {
-		activeShader->ShaderObject->SetVector4(name, value);
+		activeShader->ShaderObject->TrySetVector4(name, value);
 	}
 	for (auto const& [name, value] : m_Matrix4x4s) {
-		activeShader->ShaderObject->SetMatrix4(name, value);
+		activeShader->ShaderObject->TrySetMatrix4(name, value);
 	}
 }
 
@@ -229,7 +233,7 @@ void Material::BindAlbedoTexture(std::shared_ptr<ShaderAsset> const& activeShade
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, AlbedoTexture != nullptr && AlbedoTexture->IsReady ? AlbedoTexture->TextureID : GetWhiteFallbackTexture());
 	if (activeShader != nullptr && activeShader->ShaderObject != nullptr) {
-		activeShader->ShaderObject->TrySetInt("u_AlbedoMap", 0);
+		activeShader->ShaderObject->TrySetInt("tex_AlbedoMap", 0);
 	}
 }
 
@@ -237,7 +241,7 @@ void Material::BindMetallicTexture(std::shared_ptr<ShaderAsset> const& activeSha
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, MetallicTexture != nullptr && MetallicTexture->IsReady ? MetallicTexture->TextureID : GetWhiteFallbackTexture());
 	if (activeShader != nullptr && activeShader->ShaderObject != nullptr) {
-		activeShader->ShaderObject->TrySetInt("u_MetallicMap", 1);
+		activeShader->ShaderObject->TrySetInt("tex_MetallicMap", 1);
 	}
 }
 
@@ -245,7 +249,7 @@ void Material::BindRoughnessTexture(std::shared_ptr<ShaderAsset> const& activeSh
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, RoughnessTexture != nullptr && RoughnessTexture->IsReady ? RoughnessTexture->TextureID : GetWhiteFallbackTexture());
 	if (activeShader != nullptr && activeShader->ShaderObject != nullptr) {
-		activeShader->ShaderObject->TrySetInt("u_RoughnessMap", 2);
+		activeShader->ShaderObject->TrySetInt("tex_RoughnessMap", 2);
 	}
 }
 
@@ -253,7 +257,7 @@ void Material::BindNormalTexture(std::shared_ptr<ShaderAsset> const& activeShade
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, NormalTexture != nullptr && NormalTexture->IsReady ? NormalTexture->TextureID : GetNormalFallbackTexture());
 	if (activeShader != nullptr && activeShader->ShaderObject != nullptr) {
-		activeShader->ShaderObject->TrySetInt("u_NormalMap", 3);
+		activeShader->ShaderObject->TrySetInt("tex_NormalMap", 3);
 	}
 }
 

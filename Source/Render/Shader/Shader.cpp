@@ -103,7 +103,7 @@ std::string Shader::ParseIncludes(const std::string_view source, std::unordered_
 			output << line << "\n";
 			continue;
 		}
-		// #include "Shaders/RenderData.glsl"
+		// #include "Shaders/SceneRenderData.glsl"
 		size_t start = line.find('"');
 		size_t end = line.find('"', start + 1);
 		if (start == std::string::npos || end == std::string::npos) {

@@ -35,7 +35,7 @@ struct Scene {
 	[[nodiscard]] bool IsUnlit() const;
 	[[nodiscard]] bool IsWireframe() const;
 protected:
-	constexpr static f32 MinCameraSpeed = 1.0f;
+	constexpr static f32 MinCameraSpeed = 0.1f;
 	constexpr static f32 DefaultCameraSpeed = 10.0f;
 	constexpr static f32 MaxCameraSpeed = 50.0f;
 	constexpr static f32 MinCameraFOV = 7.0f;

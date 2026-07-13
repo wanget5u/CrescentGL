@@ -7,7 +7,6 @@ enum class LightType {
 };
 struct Light3D : VisualInstance3D {
 	friend struct BatchRenderer;
-	constexpr static i32 MaxPointLightsPerDrawCall = 32;
 	Light3D() = default;
 	~Light3D() override = default;
 	void OnTreeEnter() override;

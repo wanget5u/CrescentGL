@@ -31,18 +31,10 @@ struct MultiMeshInstance3D : InstancedVisual3D {
 	void DrawInstanced() const;
 	void Draw() const override;
 private:
-	/// Verifies that the instance vertex array layouts match the data, rebuilding them if dirty
-	void CheckAndBuildInstanceVAO() const;
-	/// Source mesh asset blueprint
 	DynamicList<Math::Matrix4x4> m_Transforms{};
-	u32 m_InstanceVAO{0};
-	u32 m_InstanceVBO{0};
+	u32 m_InstanceSSBO{0};
 	u32 m_InstanceCount{0};
-	/// Maximum matrix capacity currently allocated on the GPU VBO
 	size_t m_InstanceBufferCapacity{0};
-	/// Tracks if VAO bindings need rebuilding
-	mutable bool m_InstanceVAODirty{true};
-	/// Tracks if CPU matrix array edits need syncing to the GPU
 	bool m_TransformsDirty{false};
 };
 }

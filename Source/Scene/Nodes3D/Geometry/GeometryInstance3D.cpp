@@ -3,6 +3,7 @@
 #include "Asset/AssetType.h"
 #include "Render/Mesh.h"
 #include "Render/Material/Material.h"
+#include "Render/Primitives/BoxMesh.h"
 
 namespace Crescent {
 
@@ -38,6 +39,9 @@ void GeometryInstance3D::SetMaterial(std::shared_ptr<Material> material) noexcep
 }
 
 std::shared_ptr<Material> GeometryInstance3D::GetMaterial() const noexcept {
+	if (m_Material == nullptr) {
+		return Material::GetDefaultMaterial();
+	}
 	return m_Material;
 }
 

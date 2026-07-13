@@ -1,11 +1,12 @@
 #version 460 core
+#include "Include/SceneRenderData.glsl"
+
 out vec4 FragColor;
 
 in vec2 v_TextureCoordinate;
 
-uniform sampler2D u_AlbedoMap;
-uniform vec4 u_TintColor;
+uniform sampler2D tex_AlbedoMap;
 
 void main() {
-	FragColor = texture(u_AlbedoMap, v_TextureCoordinate) * u_TintColor;
+	FragColor = texture(tex_AlbedoMap, v_TextureCoordinate) * v4_TintColor;
 }

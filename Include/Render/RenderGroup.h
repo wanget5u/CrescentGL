@@ -14,7 +14,7 @@ struct RenderGroup : IRenderGroup {
 	DynamicList<T*> Staged{};
 
 void Register(T* instance, const bool isBatchLoading) {
-	if (isBatchLoading) {
+	if (isBatchLoading == true) {
 		Staged.PushBack(instance);
 	}
 	else {
@@ -22,7 +22,7 @@ void Register(T* instance, const bool isBatchLoading) {
 	}
 }
 void Unregister(T* instance, const bool isBatchUnloading) {
-	if (isBatchUnloading) {
+	if (isBatchUnloading == true) {
 		for (size_t a = 0; a < Registered.GetSize(); ++a) {
 			if (Registered[a] == instance) {
 				Registered[a] = nullptr;

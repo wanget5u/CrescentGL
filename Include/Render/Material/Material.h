@@ -36,10 +36,13 @@ struct Material {
 	void TrySetVector3(std::string_view name, Math::Vector3 const& vector) const;
 	void TrySetVector4(std::string_view name, Math::Vector4 const& vector) const;
 	void TrySetMatrix4(std::string_view name, Math::Matrix4x4 const& matrix) const;
-	Math::Vector4				  TintColor		    {GetDefaultColor()};
-	f32							  MetallicFactor    {1.0f};
-	f32							  RoughnessFactor   {1.0f};
-	std::shared_ptr<ShaderAsset>  Shader            {nullptr};
+	Math::Vector4				  TintColor		        {GetDefaultColor()};
+	f32							  MetallicFactor        {1.0f};
+	f32							  RoughnessFactor       {1.0f};
+	bool						  PreserveUVCoordinates {false};
+	Math::Vector2				  UVScale               {1.0f, 1.0f};
+	Math::Vector2				  UVOffset              {0.0f, 0.0f};
+	std::shared_ptr<ShaderAsset>  Shader                {nullptr};
 	std::shared_ptr<TextureAsset> AlbedoTexture     {nullptr};
 	std::shared_ptr<TextureAsset> MetallicTexture   {nullptr};
 	std::shared_ptr<TextureAsset> RoughnessTexture  {nullptr};

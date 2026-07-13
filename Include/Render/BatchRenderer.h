@@ -15,52 +15,88 @@ namespace Crescent {
 }
 
 namespace Crescent::GPU {
-	struct RenderData;
+	struct PointLightRenderData;
+	struct SceneRenderData;
 }
 
 namespace Crescent {
+
 struct BatchRenderer {
+	// =========================================================================
+	// Lifecycle & Initialization
+	// =========================================================================
 	explicit BatchRenderer();
 	~BatchRenderer();
 	void InitializeBuffers();
-	void PrepareFrame(Camera3D const* camera);
-	///
+	void Clear();
+
+	// =========================================================================
+	// Registration & Batch Management
+	// =========================================================================
 	void BeginBatchLoad();
 	void EndBatchLoad();
 	void BeginBatchUnload();
 	void EndBatchUnload();
-	void Clear();
-	///
+
 	template <typename T>
 	RenderGroup<T>* GetRenderGroup();
-	/// Registration API (Called by Node3D inside OnTreeEnter() / OnTreeExit())
+
 	template <typename T>
 	void Register(T* instance);
+
 	template <typename T>
 	void Unregister(T* instance);
-	///
+
+	// =========================================================================
+	// Main Render Pipeline API
+	// =========================================================================
+	/// Issues the full frame rendering pipeline for the given camera
 	void RenderScene(Camera3D const* camera);
+
 private:
+	// =========================================================================
+	// Pipeline Steps: Frame Preparation & Resolvers
+	// =========================================================================
+	void PrepareFrame(Camera3D const* camera);
+	void ResolveLight3DRenderGroup(DynamicList<GPU::PointLightRenderData>& pointLights);
+	void ResolveMeshInstance3DRenderGroup(Math::Vector3 const& cameraPosition);
+	void SortPackets();
+
+	// =========================================================================
+	// Pipeline Steps: Drawing & Dispatch
+	// =========================================================================
+	void RenderPackets(DynamicList<RenderPacket> const& packets, u16& lastShaderID, u16& lastMaterialID) const;
+	void RenderInstancedGroups(u16& lastShaderID, u16& lastMaterialID);
+	void UploadMaterialData(Material const* material) const;
+
+	// =========================================================================
+	// GPU Timer Queries
+	// =========================================================================
+	void StartGPUQuery();
+	void EndGPUQuery();
+
+	// =========================================================================
+	// Internal State & GPU Buffers
+	// =========================================================================
 	bool m_IsBatchLoading{false};
 	bool m_IsBatchUnloading{false};
 	std::unordered_map<std::type_index, std::unique_ptr<IRenderGroup>> m_RenderGroups{};
+
 	DynamicList<RenderPacket> m_OpaquePackets{};
 	DynamicList<RenderPacket> m_TransparentPackets{};
-	///
-	u32 m_SceneDataUBO{0};
-	// TODO: IMPLEMENT SSBOs
+
+	u32 m_SceneUBO{0};
+	u32 m_PointLightSSBO{0};
 	u32 m_DirectionalLightSSBO{0};
-	u32 m_InstanceDataSSBO{0};
-	u32 m_MaterialDataUBO{0};
+	u32 m_InstanceSSBO{0};
+	u32 m_MaterialUBO{0};
+
 	static constexpr u32 FrameQueryCount = 10;
 	bool m_QueryIssued[FrameQueryCount]{false};
 	u32 m_GPUTimerQueryIDs[FrameQueryCount]{};
 	u32 m_CurrentQueryIndex{0};
-	void StartGPUQuery();
-	void EndGPUQuery();
-	void ResolveLight3DRenderGroup(GPU::RenderData& renderData, u16& lightCount);
-	void ResolveMeshInstance3DRenderGroup(Math::Vector3 const& cameraPosition);
 };
+
 template<typename T>
 RenderGroup<T>* BatchRenderer::GetRenderGroup() {
 	std::type_index typeIndex = typeid(T);
@@ -73,12 +109,15 @@ RenderGroup<T>* BatchRenderer::GetRenderGroup() {
 	}
 	return static_cast<RenderGroup<T>*>(it->second.get());
 }
+
 template<typename T>
 void BatchRenderer::Register(T* instance) {
 	GetRenderGroup<T>()->Register(instance, m_IsBatchLoading);
 }
+
 template<typename T>
 void BatchRenderer::Unregister(T* instance) {
 	GetRenderGroup<T>()->Unregister(instance, m_IsBatchLoading);
 }
+
 }

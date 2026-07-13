@@ -3,14 +3,15 @@
 #include <glad/glad.h>
 
 #include "Render/BatchRenderer.h"
+#include "Render/SceneRenderData.h"
 #include "Render/Material/Material.h"
 #include "Render/GPUDisposalQueue.h"
 
 namespace Crescent {
 
 MultiMeshInstance3D::MultiMeshInstance3D() {
-	glGenVertexArrays(1, &m_InstanceVAO);
-	glGenBuffers(1, &m_InstanceVBO);
+	glGenBuffers(1, &m_InstanceSSBO);
+	AddInstance(Math::Matrix4x4::GetIdentity());
 }
 
 MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<MeshAsset> meshAsset, std::shared_ptr<Material> material)
@@ -20,13 +21,9 @@ MultiMeshInstance3D::MultiMeshInstance3D(std::shared_ptr<MeshAsset> meshAsset, s
 }
 
 MultiMeshInstance3D::~MultiMeshInstance3D() {
-	if (m_InstanceVAO != 0) {
-		GPUDisposalQueue::SubmitVertexArrayForDeletion(m_InstanceVAO);
-		m_InstanceVAO = 0;
-	}
-	if (m_InstanceVBO != 0) {
-		GPUDisposalQueue::SubmitBufferForDeletion(m_InstanceVBO);
-		m_InstanceVBO = 0;
+	if (m_InstanceSSBO != 0) {
+		GPUDisposalQueue::SubmitBufferForDeletion(m_InstanceSSBO);
+		m_InstanceSSBO = 0;
 	}
 }
 
@@ -40,7 +37,6 @@ void MultiMeshInstance3D::OnTreeExit() {
 
 void MultiMeshInstance3D::SetMesh(std::shared_ptr<Mesh> proceduralMesh) noexcept {
 	GeometryInstance3D::SetMesh(std::move(proceduralMesh));
-	m_InstanceVAODirty = true;
 }
 
 void MultiMeshInstance3D::SetTransforms(DynamicList<Math::Matrix4x4> const& transforms) {
@@ -76,100 +72,49 @@ const DynamicList<Math::Matrix4x4>& MultiMeshInstance3D::GetTransforms() const n
 
 void MultiMeshInstance3D::UploadTransformsToGPU() {
 	m_InstanceCount = static_cast<u32>(m_Transforms.GetSize());
-	if (m_InstanceCount == 0 || m_InstanceVBO == 0) {
+	if (m_InstanceCount == 0 || m_InstanceSSBO == 0) {
 		m_TransformsDirty = false;
 		return;
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, m_InstanceVBO);
-	const size_t requiredBytes = m_Transforms.GetSizeInBytes();
+
+	DynamicList<GPU::InstanceRenderData> gpuInstances{};
+	gpuInstances.Reserve(m_Transforms.GetSize());
+	for (size_t a = 0; a < m_Transforms.GetSize(); ++a) {
+		GPU::InstanceRenderData instance{};
+		instance.WorldMatrix = m_Transforms[a];
+		instance.NormalMatrix = Math::Matrix4x4::Transpose(Math::Matrix4x4::Inverse(m_Transforms[a]));
+		instance.MaterialIndex = 0;
+		instance.ObjectID = static_cast<u32>(a);
+		gpuInstances.PushBack(instance);
+	}
+
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_InstanceSSBO);
+	const size_t requiredBytes = gpuInstances.GetSizeInBytes();
 	if (m_InstanceBufferCapacity < requiredBytes) {
-		glBufferData(GL_ARRAY_BUFFER, requiredBytes, m_Transforms.GetData(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, requiredBytes, gpuInstances.GetData(), GL_DYNAMIC_DRAW);
 		m_InstanceBufferCapacity = requiredBytes;
 	}
 	else {
-		glBufferSubData(GL_ARRAY_BUFFER, 0, requiredBytes, m_Transforms.GetData());
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, requiredBytes, gpuInstances.GetData());
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	m_TransformsDirty = false;
 }
 
 void MultiMeshInstance3D::DrawInstanced() const {
 	Mesh* gpuMesh = GetMesh();
-	if (gpuMesh == nullptr || m_InstanceCount == 0) {
+	if (gpuMesh == nullptr || gpuMesh->GetVAO() == 0 || m_InstanceCount == 0) {
 		return;
 	}
 	if (m_TransformsDirty == true) {
 		const_cast<MultiMeshInstance3D*>(this)->UploadTransformsToGPU();
 	}
-	if (m_InstanceVAODirty == true) {
-		CheckAndBuildInstanceVAO();
-	}
-	glBindVertexArray(m_InstanceVAO);
-	if (gpuMesh->GetIndexCount() > 0) {
-		glDrawElementsInstanced(
-			GL_TRIANGLES,
-			static_cast<i32>(gpuMesh->GetIndexCount()),
-			GL_UNSIGNED_INT,
-			nullptr,
-			static_cast<i32>(m_InstanceCount)
-		);
-	}
-	else {
-		glDrawArraysInstanced(
-			GL_TRIANGLES,
-			0,
-			static_cast<i32>(gpuMesh->GetVertexCount()),
-			static_cast<i32>(m_InstanceCount)
-		);
-	}
-	glBindVertexArray(0);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_InstanceSSBO);
+	gpuMesh->DrawInstanced(m_InstanceCount);
 }
 
 void MultiMeshInstance3D::Draw() const {
 	DrawInstanced();
-}
-
-void MultiMeshInstance3D::CheckAndBuildInstanceVAO() const {
-	Mesh* gpuMesh = GetMesh();
-	if (gpuMesh == nullptr || gpuMesh->GetVBO() == 0) {
-		return;
-	}
-	glBindVertexArray(m_InstanceVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, gpuMesh->GetVBO());
-	Mesh::VertexLayout const& layout = gpuMesh->GetLayout();
-	for (Mesh::VertexAttribute const& attribute : layout.VertexAttributes) {
-		glEnableVertexAttribArray(attribute.Location);
-		glVertexAttribPointer(
-			attribute.Location,
-			static_cast<i32>(attribute.ComponentCount),
-			attribute.Type,
-			GL_FALSE,
-			static_cast<i32>(layout.Stride),
-			reinterpret_cast<void*>(static_cast<uintptr_t>(attribute.Offset))
-		);
-	}
-	if (gpuMesh->GetEBO() != 0) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gpuMesh->GetEBO());
-	}
-	glBindBuffer(GL_ARRAY_BUFFER, m_InstanceVBO);
-	size_t vector4Size = sizeof(f32) * 4;
-	for (u8 a = 0; a < 4; ++a) {
-		glEnableVertexAttribArray(3 + a);
-		glVertexAttribPointer(
-			3 + a,
-			4,
-			GL_FLOAT,
-			GL_FALSE,
-			sizeof(Math::Matrix4x4),
-			reinterpret_cast<void*>(a * vector4Size)
-		);
-		glVertexAttribDivisor(3 + a, 1);
-	}
-	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	m_InstanceVAODirty = false;
-	Log::Info("MultiMeshInstance3D: Built m_InstanceVAO ({}) "
-		   "referencing base Mesh VBO ({}).", m_InstanceVAO, gpuMesh->GetVBO());
 }
 
 }

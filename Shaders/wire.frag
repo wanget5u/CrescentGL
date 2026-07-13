@@ -4,12 +4,16 @@ in vec3 v_Barycentric;
 out vec4 FragColor;
 
 void main() {
-    float f_thickness = 0.0001;
-    float f_closestEdge = min(v_Barycentric.x, min(v_Barycentric.y, v_Barycentric.z));
-    float f_width = fwidth(f_closestEdge);
-    float f_alpha = 1.0 - smoothstep(f_thickness, f_thickness + f_width, f_closestEdge);
+    vec3 dBary = fwidth(v_Barycentric);
+    vec3 pixelDist = v_Barycentric / max(dBary, vec3(0.00001));
+    float minEdgeDistPixels = min(pixelDist.x, min(pixelDist.y, pixelDist.z));
+
+    float lineThicknessPixels = 1.0;
+    float f_alpha = 1.0 - smoothstep(lineThicknessPixels - 0.5, lineThicknessPixels + 0.5, minEdgeDistPixels);
+
     if (f_alpha < 0.01) {
         discard;
     }
+
     FragColor = vec4(vec3(0.0), f_alpha);
 }

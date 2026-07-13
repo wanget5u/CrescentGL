@@ -17,7 +17,7 @@ struct Matrix4x4 {
 	[[nodiscard]] constexpr f32 const* GetData() const noexcept { return column0.data; }
 	[[nodiscard]] constexpr f32* GetData() noexcept { return column0.data; }
 
-	explicit constexpr Matrix4x4()
+	constexpr Matrix4x4()
 		: column0(1.0f, 0.0f, 0.0f, 0.0f)
 		, column1(0.0f, 1.0f, 0.0f, 0.0f)
 		, column2(0.0f, 0.0f, 1.0f, 0.0f)
@@ -47,6 +47,80 @@ struct Matrix4x4 {
 			Vector4(0.0f, 0.0f, 1.0f, 0.0f),
 			Vector4(0.0f, 0.0f, 0.0f, 1.0f)
 		);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 Transpose(Matrix4x4 const& m) noexcept {
+		return Matrix4x4(
+			Vector4(m.column0.x, m.column1.x, m.column2.x, m.column3.x),
+			Vector4(m.column0.y, m.column1.y, m.column2.y, m.column3.y),
+			Vector4(m.column0.z, m.column1.z, m.column2.z, m.column3.z),
+			Vector4(m.column0.w, m.column1.w, m.column2.w, m.column3.w)
+		);
+	}
+	[[nodiscard]] constexpr Matrix4x4 Transposed() const noexcept {
+		return Transpose(*this);
+	}
+	[[nodiscard]] static constexpr Matrix4x4 Inverse(Matrix4x4 const& m) noexcept {
+		f32 const coef00 = m.column2.z * m.column3.w - m.column3.z * m.column2.w;
+		f32 const coef02 = m.column1.z * m.column3.w - m.column3.z * m.column1.w;
+		f32 const coef03 = m.column1.z * m.column2.w - m.column2.z * m.column1.w;
+
+		f32 const coef04 = m.column2.y * m.column3.w - m.column3.y * m.column2.w;
+		f32 const coef06 = m.column1.y * m.column3.w - m.column3.y * m.column1.w;
+		f32 const coef07 = m.column1.y * m.column2.w - m.column2.y * m.column1.w;
+
+		f32 const coef08 = m.column2.y * m.column3.z - m.column3.y * m.column2.z;
+		f32 const coef10 = m.column1.y * m.column3.z - m.column3.y * m.column1.z;
+		f32 const coef11 = m.column1.y * m.column2.z - m.column2.y * m.column1.z;
+
+		f32 const coef12 = m.column2.x * m.column3.w - m.column3.x * m.column2.w;
+		f32 const coef14 = m.column1.x * m.column3.w - m.column3.x * m.column1.w;
+		f32 const coef15 = m.column1.x * m.column2.w - m.column2.x * m.column1.w;
+
+		f32 const coef16 = m.column2.x * m.column3.z - m.column3.x * m.column2.z;
+		f32 const coef18 = m.column1.x * m.column3.z - m.column3.x * m.column1.z;
+		f32 const coef19 = m.column1.x * m.column2.z - m.column2.x * m.column1.z;
+
+		f32 const coef20 = m.column2.x * m.column3.y - m.column3.x * m.column2.y;
+		f32 const coef22 = m.column1.x * m.column3.y - m.column3.x * m.column1.y;
+		f32 const coef23 = m.column1.x * m.column2.y - m.column2.x * m.column1.y;
+
+		Vector4 const fac0(coef00, coef00, coef02, coef03);
+		Vector4 const fac1(coef04, coef04, coef06, coef07);
+		Vector4 const fac2(coef08, coef08, coef10, coef11);
+		Vector4 const fac3(coef12, coef12, coef14, coef15);
+		Vector4 const fac4(coef16, coef16, coef18, coef19);
+		Vector4 const fac5(coef20, coef20, coef22, coef23);
+
+		Vector4 const vec0(m.column1.x, m.column0.x, m.column0.x, m.column0.x);
+		Vector4 const vec1(m.column1.y, m.column0.y, m.column0.y, m.column0.y);
+		Vector4 const vec2(m.column1.z, m.column0.z, m.column0.z, m.column0.z);
+		Vector4 const vec3(m.column1.w, m.column0.w, m.column0.w, m.column0.w);
+
+		Vector4 const inv0(vec1 * fac0 - vec2 * fac1 + vec3 * fac2);
+		Vector4 const inv1(vec0 * fac0 - vec2 * fac3 + vec3 * fac4);
+		Vector4 const inv2(vec0 * fac1 - vec1 * fac3 + vec3 * fac5);
+		Vector4 const inv3(vec0 * fac2 - vec1 * fac4 + vec2 * fac5);
+
+		Vector4 const signA(+1.0f, -1.0f, +1.0f, -1.0f);
+		Vector4 const signB(-1.0f, +1.0f, -1.0f, +1.0f);
+
+		Matrix4x4 inv(inv0 * signA, inv1 * signB, inv2 * signA, inv3 * signB);
+
+		Vector4 const row0(inv.column0.x, inv.column1.x, inv.column2.x, inv.column3.x);
+
+		Vector4 const dot0(m.column0 * row0);
+		f32 const dot1 = (dot0.x + dot0.y) + (dot0.z + dot0.w);
+
+		if (Math::IsNearlyZero(dot1)) {
+			Log::Warning("Matrix4x4 inverse failed: Determinant is zero.");
+			return GetIdentity();
+		}
+
+		f32 const rDet = 1.0f / dot1;
+		return inv * rDet;
+	}
+	[[nodiscard]] constexpr Matrix4x4 Inversed() const noexcept {
+		return Inverse(*this);
 	}
 	[[nodiscard]] static constexpr Matrix4x4 GetTranslation(Vector3 const& position) noexcept {
 		return Matrix4x4(

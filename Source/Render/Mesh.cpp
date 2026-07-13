@@ -87,23 +87,12 @@ void Mesh::DrawInstanced(const u32 instanceCount) const {
 	}
 	Bind();
 	if (m_IndexCount) {
-		glDrawElementsInstanced(
-			GL_TRIANGLES,
-			static_cast<i32>(m_IndexCount),
-			GL_UNSIGNED_INT,
-			nullptr,
-			instanceCount
-		);
+		glDrawElementsInstanced(GL_TRIANGLES, static_cast<i32>(m_IndexCount), GL_UNSIGNED_INT, nullptr, instanceCount);
 		RenderStats::Instance().TriangleCount += (m_IndexCount / 3) * instanceCount;
 		RenderStats::Instance().VertexCount += m_VertexCount * instanceCount;
 	}
 	else {
-		glDrawArraysInstanced(
-			GL_TRIANGLES,
-			0,
-			static_cast<i32>(m_VertexCount),
-			instanceCount
-		);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, static_cast<i32>(m_VertexCount), instanceCount);
 		RenderStats::Instance().TriangleCount += (m_VertexCount / 3) * instanceCount;
 		RenderStats::Instance().VertexCount += m_VertexCount * instanceCount;
 	}

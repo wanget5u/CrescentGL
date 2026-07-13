@@ -86,7 +86,7 @@ set(SOURCES
         include/Scene/Nodes3D/Light/PointLight3D.h
         Source/Scene/Nodes3D/Geometry/InstancedVisual3D.cpp
         include/Scene/Nodes3D/Geometry/InstancedVisual3D.h
-        Include/Render/RenderData.h
+        Include/Render/SceneRenderData.h
         Include/Render/RenderGroup.h
         Source/UI/UISystem.cpp
         Include/UI/UISystem.h

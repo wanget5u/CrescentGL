@@ -26,7 +26,7 @@ void MeshInstance3D::Draw(Math::Matrix4x4 const& worldMatrix) const {
 	if (gpuMesh == nullptr || m_Material == nullptr) {
 		return;
 	}
-	m_Material->SetMatrix4("u_Model", worldMatrix);
+	m_Material->SetMatrix4("m4_Model", worldMatrix);
 	gpuMesh->Bind();
 	gpuMesh->Draw();
 }

@@ -73,14 +73,21 @@ void Scene::UpdateCamera(const f32 deltaTime) const {
 }
 
 void Scene::SetSceneMaterial(std::shared_ptr<Material> material) {
-	m_Material = material;
+	if (material == nullptr || material->Shader == nullptr) {
+		return;
+	}
 	if (m_Tree != nullptr && m_Tree->GetRoot() != nullptr) {
-		m_Tree->GetRoot()->ForEachDescendant([material](Node* node) {
+		m_Tree->GetRoot()->ForEachDescendant([this, material](Node* node) {
 			if (GeometryInstance3D* geometryInstance3D = dynamic_cast<GeometryInstance3D*>(node)) {
-				if (geometryInstance3D->GetMaterialOverride() != nullptr) {
-					geometryInstance3D->SetMaterialOverride(material);
-				} else if (geometryInstance3D->GetMaterial() != nullptr) {
-					geometryInstance3D->SetMaterial(material);
+				std::shared_ptr<Material> activeMaterial = geometryInstance3D->GetMaterialOverride();
+				if (activeMaterial == nullptr) {
+					activeMaterial = geometryInstance3D->GetMaterial();
+				}
+				if (activeMaterial != nullptr &&
+					activeMaterial != m_LitMaterial &&
+					activeMaterial != m_UnlitMaterial &&
+					activeMaterial != m_WireframeMaterial) {
+					activeMaterial->Shader = material->Shader;
 				} else {
 					geometryInstance3D->SetMaterialOverride(material);
 				}
@@ -263,7 +270,7 @@ void Scene::SetupDefaultMaterials() {
 	shaderAsset = AssetLoader::Instance()
 		.GetOrLoad<ShaderAsset>("Shaders/lit", AssetType::Shader);
 	m_LitMaterial = std::make_shared<Material>(shaderAsset);
-	m_Material = m_LitMaterial;
+	m_Material = std::make_shared<Material>(shaderAsset);
 }
 
 }
